@@ -168,8 +168,8 @@
             let createShape = function(type, startPos) {
                 let Shape = {
                     type : type,
-                    start : startPos,
-                    end : startPos
+                    // start : startPos,
+                    // end : startPos
                 };
                 Shape.el = createElement(type);
                 if (type === "path") {
@@ -223,40 +223,40 @@
                 };
                 if (Shape.type === "path") {
                     let path = parsePath(el.getAttribute("d"));
-                    for (let m in path) {
-                        if (path[m].command == "M") {
-                            //Shape.start = path[0].params[0]
-                            Shape.start = {
-                                left : path[m].params[0],
-                                top : path[m].params[1]
-                            }
-                        }
-                        if (path[m].command == "L") {
-                            //Shape.end = path[1].params[0]
-                            Shape.end = {
-                                left : path[m].params[0],
-                                top : path[m].params[1]
-                            }
-                        }
-                    }
+                    // for (let m in path) {
+                    //     if (path[m].command == "M") {
+                    //         //Shape.start = path[0].params[0]
+                    //         Shape.start = {
+                    //             left : path[m].params[0],
+                    //             top : path[m].params[1]
+                    //         }
+                    //     }
+                    //     if (path[m].command == "L") {
+                    //         //Shape.end = path[1].params[0]
+                    //         Shape.end = {
+                    //             left : path[m].params[0],
+                    //             top : path[m].params[1]
+                    //         }
+                    //     }
+                    // }
                     Shape.d = path;
                 } else if (Shape.type === "circle") {
 
-                    Shape.end = {
-                        left : +el.getAttribute("cx"),
-                        top : +el.getAttribute("cy")
-                    };
-                    Shape.start = Shape.end;
+                    // Shape.end = {
+                    //     left : +el.getAttribute("cx"),
+                    //     top : +el.getAttribute("cy")
+                    // };
+                    // Shape.start = Shape.end;
                     Shape.r = +el.getAttribute("r");
                     Shape.cx = +el.getAttribute("cx");
                     Shape.cy = +el.getAttribute("cy");
 
                 } else if (Shape.type === "ellipse") {
-                    Shape.end = {
-                        left : +el.getAttribute("cx"),
-                        top : +el.getAttribute("cy")
-                    };
-                    Shape.start = Shape.end;
+                    // Shape.end = {
+                    //     left : +el.getAttribute("cx"),
+                    //     top : +el.getAttribute("cy")
+                    // };
+                    // Shape.start = Shape.end;
                     Shape.rx = +el.getAttribute("rx");
                     Shape.ry = +el.getAttribute("ry");
                     Shape.cx = +el.getAttribute("cx");
@@ -333,14 +333,29 @@
 
                 let testProximity = function(pos, c){
                     // let d = getProximity(pos, c);
+
+                    let start = {};
+                    let end = {};
+
+                    for (let m in c.d) {
+                        if (c.d[m].command == "M") {
+                            start["left"] = c.d[m].params[0];
+                            start["top"] = c.d[m].params[1];
+                        }
+                        if (c.d[m].command == "L") {
+                            end["left"] = c.d[m].params[0];
+                            end["top"] = c.d[m].params[1];
+                        }
+                    }
+
                     let d = {
-                        start : getDistance(pos, c.start),
-                        end : getDistance(pos, c.end)
+                        start : getDistance(pos, start),
+                        end : getDistance(pos, end)
                     }
                     if (d.start < d.end && d.start < 10) {
-                        return [c.start, c.end];
+                        return [start, end];
                     } else if (d.end < 10) {
-                        return [c.end, c.start];
+                        return [end, start];
                     } else {
                         return null;
                     }
@@ -378,8 +393,19 @@
 
                         Shape = getShape(edges[0].shape);
 
-                        Shape.start = edges[0].path[1];
-                        Shape.end = edges[0].path[0];
+                        for (let m in Shape.d) {
+                            if (Shape.d[m].command == "M") {
+                                Shape.d[m].params[0] = edges[0].path[1].left;
+                                Shape.d[m].params[1] = edges[0].path[1].top;
+                            }
+                            if (Shape.d[m].command == "L") {
+                                Shape.d[m].params[0] = edges[0].path[0].left;
+                                Shape.d[m].params[1] = edges[0].path[0].top;
+                            }
+                        }
+
+                        // Shape.start = edges[0].path[1];
+                        // Shape.end = edges[0].path[0];
 
                     }
 
@@ -396,7 +422,7 @@
                             left:Shape.cx,
                             top:Shape.cy
                         }) < 5) {
-                            Shape.start = Shape.end;//Reset
+                            // Shape.start = Shape.end;//Reset
                             resizing = 1;
                         } else {
                             moving = 1;
@@ -421,7 +447,7 @@
                             left:Shape.cx,
                             top:Shape.cy
                         }) < 5) {
-                            Shape.start = Shape.end;//Reset
+                            // Shape.start = Shape.end;//Reset
                             resizing = 1;
                         } else {
                             moving = 1;
@@ -462,10 +488,10 @@
                                 }
                             });
 
-                            Shape.start.left += diff.left;
-                            Shape.start.top += diff.top;
-                            Shape.end.left += diff.left;
-                            Shape.end.top += diff.top;
+                            // Shape.start.left += diff.left;
+                            // Shape.start.top += diff.top;
+                            // Shape.end.left += diff.left;
+                            // Shape.end.top += diff.top;
 
                         } else {
 
@@ -492,7 +518,7 @@
                                 });
                             }
 
-                            Shape.end = pos;
+                            //Shape.end = pos;
 
                         }
 
@@ -501,9 +527,9 @@
                             return command.command + ' ' + command.params.join(',');
                         }).join(' ');
 
-                        //Shape.el.setAttribute("d", d);
+                        Shape.el.setAttribute("d", d);
 
-                        Shape.el.setAttribute("d", "M" + Shape.start.left + " " + Shape.start.top + " " + "L" + Shape.end.left + " " + Shape.end.top);
+                        // Shape.el.setAttribute("d", "M" + Shape.start.left + " " + Shape.start.top + " " + "L" + Shape.end.left + " " + Shape.end.top);
 
                     } else if (Shape.type === "circle") {
 
@@ -571,8 +597,8 @@
                             Shape.cx += diff.left/2;
                             Shape.cy += diff.top/2;
 
-                            Shape.end.left += diff.left/2;
-                            Shape.end.top += diff.top/2;
+                            // Shape.end.left += diff.left/2;
+                            // Shape.end.top += diff.top/2;
 
                             Shape.el.setAttribute("rx", Shape.rx);
                             Shape.el.setAttribute("ry", Shape.ry);
