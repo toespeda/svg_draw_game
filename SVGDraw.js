@@ -4,7 +4,7 @@ class SVGDraw {
 
     shapes = [];
 
-    type = "ellipse";
+    type = "line";
 
     draw = 0;
 
@@ -170,6 +170,8 @@ class SVGDraw {
 
             let move = (e) => {
 
+
+
                 let pos = getPos(e);
 
                 let diff = {
@@ -288,6 +290,27 @@ class SVGDraw {
 
                     }
 
+                } else if (Shape.type === "line") {
+
+                    if (moving) {
+
+                        Shape.x1 += diff.left;
+                        Shape.y1 += diff.top;
+                        Shape.x2 += diff.left;
+                        Shape.y2 += diff.top;
+
+                    } else {
+
+                        Shape.x2 = pos.left;
+                        Shape.y2 = pos.top;
+
+                        Shape.el.setAttribute("x1", Shape.x1);
+                        Shape.el.setAttribute("y1", Shape.y1);
+
+                        Shape.el.setAttribute("x2", Shape.x2);
+                        Shape.el.setAttribute("y2", Shape.y2);
+                    }
+
                 }
 
             };
@@ -376,9 +399,7 @@ class SVGDraw {
 
     removeShape(index) {
         let Shape = this.shapes[index];
-
         Shape.el.remove();
-
         this.shapes.splice(index, 1);
     }
 
@@ -402,6 +423,11 @@ class SVGDraw {
             el.setAttribute("cy",0);
             el.setAttribute("rx",0);
             el.setAttribute("ry",0);
+        } else if (type === "line") {
+            el.setAttribute("x1",0);
+            el.setAttribute("x2",0);
+            el.setAttribute("y1",0);
+            el.setAttribute("y2",0);
         }
         return el;
     }
@@ -434,6 +460,13 @@ class SVGDraw {
             }
             Shape.rx = null;
             Shape.ry = null;
+        } else if (type === "line") {
+            if (startPos) {
+                Shape.x1 = startPos.left;
+                Shape.y1 = startPos.top;
+            }
+            Shape.x2 = null;
+            Shape.y2 = null;
         }
         this.svg.appendChild(Shape.el);
         return Shape;
@@ -457,6 +490,11 @@ class SVGDraw {
             Shape.ry = +el.getAttribute("ry");
             Shape.cx = +el.getAttribute("cx");
             Shape.cy = +el.getAttribute("cy");
+        } else if (Shape.type === "line") {
+            Shape.x1 = +el.getAttribute("x1");
+            Shape.y1 = +el.getAttribute("y1");
+            Shape.x2 = +el.getAttribute("x2");
+            Shape.y2 = +el.getAttribute("y2");
         }
 
         console.log(Shape);
