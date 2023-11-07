@@ -57,6 +57,10 @@
 
 
         <ol id="layers"></ol>
+
+
+
+
         <div id="examples">
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
                 <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80"></path>
@@ -82,6 +86,7 @@
             </svg>
         </div>
         <div id="controllers">
+            <button id="reverse">Reverse</button>
             <button id="play">Play</button>
         </div>
 
@@ -99,13 +104,16 @@
             document.addEventListener("keyup", (e) => {
 
                 if (e.key === "1") {
-                    Draw.type = "path";
+                    Draw.type = "line";
                 }
                 if (e.key === "2") {
                     Draw.type = "circle";
                 }
                 if (e.key === "3") {
                     Draw.type = "ellipse";
+                }
+                if (e.key === "4") {
+                    Draw.type = "path";
                 }
                 if (e.key === "l") {
                     Draw.draw = 1;
@@ -131,23 +139,31 @@
 
             }, false);
 
-
             svg.addEventListener("added", (e) => {
                 let b = document.createElement('li');
                 b.innerHTML = e.detail.type + '<span class="remove">x</span>';
                 layers.appendChild(b);
             }, false);
 
+            document.querySelector("#reverse").addEventListener("click", e => {
+                e.preventDefault();
+                Draw.reverseOrder();
+                for (var i = 1; i < layers.childNodes.length; i++){
+                    layers.insertBefore(layers.childNodes[i], layers.firstChild);
+                }
+            });
+
             document.querySelector("#play").addEventListener("click", e => {
                 e.preventDefault();
+                let shapes = [...svg.children];
                 [...layers.children].forEach(el => {
                     el.style.fontWeight = "";
                 });
                 let play = e.target;
                 if (play.innerText==="Stop") {
                     play.innerText = "Play";
-                    shapes.forEach(e=>{
-                        e.el.setAttribute("opacity","1");
+                    shapes.forEach(el=>{
+                        el.setAttribute("opacity","1");
                     });
                     play.nextSibling.remove();
                     [...layers.children].forEach(el => {
@@ -155,15 +171,15 @@
                     });
                 } else {
                     play.innerText = "Stop";
-                    shapes.forEach(e=>{
-                        e.el.setAttribute("opacity",".3");
+                    shapes.forEach(el=>{
+                        el.setAttribute("opacity",".3");
                     });
                     let i = 0;
                     let next = document.createElement("button");
                     next.innerText = "Next";
                     play.parentNode.insertBefore(next, play.nextSibling);
                     next.addEventListener("click", e => {
-                        shapes[i].el.setAttribute("opacity","1");
+                        shapes[i].setAttribute("opacity","1");
                         layers.children[i].style.fontWeight = "bold";
                         if (!shapes[++i]) {
                             next.remove();

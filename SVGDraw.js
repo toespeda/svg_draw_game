@@ -34,26 +34,45 @@ class SVGDraw {
             let paths = svg.querySelectorAll("path");
 
             let testProximity = (pos, c) => {
-                // let d = getProximity(pos, c);
 
-                let start = {};
-                let end = {};
+                if (!c.type.match(/(path|line)/)) {
+                    return null;
+                }
 
-                for (let m in c.d) {
-                    if (c.d[m].command == "M") {
-                        start["left"] = c.d[m].params[0];
-                        start["top"] = c.d[m].params[1];
+                let start = null;
+                let end = null;
+
+                if (c.type === "path") {
+                    for (let m in c.d) {
+                        if (c.d[m].command == "M") {
+                            start = {
+                                left : c.d[m].params[0],
+                                top : c.d[m].params[1]
+                            };
+                        }
+                        if (c.d[m].command == "L") {
+                            end = {
+                                left : c.d[m].params[0],
+                                top : c.d[m].params[1]
+                            };
+                        }
                     }
-                    if (c.d[m].command == "L") {
-                        end["left"] = c.d[m].params[0];
-                        end["top"] = c.d[m].params[1];
-                    }
+                } else if (c.type === "line") {
+                    start = {
+                        left : c.x1,
+                        top : c.y1
+                    };
+                    end = {
+                        left : c.x2,
+                        top : c.y2
+                    };
                 }
 
                 let d = {
                     start : this.getDistance(pos, start),
                     end : this.getDistance(pos, end)
                 }
+
                 if (d.start < d.end && d.start < 10) {
                     return [start, end];
                 } else if (d.end < 10) {
@@ -65,14 +84,12 @@ class SVGDraw {
 
             let getEdges = (pos, shape) => {
                 let s = [];
-                for (let i = 0; i < paths.length; i++) {
-                    let el = paths[i];
-                    if (!shape || el !== shape) {
-                        let c = this.getShapeByElement(el);
-                        let proximity = c ? testProximity(pos, c) : null;
+                for (let i = 0; i < this.shapes.length; i++) {
+                    if (!shape || this.shapes[i].el !== shape) {
+                        let proximity = testProximity(pos, this.shapes[i]);
                         if (proximity) {
                             s.push({
-                                shape : el,
+                                shape : this.shapes[i],
                                 path : proximity
                             });
                         }
@@ -87,27 +104,32 @@ class SVGDraw {
 
                 if (this.draw) {
 
-                    //Shape.start = edges[0].path[0];
                     Shape = this.createShape(this.type, edges[0].path[0]);
                     this.addShape(Shape);
 
-                } else if (this.type === edges[0].shape.nodeName) {
+                } else if (this.type === edges[0].shape.type) {
 
-                    Shape = this.getShapeByElement(edges[0].shape);
+                    Shape = edges[0].shape;
 
-                    for (let m in Shape.d) {
-                        if (Shape.d[m].command == "M") {
-                            Shape.d[m].params[0] = edges[0].path[1].left;
-                            Shape.d[m].params[1] = edges[0].path[1].top;
+                    // Closest first
+                    if (Shape.type === "path") {
+                        for (let m in Shape.d) {
+                            if (Shape.d[m].command == "M") {
+                                Shape.d[m].params[0] = edges[0].path[1].left;
+                                Shape.d[m].params[1] = edges[0].path[1].top;
+                            }
+                            if (Shape.d[m].command == "L") {
+                                Shape.d[m].params[0] = edges[0].path[0].left;
+                                Shape.d[m].params[1] = edges[0].path[0].top;
+                            }
                         }
-                        if (Shape.d[m].command == "L") {
-                            Shape.d[m].params[0] = edges[0].path[0].left;
-                            Shape.d[m].params[1] = edges[0].path[0].top;
-                        }
+                    } else if (Shape.type === "line") {
+                        Shape.x1 = edges[0].path[1].left;
+                        Shape.y1 = edges[0].path[1].top;
+                        Shape.x2 = edges[0].path[0].left;
+                        Shape.y2 = edges[0].path[0].top;
                     }
 
-                    // Shape.start = edges[0].path[1];
-                    // Shape.end = edges[0].path[0];
 
                 }
 
@@ -117,14 +139,10 @@ class SVGDraw {
 
                 if (Shape.type === "circle") {
 
-                    // console.log("Shape", Shape);
-                    // console.log("Shape.end", Shape.end);
-
                     if (Shape.r - this.getDistance(startPos, {
                         left:Shape.cx,
                         top:Shape.cy
                     }) < 5) {
-                        // Shape.start = Shape.end;//Reset
                         resizing = 1;
                     } else {
                         moving = 1;
@@ -149,7 +167,6 @@ class SVGDraw {
                         left:Shape.cx,
                         top:Shape.cy
                     }) < 5) {
-                        // Shape.start = Shape.end;//Reset
                         resizing = 1;
                     } else {
                         moving = 1;
@@ -169,8 +186,6 @@ class SVGDraw {
             }
 
             let move = (e) => {
-
-
 
                 let pos = getPos(e);
 
@@ -292,6 +307,12 @@ class SVGDraw {
 
                 } else if (Shape.type === "line") {
 
+                    let edges = getEdges(pos, Shape.el);
+
+                    if (edges.length) {
+                        pos = edges[0].path[0];
+                    }
+
                     if (moving) {
 
                         Shape.x1 += diff.left;
@@ -303,7 +324,6 @@ class SVGDraw {
 
                         Shape.x2 = pos.left;
                         Shape.y2 = pos.top;
-
 
                     }
 
@@ -518,6 +538,13 @@ class SVGDraw {
         let startx = a.left - b.left;
         let starty = a.top - b.top;
         return Math.sqrt(startx*startx+starty*starty);
+    }
+
+    reverseOrder() {
+        for (var i = 1; i < this.svg.childNodes.length; i++){
+            this.svg.insertBefore(this.svg.childNodes[i], this.svg.firstChild);
+        }
+        this.shapes.reverse();
     }
 
 
