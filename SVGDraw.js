@@ -68,7 +68,7 @@ class SVGDraw {
                 for (let i = 0; i < paths.length; i++) {
                     let el = paths[i];
                     if (!shape || el !== shape) {
-                        let c = this.getShape(el);
+                        let c = this.getShapeByElement(el);
                         let proximity = c ? testProximity(pos, c) : null;
                         if (proximity) {
                             s.push({
@@ -93,7 +93,7 @@ class SVGDraw {
 
                 } else if (this.type === edges[0].shape.nodeName) {
 
-                    Shape = this.getShape(edges[0].shape);
+                    Shape = this.getShapeByElement(edges[0].shape);
 
                     for (let m in Shape.d) {
                         if (Shape.d[m].command == "M") {
@@ -111,9 +111,9 @@ class SVGDraw {
 
                 }
 
-            } else if (!this.draw && e.target.nodeName.match(/(path|circle|ellipse)/)) {
+            } else if (!this.draw && e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
 
-                Shape = this.getShape(e.target);
+                Shape = this.getShapeByElement(e.target);
 
                 if (Shape.type === "circle") {
 
@@ -304,12 +304,14 @@ class SVGDraw {
                         Shape.x2 = pos.left;
                         Shape.y2 = pos.top;
 
-                        Shape.el.setAttribute("x1", Shape.x1);
-                        Shape.el.setAttribute("y1", Shape.y1);
 
-                        Shape.el.setAttribute("x2", Shape.x2);
-                        Shape.el.setAttribute("y2", Shape.y2);
                     }
+
+                    Shape.el.setAttribute("x1", Shape.x1);
+                    Shape.el.setAttribute("y1", Shape.y1);
+
+                    Shape.el.setAttribute("x2", Shape.x2);
+                    Shape.el.setAttribute("y2", Shape.y2);
 
                 }
 
@@ -496,17 +498,20 @@ class SVGDraw {
             Shape.x2 = +el.getAttribute("x2");
             Shape.y2 = +el.getAttribute("y2");
         }
-
         console.log(Shape);
         return Shape;
     }
 
-    getShape(el){
+    getShapeByElement(el){
         for (let i = 0; i < this.shapes.length; i++) {
             if (this.shapes[i].el === el) {
                 return this.shapes[i];
             }
         }
+    }
+
+    getShapeByIndex(index){
+        return index > -1 ? this.shapes[index] : null;
     }
 
     getDistance(a, b){

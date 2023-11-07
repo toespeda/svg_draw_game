@@ -185,19 +185,16 @@
             });
 
             layers.addEventListener("mouseover", (e) => {
-                let index = [...layers.childNodes].indexOf(e.target);
-                if (index > -1) {
-                    let shape = shapes[index];
-                    shape.el.setAttribute("stroke","#ff0000");
+                let shape = Draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
+                if (shape) {
+                    shape.el.setAttribute("stroke", "#ff0000")
                 }
-
             });
 
             layers.addEventListener("mouseout", (e) => {
-                let index = [...layers.childNodes].indexOf(e.target);
-                if (index > -1) {
-                    let shape = shapes[index];
-                    shape.el.setAttribute("stroke", "#000000");
+                let shape = Draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
+                if (shape) {
+                    shape.el.setAttribute("stroke", "#000000")
                 }
             });
 
