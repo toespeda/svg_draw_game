@@ -39,6 +39,27 @@
                 width: 80px;
                 height: 80px;
             }
+            #letters {
+                /*display:grid;*/
+                /*grid-auto-flow:column dense;*/
+                /*grid-template-rows:50px 50px;*/
+                /*grid-auto-columns:50px;*/
+            }
+            #letters > * {
+
+                width: 32px;
+                height: 32px;
+                margin: 4px;
+            }
+            #result > * {
+                display: inline-block;
+                width: 32px;
+                height: 32px;
+                margin: 4px;
+                border-bottom: 3px solid #000;
+            }
+
+
         </style>
     </head>
     <body>
@@ -89,6 +110,13 @@
             <button id="reverse">Reverse</button>
             <button id="play">Play</button>
         </div>
+
+
+
+
+        <div id="result"></div>
+
+        <div id="letters"></div>
 
         <script type="application/javascript" src="SVGDraw.js"></script>
         <script type="application/javascript" src="Sortable.js"></script>
@@ -213,6 +241,50 @@
                     shape.el.setAttribute("stroke", "#000000")
                 }
             });
+
+
+
+
+
+
+
+
+
+            let letters = document.querySelector("#letters");
+
+            let alpha = [...'abcdefghijklmnopqrstuvwxyz'];
+
+            let word = "test";
+
+
+
+            let result = document.querySelector("#result");
+
+            [...word].forEach(b => {
+                let box = document.createElement("span");
+                result.appendChild(box);
+            });
+
+            for (var i in alpha) {
+                if (+i === Math.floor(alpha.length/2)) {
+                    letters.appendChild(document.createElement("br"));
+                }
+                let e = document.createElement("button");
+                e.textContent = alpha[i];
+                letters.appendChild(e);
+            }
+
+            letters.addEventListener("click", e => {
+                let l = e.target.textContent;
+                let r = new RegExp(l,"gi");
+                let match = [];
+                let matches = [];
+                while ((match = r.exec(word)) !== null) {
+                    matches.push(match);
+                };
+                console.log("matches", matches);
+            });
+
 
         </script>
         
