@@ -4,12 +4,11 @@ class SVGDraw {
 
     shapes = [];
 
-    type = "line";
+    type = "path";
 
     draw = 0;
 
     constructor(svg) {
-
         svg.addEventListener("mousedown", (e) => {
 
             let Shape = null;
@@ -35,7 +34,7 @@ class SVGDraw {
 
             let testProximity = (pos, c) => {
 
-                if (!c.type.match(/(path|line)/)) {
+                if (!c.type.match(/(line)/)) {
                     return null;
                 }
 
@@ -158,19 +157,26 @@ class SVGDraw {
                     let a = Shape.rx;
                     let b = Shape.ry;
 
-                    let x = a*a*Math.sin(theta)*Math.sin(theta);
-                    let y = b*b*Math.cos(theta)*Math.cos(theta);
+                    let x = a * a * Math.sin(theta) * Math.sin(theta);
+                    let y = b * b * Math.cos(theta) * Math.cos(theta);
 
-                    let r = (a*b)/Math.sqrt(x+y);
+                    let r = (a * b) / Math.sqrt(x + y);
 
                     if (r - this.getDistance(startPos, {
-                        left:Shape.cx,
-                        top:Shape.cy
+                        left: Shape.cx,
+                        top: Shape.cy
                     }) < 5) {
                         resizing = 1;
                     } else {
                         moving = 1;
                     }
+
+                } else if (Shape.type === "path") {
+
+                    resizing = 1;
+
+                    // console.log("startPos", startPos);
+                    console.log("Is path", Shape.el.getBBox(), Shape.el.getBoundingClientRect());
 
                 } else {
 
@@ -187,11 +193,18 @@ class SVGDraw {
 
             let move = (e) => {
 
+
+
                 let pos = getPos(e);
 
                 let diff = {
                     left : pos.left - lastPos.left,
                     top : pos.top - lastPos.top,
+                };
+
+                let diffP = {
+                    left : pos.left / lastPos.left,
+                    top : pos.top / lastPos.top,
                 };
 
                 lastPos = pos;
@@ -203,6 +216,15 @@ class SVGDraw {
                         Shape.d.forEach(t => {
                             for (var v in t.params) {
                                 t.params[v] += diff[v%2 ? "top" : "left"];
+                            }
+                        });
+
+
+                    } else if (resizing) {
+
+                        Shape.d.forEach(t => {
+                            for (var v in t.params) {
+                                t.params[v] *= diffP[v%2 ? "top" : "left"];
                             }
                         });
 
@@ -348,8 +370,6 @@ class SVGDraw {
             svg.addEventListener("mouseup", stop);
 
         });
-
-
         this.svg = svg;
     }
 

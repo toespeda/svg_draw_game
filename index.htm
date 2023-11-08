@@ -11,15 +11,25 @@
                 margin:0;
                 padding: 10px;
                 background-color: #eee;
+                padding: 0;
+                margin: 0;
             }
             #editor {
+
+            }
+            .col {
+                padding: 10px;
                 float: left;
+            }
+            .row {
+                clear: left;
             }
             svg {
                 background-color: #fff;
             }
             #layers {
-                float: left;
+                margin: 0;
+                padding: 5px 0 10px 15px;
             }
             #layers li {
                 cursor: default;
@@ -29,7 +39,7 @@
                 margin:0 5px;
             }
             #controllers {
-                clear: left;
+
                 padding: 10px 0;
             }
             #examples {
@@ -46,10 +56,16 @@
                 /*grid-auto-columns:50px;*/
             }
             #letters > * {
-
                 width: 32px;
                 height: 32px;
                 margin: 4px;
+            }
+            #letters > *.picked {
+                border-color: transparent;
+                background-color: transparent;
+            }
+            #result {
+                margin:0 0 30px 0;
             }
             #result > * {
                 display: inline-block;
@@ -57,6 +73,12 @@
                 height: 32px;
                 margin: 4px;
                 border-bottom: 3px solid #000;
+                font-size: 20px;
+                text-align: center;
+                vertical-align: middle;
+            }
+            #result > *.ok {
+                border-bottom-color: transparent;
             }
 
 
@@ -64,59 +86,65 @@
     </head>
     <body>
 
+        <div class="row">
 
-        
-        <div id="editor" class="test">
-            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80"></path>
-                <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
-                <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
-                <line stroke="#000000" stroke-width="3" x1="10" x2="50" y1="110" y2="150"></line>
-            </svg>
+            <div id="editor" class="test col">
+                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80"></path>
+                    <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
+                    <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
+                    <line stroke="#000000" stroke-width="3" x1="10" x2="50" y1="110" y2="150"></line>
+                    <path stroke="#000000" stroke-width="3" fill="transparent" d="M 89.312675,39.909 C 89.189675,39.532,88.856675,39.263,88.46267499999999,39.221000000000004 L 76.913675,38.049,72.230675,27.43 C 72.070675,27.07,71.711675,26.834,71.315675,26.834,70.919675,26.834,70.560675,27.067999999999998,70.400675,27.432000000000002 L 65.71667500000001,38.05,54.169675,39.221000000000004 C 53.775675,39.260999999999996,53.441675000000004,39.533,53.319675000000004,39.909,53.196675,40.286,53.308675,40.7,53.604675,40.964 L 62.256675,48.702,59.803675,60.045 C 59.720675,60.432,59.872675,60.831999999999994,60.193675,61.065,60.368674999999996,61.19200000000001,60.574675,61.256,60.781675,61.256,60.954675,61.256,61.128675,61.211,61.284675,61.119 L 71.316675,55.278999999999996,81.346675,61.119 C 81.688675,61.316,82.116675,61.297,82.437675,61.06,82.757675,60.831,82.911675,60.42699999999999,82.828675,60.03999999999999 L 80.375675,48.696,89.02867499999999,40.959 C 89.322675,40.699,89.435675,40.285,89.312675,39.909 Z "/>
+                </svg>
+            </div>
+
+            <div class="col">
+                <ol id="layers"></ol>
+                <button id="reverse">Reverse</button>
+            </div>
+
+            <div id="examples" class="col">
+                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80"></path>
+                    <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
+                    <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L84 121" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L236 110" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M84 121 L128 124" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M128 124 L70 177" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M185 121 L244 165" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M192 185 L244 165" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L126 183" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L189 184" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L187 288" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M236 110 L185 121" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M126 183 L70 177" opacity="1"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L134 291" opacity="1"></path>
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80, 265 80, 235 40 C235 80, 225 80, 225 80"></path>
+                </svg>
+            </div>
+
         </div>
 
+        <div class="row">
 
+            <div class="col">
 
-        <ol id="layers"></ol>
+                <div id="controllers">
+                    <button id="test">Test</button>
+                </div>
 
+                <div id="result"></div>
 
+                <div id="letters"></div>
 
+            </div>
 
-        <div id="examples">
-            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80"></path>
-                <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
-                <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L84 121" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L236 110" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M84 121 L128 124" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M128 124 L70 177" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M185 121 L244 165" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M192 185 L244 165" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L126 183" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L189 184" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L187 288" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M236 110 L185 121" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M126 183 L70 177" opacity="1"></path>
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L134 291" opacity="1"></path>
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80, 265 80, 235 40 C235 80, 225 80, 225 80"></path>
-            </svg>
         </div>
-        <div id="controllers">
-            <button id="reverse">Reverse</button>
-            <button id="play">Play</button>
-        </div>
-
-
-
-
-        <div id="result"></div>
-
-        <div id="letters"></div>
 
         <script type="application/javascript" src="SVGDraw.js"></script>
         <script type="application/javascript" src="Sortable.js"></script>
@@ -181,37 +209,37 @@
                 }
             });
 
-            document.querySelector("#play").addEventListener("click", e => {
+            document.querySelector("#test").addEventListener("click", e => {
                 e.preventDefault();
                 let shapes = [...svg.children];
                 [...layers.children].forEach(el => {
                     el.style.fontWeight = "";
                 });
-                let play = e.target;
-                if (play.innerText==="Stop") {
-                    play.innerText = "Play";
+                let test = e.target;
+                if (test.innerText==="Stop") {
+                    test.innerText = "Test";
                     shapes.forEach(el=>{
                         el.setAttribute("opacity","1");
                     });
-                    play.nextSibling.remove();
+                    test.nextSibling.remove();
                     [...layers.children].forEach(el => {
                         el.style.fontWeight = "";
                     });
                 } else {
-                    play.innerText = "Stop";
+                    test.innerText = "Stop";
                     shapes.forEach(el=>{
                         el.setAttribute("opacity",".3");
                     });
                     let i = 0;
                     let next = document.createElement("button");
                     next.innerText = "Next";
-                    play.parentNode.insertBefore(next, play.nextSibling);
+                    test.parentNode.insertBefore(next, test.nextSibling);
                     next.addEventListener("click", e => {
                         shapes[i].setAttribute("opacity","1");
                         layers.children[i].style.fontWeight = "bold";
                         if (!shapes[++i]) {
                             next.remove();
-                            play.innerText = "Play";
+                            test.innerText = "Test";
                         }
                     });
                 }
@@ -275,14 +303,24 @@
             }
 
             letters.addEventListener("click", e => {
-                let l = e.target.textContent;
+                let target = e.target;
+                target.classList.add("picked");
+                let l = target.textContent;
                 let r = new RegExp(l,"gi");
                 let match = [];
                 let matches = [];
                 while ((match = r.exec(word)) !== null) {
                     matches.push(match);
                 };
-                console.log("matches", matches);
+                if (matches.length) {
+                    matches.forEach(m => {
+                        let ok = result.children[m.index];
+                        ok.textContent = l;
+                        ok.classList.add("ok");
+                        console.log("matches", m.index);
+                    })
+                }
+
             });
 
 
