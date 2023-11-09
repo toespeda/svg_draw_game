@@ -4,18 +4,21 @@ class SVGDraw {
 
     shapes = [];
 
-    type = "path";
+    type = "line";
 
     draw = 0;
 
+    action = "draw";
+
     constructor(svg) {
+
         svg.addEventListener("mousedown", (e) => {
 
             let Shape = null;
 
-            let moving = 0;
+            // let moving = 0;
 
-            let resizing = 0;
+            // let resizing = 0;
 
             let offset = svg.getBoundingClientRect();
 
@@ -142,9 +145,13 @@ class SVGDraw {
                         left:Shape.cx,
                         top:Shape.cy
                     }) < 5) {
-                        resizing = 1;
+                        this.action = "resize";
+                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+                        // resizing = 1;
                     } else {
-                        moving = 1;
+                        this.action = "move";
+                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+                        // moving = 1;
                     }
 
                 } else if (Shape.type === "ellipse") {
@@ -166,21 +173,30 @@ class SVGDraw {
                         left: Shape.cx,
                         top: Shape.cy
                     }) < 5) {
-                        resizing = 1;
+                        // resizing = 1;
+                        this.action = "resize";
+                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
                     } else {
-                        moving = 1;
+                        this.action = "move";
+                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+                        // moving = 1;
                     }
 
                 } else if (Shape.type === "path") {
 
-                    resizing = 1;
+                    // resizing = 1;
+                    //this.action = "resize";
+                    //this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
 
                     // console.log("startPos", startPos);
                     console.log("Is path", Shape.el.getBBox(), Shape.el.getBoundingClientRect());
 
                 } else {
 
-                    moving = 1;
+                    //this.action = "move"
+                    //this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+
+                    // moving = 1;
 
                 }
 
@@ -211,7 +227,7 @@ class SVGDraw {
 
                 if (Shape.type === "path") {
 
-                    if (moving) {
+                    if (this.action === "move") {
 
                         Shape.d.forEach(t => {
                             for (var v in t.params) {
@@ -219,12 +235,19 @@ class SVGDraw {
                             }
                         });
 
+                    } else if (this.action === "resize") {
 
-                    } else if (resizing) {
+                        let bb = Shape.el.getBoundingClientRect();
+
+                        let center = {
+                            left : bb.x + (bb.width/2),
+                            top : bb.y + (bb.height/2)
+                        };
 
                         Shape.d.forEach(t => {
                             for (var v in t.params) {
                                 t.params[v] *= diffP[v%2 ? "top" : "left"];
+                                t.params[v] -= diff[v%2 ? "top" : "left"];
                             }
                         });
 
@@ -262,7 +285,7 @@ class SVGDraw {
 
                 } else if (Shape.type === "circle") {
 
-                    if (moving) {
+                    if (this.action === "move") {
 
                         Shape.cx += diff.left;
                         Shape.cy += diff.top;
@@ -270,7 +293,7 @@ class SVGDraw {
                         Shape.el.setAttribute("cx", Shape.cx);
                         Shape.el.setAttribute("cy", Shape.cy);
 
-                    } else if (resizing) {
+                    } else if (this.action === "resize") {
 
                         Shape.r = this.getDistance(pos, {
                             left:Shape.cx,
@@ -295,7 +318,7 @@ class SVGDraw {
 
                 } else if (Shape.type === "ellipse") {
 
-                    if (moving) {
+                    if (this.action === "move") {
 
                         Shape.cx += diff.left;
                         Shape.cy += diff.top;
@@ -303,7 +326,7 @@ class SVGDraw {
                         Shape.el.setAttribute("cx", Shape.cx);
                         Shape.el.setAttribute("cy", Shape.cy);
 
-                    } else if (resizing) {
+                    } else if (this.action === "resize") {
 
                         Shape.rx += diff.left;
                         Shape.ry += diff.top;
@@ -335,7 +358,7 @@ class SVGDraw {
                         pos = edges[0].path[0];
                     }
 
-                    if (moving) {
+                    if (this.action === "move") {
 
                         Shape.x1 += diff.left;
                         Shape.y1 += diff.top;
@@ -371,6 +394,12 @@ class SVGDraw {
 
         });
         this.svg = svg;
+    }
+
+    set(data){
+        for (var i in data) {
+            this[i] = data[i];
+        }
     }
 
     parsePath(str) {
@@ -538,7 +567,7 @@ class SVGDraw {
             Shape.x2 = +el.getAttribute("x2");
             Shape.y2 = +el.getAttribute("y2");
         }
-        console.log(Shape);
+        // console.log(Shape);
         return Shape;
     }
 
