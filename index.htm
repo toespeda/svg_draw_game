@@ -8,8 +8,6 @@
                 height:100%;
             }
             body {
-                margin:0;
-                padding: 10px;
                 background-color: #eee;
                 padding: 0;
                 margin: 0;
@@ -38,10 +36,10 @@
                 cursor: pointer;
                 margin:0 5px;
             }
-            #controllers {
+            /*#controllers {*/
 
-                padding: 10px 0;
-            }
+            /*    padding: 10px 0;*/
+            /*}*/
             #examples {
                 float: right;
             }
@@ -83,29 +81,62 @@
                 border-bottom-color: transparent;
             }
             #tools {
-                background-color: #ccc;
+
+            }
+            #tools ul {
+                background-color: #ddd;
                 padding: 5px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                list-style: none;
+                margin: 0;
+            }
+            #tools ul li {
+                display: inline-block;
+                position: relative;
+                background-color: #ddd;
+            }
+            #tools ul li ul {
+                display: none;
+                position: absolute;
+                left: -5px;
+                border-bottom-left-radius: 5px;
+                border-bottom-right-radius: 5px;
+
+            }
+            #tools ul li:hover ul {
+                display: block;
             }
             #tools:after {
                 clear: both;
                 content: "";
                 display: table;
             }
-            #tools img {
+            #tools ul li > *:first-child {
                 padding: 5px;
-                float: left;
                 border: 1px solid transparent;
                 border-radius: 5px;
-
-                margin: 0 5px 0 0;
+                /*margin: 0 5px 0 0;*/
             }
-            #tools img:hover {
+            #tools ul li > *:first-child:hover {
                 background-color: #fff;
             }
-            #tools img.active {
+            #tools ul li > *:first-child.active {
                 box-shadow: 2px 2px 1px #000;
             }
+            #tools > {
+                display: inline-block;
+            }
 
+            #tools svg {
+                background-color: transparent;
+            }
+            svg use {
+                pointer-events: none;
+            }
+            #symbols {
+                display: none;
+            }
 
         </style>
     </head>
@@ -113,18 +144,30 @@
 
         <div class="row">
 
-            <div id="editor" class="test col">
+            <div class="test col">
 
                 <div id="tools">
-                    <img data-action="move" src="symbols/pointer.svg" />
-                    <img data-action="resize" src="symbols/resize.svg" />
-                    <img data-action="draw" data-type="line" src="symbols/line.svg" />
-                    <img data-action="draw" data-type="circle" src="symbols/circle.svg" />
-                    <img data-action="draw" data-type="ellipse" src="symbols/ellipse.svg" />
-                    <img data-action="draw" data-type="symbol" src="symbols/star.svg" />
+
+                    <ul>
+                        <li><img data-action="move" src="symbols/pointer.svg" /></li>
+                        <li><img data-action="resize" src="symbols/resize.svg" /></li>
+                        <li><img data-action="draw" data-type="line" src="symbols/line.svg" /></li>
+                        <li><img data-action="draw" data-type="circle" src="symbols/circle.svg" /></li>
+                        <li><img data-action="draw" data-type="ellipse" src="symbols/ellipse.svg" /></li>
+                        <li>
+                            <svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg>
+                            <ul>
+                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg></li>
+                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star2" /></svg></li>
+                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#glow" /></svg></li>
+                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#sun" /></svg></li>
+                            </ul>
+
+                    </ul>
+
                 </div>
 
-                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <svg id="editor" xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
 
                     <path stroke="#000000" stroke-width="3" fill="transparent" d="
                         M 93.11,36.46
@@ -147,6 +190,7 @@
             <div class="col">
                 <ol id="layers"></ol>
                 <button id="reverse">Reverse</button>
+                <button id="test">Step</button>
             </div>
 
             <div id="examples" class="col">
@@ -180,9 +224,9 @@
 
             <div class="col">
 
-                <div id="controllers">
-                    <button id="test">Test</button>
-                </div>
+<!--                <div id="controllers">-->
+<!--                    <button id="play">Play</button>-->
+<!--                </div>-->
 
                 <div id="result"></div>
 
@@ -192,18 +236,59 @@
 
         </div>
 
+        <svg id="symbols" width="24" height="24" viewBox="0 0 24 24" version="2" xmlns="http://www.w3.org/2000/svg">
+            <symbol id="star" viewbox="0 0 24 24">
+                <path
+                    d="M 21.26,9.83 C 21.19,9.627 21.02,9.479 20.82,9.457 L 14.88,8.821 12.47,3.056 C 12.39,2.86 12.2,2.732 12,2.732 11.8,2.732 11.61,2.859 11.52,3.057 L 9.12,8.821 3.181,9.457 C 2.978,9.479 2.806,9.627 2.744,9.83 2.68,10.03 2.738,10.26 2.89,10.4 L 7.341,14.6 6.079,20.77 C 6.037,20.97 6.116,21.18 6.279,21.32 6.369,21.39 6.474,21.42 6.582,21.42 6.671,21.42 6.759,21.39 6.84,21.35 L 12,18.18 17.16,21.35 C 17.33,21.45 17.55,21.44 17.72,21.31 17.88,21.18 17.96,20.97 17.91,20.77 L 16.66,14.6 21.11,10.4 C 21.26,10.26 21.32,10.03 21.26,9.83 Z"
+
+                    style="fill:none;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
+                />
+            </symbol>
+            <symbol id="star2" viewbox="0 0 24 24">
+                <path
+                        d="M 11.71,3.448 C 11.71,3.448 12.49,7.691 13.92,9.136 15.38,10.61 17.81,10.68 19.7,11.44 17.77,12.4 15.6,12.45 14.18,13.87 12.74,15.3 12.41,17.69 11.71,19.43 10.87,17.09 10.66,15.35 9.259,13.91 7.911,12.53 4.027,11.44 4.027,11.44 5.973,10.78 8.027,10.54 9.389,9.157 10.83,7.692 11.71,3.448 11.71,3.448 Z"
+                        fill="none"
+                        stroke="#000000"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.38324"
+
+                        />
+            </symbol>
+            <symbol id="glow" viewbox="0 0 24 24">
+                <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M 12.9,2.674V 5.43C 12.9,6.525 11.26,6.525 11.26,5.43V 2.674C 11.26,1.527 12.9,1.527 12.9,2.674ZM 18.97,5.981 17.04,7.91C 16.36,8.605 15.24,7.51 15.93,6.808L 17.86,4.878C 18.63,4.132 19.66,5.299 18.97,5.981ZM 6.291,4.878 8.221,6.808C 8.912,7.502 7.814,8.603 7.118,7.91L 5.189,5.981C 4.314,5.106 5.569,4.156 6.291,4.878ZM 2.984,10.95H 5.74C 6.836,10.95 6.836,12.59 5.74,12.59H 2.984C 1.889,12.59 1.889,10.95 2.984,10.95ZM 18.42,10.95H 21.17C 22.32,10.95 22.32,12.59 21.17,12.59H 18.42C 17.27,12.59 17.27,10.95 18.42,10.95ZM 8.221,17 6.291,18.93C 5.6,19.66 4.306,18.44 5.189,17.55L 7.118,15.62C 7.889,14.87 9.054,16.18 8.221,17ZM 17.04,15.62 18.97,17.55C 19.84,18.44 18.59,19.66 17.86,18.93L 15.93,17C 15.07,16.12 16.32,14.9 17.04,15.62ZM 12.9,18.11V 20.86C 12.9,21.96 11.26,21.96 11.26,20.86V 18.11C 11.26,17.01 12.9,17.01 12.9,18.11Z"
+                        fill="#000"
+
+                        style="fill:#000000;fill-opacity:1;stroke-width:0.79171;stroke-dasharray:none"
+                        />
+            </symbol>
+
+            <symbol id="sun" viewbox="0 0 24 24">
+                <path
+                        d="M 4.91,18.03 6,17C 6.602,16.7 7.309,17.35 7,18L 6,19.09C 5.258,19.8 4.227,18.71 4.91,18.03ZM 17,6 18,4.91C 18.68,4.211 19.82,5.25 19.09,6L 18,7C 17.35,7.718 16.4,6.685 17,6ZM 18.03,19.09 17,18C 16.7,17.37 17.37,16.7 18,17L 19.09,18C 19.77,18.68 18.73,19.79 18.03,19.09ZM 6,7 4.91,6C 4.199,5.289 5.287,4.197 6,4.91L 7,6C 7.611,6.679 6.636,7.721 6,7ZM 4.25,12.75H 2.75C 1.77,12.75 1.77,11.25 2.75,11.25H 4.25C 5.23,11.25 5.23,12.75 4.25,12.75ZM 21.25,12.75H 19.75C 18.77,12.75 18.77,11.25 19.75,11.25H 21.25C 22.23,11.25 22.23,12.75 21.25,12.75ZM 11.25,21.25V 19.75C 11.25,18.77 12.75,18.77 12.75,19.75V 21.25C 12.75,22.23 11.25,22.23 11.25,21.25ZM 11.25,4.25V 2.75C 11.25,1.77 12.75,1.77 12.75,2.75V 4.25C 12.75,5.225 11.25,5.225 11.25,4.25ZM 12,17.75C 9.73,17.75 6.418,15.93 6.423,12.06 6.428,7.982 9.647,6.255 11.98,6.255 14.53,6.255 17.77,7.941 17.75,12 17.73,15.16 15.16,17.75 12,17.75ZM 11.98,7.772C 9.831,7.772 7.965,9.583 7.965,12.1 7.965,14.15 9.568,16.24 12.01,16.24 14.85,16.24 16.25,13.99 16.25,12 16.25,9.681 14.34,7.772 11.98,7.772Z"
+                        fill="#000"
+                />
+            </symbol>
+
+        </svg>
+
         <script type="application/javascript" src="SVGDraw.js"></script>
         <script type="application/javascript" src="Sortable.js"></script>
         
         <script>
 
-            let svg = document.querySelector("#editor svg");
+            let svg = document.querySelector("#editor");
 
             let Draw = new SVGDraw(svg);
 
             let layers = document.querySelector("#layers");
 
             let tools = document.querySelector("#tools");
+
+            let symbols = document.querySelector("#symbols");
 
             let setTools = function(data){
                 for (var i in data) {
@@ -220,8 +305,16 @@
             }, false);
 
             tools.addEventListener("click", (e) => {
-                if (e.target.nodeName.toLowerCase()==="img") {
-                    let data = e.target.dataset;
+
+                let data = e.target.dataset;
+
+                if (data.type === "symbol") {
+
+                    let id = e.target.querySelector("use").getAttribute("href");
+                    let symbol = symbols.querySelector(id);
+                    console.log(symbol);
+
+                } else {
                     Draw.set(data);
                     setTools(data);
                 }
@@ -287,7 +380,7 @@
                 });
                 let test = e.target;
                 if (test.innerText==="Stop") {
-                    test.innerText = "Test";
+                    test.innerText = "Step";
                     shapes.forEach(el=>{
                         el.setAttribute("opacity","1");
                     });
@@ -305,12 +398,18 @@
                     next.innerText = "Next";
                     test.parentNode.insertBefore(next, test.nextSibling);
                     next.addEventListener("click", e => {
-                        shapes[i].setAttribute("opacity","1");
-                        layers.children[i].style.fontWeight = "bold";
-                        if (!shapes[++i]) {
+                        if (!shapes[i]) {
                             next.remove();
-                            test.innerText = "Test";
+                            test.innerText = "Step";
+                            [...layers.children].forEach(el => {
+                                el.style.fontWeight = "";
+                            });
+                        } else {
+                            shapes[i].setAttribute("opacity","1");
+                            layers.children[i].style.fontWeight = "bold";
+                            i++;
                         }
+
                     });
                 }
             });
@@ -339,14 +438,6 @@
                     shape.el.setAttribute("stroke", "#000000")
                 }
             });
-
-
-
-
-
-
-
-
 
             let letters = document.querySelector("#letters");
 
@@ -395,6 +486,10 @@
 
 
         </script>
+
+
+
+
         
     </body>
 </html>

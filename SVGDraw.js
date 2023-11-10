@@ -33,7 +33,7 @@ class SVGDraw {
 
             let lastPos = startPos;
 
-            let paths = svg.querySelectorAll("path");
+            //let paths = svg.querySelectorAll("path");
 
             let testProximity = (pos, c) => {
 
@@ -188,7 +188,9 @@ class SVGDraw {
                     //this.action = "resize";
                     //this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
 
-                    // console.log("startPos", startPos);
+                    this.action = "move";
+                    this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+
                     console.log("Is path", Shape.el.getBBox(), Shape.el.getBoundingClientRect());
 
                 } else {
@@ -239,10 +241,10 @@ class SVGDraw {
 
                         let bb = Shape.el.getBoundingClientRect();
 
-                        let center = {
-                            left : bb.x + (bb.width/2),
-                            top : bb.y + (bb.height/2)
-                        };
+                        // let center = {
+                        //     left : bb.x + (bb.width/2),
+                        //     top : bb.y + (bb.height/2)
+                        // };
 
                         Shape.d.forEach(t => {
                             for (var v in t.params) {
@@ -409,35 +411,35 @@ class SVGDraw {
         let results = [];
         while ((match = commands.exec(str)) !== null) {
             results.push(match);
-        };
+        }
         let data = [];
         let digits = /-?[0-9]*\.?\d+/g;
         for (let x=0; x<results.length; x++) {
             //Get the string value without command, and parse float
             let params = (str.substring(results[x].index+1, results[x+1] ? results[x+1].index : str.length).match(digits) || []).map(parseFloat);
-            if (false) {
-                //Split into chunks of xy params
-                let chunks = [];
-                let positions = ["left","top"];
-                for (let y = 0; y<params.length; y += 2) {
-                    let coords = params.slice(y, y + 2);
-                    chunks.push(positions.reduce((acc, element, index) => {
-                        return {
-                            ...acc,
-                            [element]: coords[index],
-                        };
-                    }, {}));
-                }
-                data.push({
-                    command : results[x][0],
-                    params : chunks
-                });
-            } else {
+            // if (false) {
+            //     //Split into chunks of xy params
+            //     let chunks = [];
+            //     let positions = ["left","top"];
+            //     for (let y = 0; y<params.length; y += 2) {
+            //         let coords = params.slice(y, y + 2);
+            //         chunks.push(positions.reduce((acc, element, index) => {
+            //             return {
+            //                 ...acc,
+            //                 [element]: coords[index],
+            //             };
+            //         }, {}));
+            //     }
+            //     data.push({
+            //         command : results[x][0],
+            //         params : chunks
+            //     });
+            // } else {
                 data.push({
                     command : results[x][0],
                     params : params
                 });
-            }
+            // }
 
         }
         return data;
@@ -549,8 +551,7 @@ class SVGDraw {
             el : el
         };
         if (Shape.type === "path") {
-            let path = this.parsePath(el.getAttribute("d"));
-            Shape.d = path;
+            Shape.d = this.parsePath(el.getAttribute("d"));
         } else if (Shape.type === "circle") {
             Shape.r = +el.getAttribute("r");
             Shape.cx = +el.getAttribute("cx");
