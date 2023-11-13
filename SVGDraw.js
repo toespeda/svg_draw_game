@@ -8,7 +8,7 @@ class SVGDraw {
 
     draw = 0;
 
-    action = "draw";
+    action = "resize";
 
     constructor(svg) {
 
@@ -37,7 +37,7 @@ class SVGDraw {
 
             let testProximity = (pos, c) => {
 
-                if (!c.type.match(/(line)/)) {
+                if (!c.type.match(/(line)/)) {//Temp
                     return null;
                 }
 
@@ -46,13 +46,13 @@ class SVGDraw {
 
                 if (c.type === "path") {
                     for (let m in c.d) {
-                        if (c.d[m].command == "M") {
+                        if (c.d[m].command === "M") {
                             start = {
                                 left : c.d[m].params[0],
                                 top : c.d[m].params[1]
                             };
                         }
-                        if (c.d[m].command == "L") {
+                        if (c.d[m].command === "L") {
                             end = {
                                 left : c.d[m].params[0],
                                 top : c.d[m].params[1]
@@ -102,12 +102,14 @@ class SVGDraw {
 
             let edges = getEdges(startPos);
 
+            // console.log("edges", edges);
+
             if (edges.length) {
 
                 if (this.draw) {
 
-                    Shape = this.createShape(this.type, edges[0].path[0]);
-                    this.addShape(Shape);
+                    // Shape = this.createShape(this.type, edges[0].path[0]);
+                    Shape = this.addShape(this.type, edges[0].path[0]);
 
                 } else if (this.type === edges[0].shape.type) {
 
@@ -116,11 +118,11 @@ class SVGDraw {
                     // Closest first
                     if (Shape.type === "path") {
                         for (let m in Shape.d) {
-                            if (Shape.d[m].command == "M") {
+                            if (Shape.d[m].command === "M") {
                                 Shape.d[m].params[0] = edges[0].path[1].left;
                                 Shape.d[m].params[1] = edges[0].path[1].top;
                             }
-                            if (Shape.d[m].command == "L") {
+                            if (Shape.d[m].command === "L") {
                                 Shape.d[m].params[0] = edges[0].path[0].left;
                                 Shape.d[m].params[1] = edges[0].path[0].top;
                             }
@@ -188,10 +190,10 @@ class SVGDraw {
                     //this.action = "resize";
                     //this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
 
-                    this.action = "move";
-                    this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+                    // this.action = "move";
+                    // this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
 
-                    console.log("Is path", Shape.el.getBBox(), Shape.el.getBoundingClientRect());
+                    //console.log("Is path", Shape.el.getBBox(), Shape.el.getBoundingClientRect());
 
                 } else {
 
@@ -204,14 +206,18 @@ class SVGDraw {
 
             }
 
+            if (!Shape && this.action === "draw") {
+                // Shape = this.createShape(this.type, startPos);
+                Shape = this.addShape(this.type, startPos);
+            } else {
+                //return;
+            }
+
             if (!Shape) {
-                Shape = this.createShape(this.type, startPos);
-                this.addShape(Shape);
+                return;
             }
 
             let move = (e) => {
-
-
 
                 let pos = getPos(e);
 
@@ -232,24 +238,38 @@ class SVGDraw {
                     if (this.action === "move") {
 
                         Shape.d.forEach(t => {
-                            for (var v in t.params) {
-                                t.params[v] += diff[v%2 ? "top" : "left"];
+                            if (t.command.match(/[A]/)) {
+                                t.params[5] += diff.left;
+                                t.params[6] += diff.top;
+                            } else {
+                                for (var v in t.params) {
+                                    t.params[v] += diff[v%2 ? "top" : "left"];
+                                }
                             }
+
                         });
 
                     } else if (this.action === "resize") {
 
-                        let bb = Shape.el.getBoundingClientRect();
-
+                        // let bb = Shape.el.getBoundingClientRect();
+                        //
                         // let center = {
                         //     left : bb.x + (bb.width/2),
                         //     top : bb.y + (bb.height/2)
                         // };
 
                         Shape.d.forEach(t => {
-                            for (var v in t.params) {
-                                t.params[v] *= diffP[v%2 ? "top" : "left"];
-                                t.params[v] -= diff[v%2 ? "top" : "left"];
+                            if (t.command.match(/[A]/)) {
+                                t.params[0] *= diffP.left;
+                                t.params[1] *= diffP.top;
+                                t.params[5] *= diffP.left;
+                                t.params[6] *= diffP.top;
+
+                            } else {
+                                for (var v in t.params) {
+                                    t.params[v] *= diffP[v % 2 ? "top" : "left"];
+                                    //t.params[v] -= diff[v%2 ? "top" : "left"];
+                                }
                             }
                         });
 
@@ -263,7 +283,7 @@ class SVGDraw {
 
                         let point = null;
                         for (let m in Shape.d) {
-                            if (Shape.d[m].command == "L") {
+                            if (Shape.d[m].command === "L") {
                                 point = Shape.d[m];
                             }
                         }
@@ -445,9 +465,18 @@ class SVGDraw {
         return data;
     }
 
-    addShape(Shape) {
+    addShape(Shape, position) {
+        //console.log(typeof Shape);
+        //console.log("Shape.constructor.name", Shape.constructor.name);
+        if (Shape.constructor.name === "String") {
+            Shape = this.createShape(Shape, position);
+        } else {
+            Shape = this.parseShape(Shape);
+        }
+        // console.log(Shape);
         this.shapes.push(Shape);
         this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
+        return Shape;
     }
 
     addShapes(content){
@@ -456,7 +485,7 @@ class SVGDraw {
         }
         this.shapes = [];
         [...this.svg.children].forEach(el => {
-            this.addShape(this.parseShape(el));
+            this.addShape(el);
         });
     }
 
@@ -468,6 +497,149 @@ class SVGDraw {
         }
         //Rearrange shapes
         this.shapes.splice(endIndex, 0, this.shapes.splice(startIndex, 1)[0]);
+    }
+
+    ellipseToPath(merge) {
+        let d = [];
+        //Absolute
+        d.push({
+            command:"M",
+            params: [merge.cx, merge.cy]
+        });
+        d.push({
+            command:"M",
+            params: [merge.cx + merge.rx, merge.cy]
+        });
+        d.push({
+            command:"A",
+            params: [merge.rx, merge.ry, 0, 1, 0, merge.cx - merge.rx, merge.cy]
+        });
+        d.push({
+            command:"A",
+            params: [merge.rx, merge.ry, 0, 1, 0, merge.cx + merge.rx, merge.cy]
+        });
+        return d;
+    }
+
+    circleToPath(merge) {
+        let d = [];
+        //Relative
+        // d.push({
+        //     command:"M",
+        //     params: [merge.cx, merge.cy]
+        // });
+        // d.push({
+        //     command:"m",
+        //     params: [merge.r, 0]
+        // });
+        // d.push({
+        //     command:"a",
+        //     params: [merge.r, merge.r, 0, 1, 0, -merge.r*2, 0]
+        // });
+        // d.push({
+        //     command:"a",
+        //     params: [merge.r, merge.r, 0, 1, 0, merge.r*2, 0]
+        // });
+        //Absolute
+        d.push({
+            command:"M",
+            params: [merge.cx, merge.cy]
+        });
+        d.push({
+            command:"M",
+            params: [merge.cx + merge.r, merge.cy]
+        });
+        d.push({
+            command:"A",
+            params: [merge.r, merge.r, 0, 1, 0, merge.cx - merge.r, merge.cy]
+        });
+        d.push({
+            command:"A",
+            params: [merge.r, merge.r, 0, 1, 0, merge.cx + merge.r, merge.cy]
+        });
+        return d;
+    }
+
+    lineToPath(merge) {
+        let d = [];
+        d.push({
+            command:"M",
+            params: [merge.x1, merge.y1]
+        });
+        d.push({
+            command:"L",
+            params: [merge.x2, merge.y2]
+        });
+        return d;
+    }
+
+    mergeShape(index, count) {
+
+        let Shape = this.shapes[index];
+
+        if (Shape.type === "line") {
+            Shape.type = "path";
+            Shape.d = this.lineToPath(Shape);
+            let path = this.createElement("path");
+            Shape.el.replaceWith(path);
+            Shape.el = path;
+            Shape.el.setAttribute("d", Shape.d.map(function(command) {
+                return command.command + ' ' + command.params.join(',');
+            }).join(' '));
+        }
+
+        if (Shape.type === "circle") {
+            Shape.type = "path";
+            Shape.d = this.circleToPath(Shape);
+            let path = this.createElement("path");
+            Shape.el.replaceWith(path);
+            Shape.el = path;
+            Shape.el.setAttribute("d", Shape.d.map(function(command) {
+                return command.command + ' ' + command.params.join(',');
+            }).join(' '));
+        }
+
+        if (Shape.type === "ellipse") {
+            Shape.type = "ellipse";
+            Shape.d = this.ellipseToPath(Shape);
+            let path = this.createElement("path");
+            Shape.el.replaceWith(path);
+            Shape.el = path;
+            Shape.el.setAttribute("d", Shape.d.map(function(command) {
+                return command.command + ' ' + command.params.join(',');
+            }).join(' '));
+        }
+
+        if (Shape.type !== "path") {
+            return false;
+        }
+
+        if (!count) {
+            return false;
+        }
+
+        for (let x=1;x<count+1;x++) {
+            let merge = this.shapes[index+x];
+            if (merge) {
+                if (merge.type==="path") {
+                    Shape.d = Shape.d.concat(merge.d);
+                } else if (merge.type==="line") {
+                    Shape.d = Shape.d.concat(this.lineToPath(merge));
+                } else {
+
+                }
+                merge.el.remove();
+            }
+        }
+
+        this.shapes.splice(index+1, count);
+
+        Shape.el.setAttribute("d", Shape.d.map(function(command) {
+            return command.command + ' ' + command.params.join(',');
+        }).join(' '));
+
+        return true;
+
     }
 
     removeShape(index) {
@@ -482,7 +654,7 @@ class SVGDraw {
         el.setAttribute("stroke-width",3);
         // el.setAttribute("opacity",.8);
         if (type === "path") {
-            el.setAttribute("fill","none");
+            el.setAttribute("fill","transparent");
             el.setAttribute("stroke-linejoin","round");
             el.setAttribute("d","");
         } else if (type === "circle") {

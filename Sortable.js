@@ -2,6 +2,8 @@ let Sortable = function(layers) {
 
     layers.addEventListener("mousedown", (e) => {
 
+        // console.log("mousedown on sortable", e.target);
+
         let getPos = function(e){
             return {
                 left : e.clientX,
@@ -9,12 +11,12 @@ let Sortable = function(layers) {
             };
         };
 
-        if (e.target.nodeName.toLowerCase() === "span") {
-            let elements = [...layers.childNodes];
-            let index = elements.indexOf(e.target.parentNode);
-            layers.dispatchEvent(new CustomEvent("removed", { detail: {index:index} }));
-            e.target.parentNode.remove();
-        }
+        // if (e.target.nodeName.toLowerCase() === "span") {
+        //     let elements = [...layers.children];
+        //     let index = elements.indexOf(e.target.parentNode);
+        //     layers.dispatchEvent(new CustomEvent("removed", { detail: {index:index} }));
+        //     e.target.parentNode.remove();
+        // }
 
         if (e.target.nodeName.toLowerCase() === "li") {
 
