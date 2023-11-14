@@ -35,14 +35,46 @@
             #layers li:last-child .merge {
                 /*display: none;*/
             }
-            #layers .remove {
+            #layers span {
                 cursor: pointer;
                 margin:0 5px;
             }
-            /*#controllers {*/
+            #layers .error, #layers .success {
+                display: inline-block;
+                border-radius: 50%;
+                border: 2px solid red;
+                vertical-align: middle;
+                width: 8px;
+                height: 8px;
+            }
 
-            /*    padding: 10px 0;*/
-            /*}*/
+            #layers .error:before, #layers .success:before {
+                content: "";
+                display: inline-block;
+                position: absolute;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                height: 2px;
+                width: 2px;
+                margin: 4px 0 0 4px;
+            }
+
+            #layers .success {
+                border: 2px solid green;
+            }
+
+            #layers .error.visible:before {
+                background-color: red;
+            }
+
+            #layers .error.hidden:before, #layers .success.hidden:before {
+                height: 1px;
+                width: 8px;
+            }
+
+            #layers .success.visible:before {
+                background-color: green;
+            }
+
             #examples {
                 float: right;
             }
@@ -141,6 +173,58 @@
                 display: none;
             }
 
+            svg.editing > * {
+                opacity: 1;
+            }
+
+            svg.editing > *:hover {
+                stroke: #0000ff;
+            }
+
+            svg.editing .visible-on-error {
+
+                stroke: red;
+            }
+
+            svg.editing .visible-on-success {
+
+                stroke: green;
+            }
+
+            svg.editing .hidden-on-error {
+                stroke-dasharray: 5,5;
+                stroke: red;
+            }
+
+            svg.editing .hidden-on-success {
+                stroke-dasharray: 5,5;
+                stroke: green;
+            }
+
+
+            svg.playing > * {
+                opacity: .3;
+            }
+
+            svg.playing .show {
+                opacity: 1;
+            }
+
+            svg.playing .visible-on-error, svg.playing .visible-on-success, svg.error .hidden-on-error, svg.success .hidden-on-success {
+                opacity: 0;
+            }
+
+            svg.error .visible-on-error, svg.success .visible-on-success {
+                opacity: 1;
+            }
+
+
+
+
+
+
+
+
         </style>
     </head>
     <body>
@@ -170,9 +254,13 @@
 
                 </div>
 
-                <svg id="editor" xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <svg class="editing" id="editor" xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
 
+                    <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M246 176 L235 80"></path>
+                    <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
                     <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
+
+<!--                    <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>-->
 
 <!--                    <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M 168,148.8000030517578 M 214.2276973253049,148.8000030517578 A 46.22769732530488,46.22769732530488,0,1,0,121.77230267469511,148.8000030517578 A 46.22769732530488,46.22769732530488,0,1,0,214.2276973253049,148.8000030517578"></path>-->
 
@@ -336,7 +424,7 @@
             tools.addEventListener("click", (e) => {
 
                 let data = e.target.dataset;
-                console.log(data);
+
                 if (data.type === "symbol") {
 
                     let id = e.target.querySelector("use").getAttribute("href");
@@ -377,17 +465,45 @@
                 // }
             });
 
+            let toggleVisibility = (tkl, index, status) => {
+
+                let scl = [...svg.children][index].classList;
+
+                if (scl.contains("visible-on-"+status)) {
+                    scl.remove("visible-on-"+status);
+                    scl.add("hidden-on-"+status);
+                    tkl.add("hidden");
+                } else if (scl.contains("hidden-on-"+status)) {
+                    scl.remove("hidden-on-"+status);
+                    tkl.remove(...["hidden", "visible"]);
+                } else {
+                    scl.add("visible-on-"+status);
+                    tkl.add("visible");
+                }
+
+            };
+
             layers.addEventListener("mousedown", (e) => {
                 if (e.target.nodeName.toLowerCase() === "span") {
                     let elements = [...layers.children];
                     let index = elements.indexOf(e.target.parentNode);
-                    if (e.target.classList.contains("remove")) {
+
+                    let tkl = e.target.classList;
+
+                    if (tkl.contains("remove")) {
                         Draw.removeShape(index);
                         e.target.parentNode.remove();
-                    } else if (e.target.classList.contains("merge")) {
+                    } else if (tkl.contains("merge")) {
                         if (Draw.mergeShape(index, 1)) {
                             e.target.parentNode.nextElementSibling.remove();
                         }
+                    } else if (tkl.contains("visibility")) {
+                        e.target.innerText = e.target.innerText === "o" ? "ø" : "o";
+                        [...svg.children][index].classList[e.target.innerText === "o"  ? "remove" : "add"]("hidden");
+                    } else if (tkl.contains("error")) {
+                        toggleVisibility(tkl, index, "error");
+                    } else if (tkl.contains("success")) {
+                        toggleVisibility(tkl, index, "success");
                     }
                 }
             });
@@ -402,7 +518,7 @@
             svg.addEventListener("added", (e) => {
                 let b = document.createElement('li');
                 b.classList.add(e.detail.type);
-                b.innerHTML = e.detail.type + ' <span class="remove">x</span> <span class="merge">v</span>';
+                b.innerHTML = e.detail.type + ' <span class="remove">x</span> <span class="merge">v</span> <span class="error"></span> <span class="success"></span>';
                 layers.appendChild(b);
             }, false);
 
@@ -416,40 +532,58 @@
 
             document.querySelector("#test").addEventListener("click", e => {
                 e.preventDefault();
-                let shapes = [...svg.children];
+
+                let shapes = [...svg.querySelectorAll("*:not(.visible-on-error,.visible-on-success)")];
+
                 [...layers.children].forEach(el => {
                     el.style.fontWeight = "";
                 });
+
                 let test = e.target;
-                if (test.innerText==="Stop") {
+
+                let stop = () => {
+                    svg.classList.remove("playing");
                     test.innerText = "Step";
                     shapes.forEach(el=>{
-                        el.setAttribute("opacity","1");
+                        el.classList.remove("show");
                     });
                     test.nextSibling.remove();
                     [...layers.children].forEach(el => {
                         el.style.fontWeight = "";
                     });
+                };
+
+                if (test.innerText==="Stop") {
+
+                    stop();
+
                 } else {
+
+                    svg.classList.add("playing");
+
                     test.innerText = "Stop";
-                    shapes.forEach(el=>{
-                        el.setAttribute("opacity",".3");
-                    });
                     let i = 0;
                     let next = document.createElement("button");
                     next.innerText = "Next";
                     test.parentNode.insertBefore(next, test.nextSibling);
+
                     next.addEventListener("click", e => {
+
                         if (!shapes[i]) {
-                            next.remove();
-                            test.innerText = "Step";
-                            [...layers.children].forEach(el => {
-                                el.style.fontWeight = "";
-                            });
+
+                            svg.classList.add("error");
+
+                            setTimeout(function(){
+                                stop();
+                            },2000)
+
+
                         } else {
-                            shapes[i].setAttribute("opacity","1");
-                            layers.children[i].style.fontWeight = "bold";
+
+                            shapes[i].classList.add("show");
+                            layers.children[[...svg.children].indexOf(shapes[i])].style.fontWeight = "bold";
                             i++;
+
                         }
 
                     });
@@ -469,17 +603,16 @@
             });
 
             layers.addEventListener("mouseover", (e) => {
-                // console.log([...layers.childNodes].indexOf(e.target));
                 let shape = Draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
                 if (shape) {
-                    shape.el.setAttribute("stroke", "#ff0000")
+                    shape.el.style.stroke = "#0000ff";
                 }
             });
 
             layers.addEventListener("mouseout", (e) => {
                 let shape = Draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
                 if (shape) {
-                    shape.el.setAttribute("stroke", "#000000")
+                    shape.el.style.stroke = "";
                 }
             });
 
@@ -509,21 +642,48 @@
                 result.appendChild(box);
             });
 
-
             document.querySelector("#play").addEventListener("click", e => {
 
                 e.preventDefault();
+                let playButton = e.target;
+                let shapes = [...svg.querySelectorAll("*:not(.visible-on-error,.visible-on-success)")];
+                let index = 0;
 
-                let play = e.target;
+                let playing = e => {
+                    let target = e.target;
+                    if (target.classList.contains("picked")) {
+                        return;
+                    }
+                    target.classList.add("picked");
+                    let l = target.textContent;
+                    let r = new RegExp(l,"gi");
+                    let match = [];
+                    let matches = [];
+                    while ((match = r.exec(word)) !== null) {
+                        matches.push(match);
+                    }
+                    if (matches.length) {
+                        matches.forEach(m => {
+                            let ok = result.children[m.index];
+                            ok.textContent = l;
+                            ok.classList.remove("empty");
+                            if (!result.querySelectorAll(".empty").length) {
+                                stop("success");
+                            }
+                        });
+                    } else {
+                        shapes[index].classList.add("show");
+                        if (!shapes[++index]) {
+                            stop("error");
+                        }
+                    }
+                };
 
-                let shapes = [...svg.children];
-
-                if (play.innerText==="Stop") {
-
-                    play.innerText="Play";
-                    shapes.forEach(el=>{
-                        el.setAttribute("opacity","1");
-                    });
+                let play = () => {
+                    index = 0;
+                    svg.classList.remove("editing", "success", "error");
+                    svg.classList.add("playing");
+                    playButton.innerText="Stop";
                     [...result.children].forEach(el=>{
                         el.textContent = "";
                         el.classList.add("empty");
@@ -531,65 +691,24 @@
                     letters.querySelectorAll(".picked").forEach(el => {
                         el.classList.remove("picked");
                     });
-
-                } else {
-
-                    play.innerText="Stop"
-
                     shapes.forEach(el=>{
-                        el.setAttribute("opacity",".3");
+                        el.classList.remove("show");
                     });
-
-                    let index = 0;
-
-                    let playing = e => {
-                        let target = e.target;
-                        if (target.classList.contains("picked")) {
-                            return;
-                        }
-                        target.classList.add("picked");
-                        let l = target.textContent;
-                        let r = new RegExp(l,"gi");
-                        let match = [];
-                        let matches = [];
-                        while ((match = r.exec(word)) !== null) {
-                            matches.push(match);
-                        }
-                        if (matches.length) {
-
-                            matches.forEach(m => {
-                                let ok = result.children[m.index];
-                                ok.textContent = l;
-                                ok.classList.remove("empty");
-
-                                if (!result.querySelectorAll(".empty").length) {
-                                    console.log("won");
-                                    letters.removeEventListener("click", playing);
-                                }
-
-                            });
-
-                        } else {
-
-                            shapes[index].setAttribute("opacity","1");
-
-                            if (!shapes[++index]) {
-
-                                console.log("Show hidden");
-
-                                letters.removeEventListener("click", playing);
-
-                            } else {
-
-
-
-                            }
-
-                        }
-
-                    };
-
                     letters.addEventListener("click", playing);
+                };
+
+                let stop = (status) => {
+                    svg.classList.remove("playing");
+                    svg.classList.add(status);
+                    playButton.innerText="Play";
+                    letters.removeEventListener("click", playing);
+
+                };
+
+                if (playButton.innerText==="Stop") {
+                    stop();
+                } else {
+                    play();
                 }
 
 

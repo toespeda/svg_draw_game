@@ -573,41 +573,23 @@ class SVGDraw {
         return d;
     }
 
+    convertToPath(Shape) {
+        Shape.d = this[Shape.type + "ToPath"](Shape);
+        Shape.type = "path";
+        let path = this.createElement("path");
+        Shape.el.replaceWith(path);
+        Shape.el = path;
+        Shape.el.setAttribute("d", Shape.d.map(function(command) {
+            return command.command + ' ' + command.params.join(',');
+        }).join(' '));
+    }
+
     mergeShape(index, count) {
 
         let Shape = this.shapes[index];
 
-        if (Shape.type === "line") {
-            Shape.type = "path";
-            Shape.d = this.lineToPath(Shape);
-            let path = this.createElement("path");
-            Shape.el.replaceWith(path);
-            Shape.el = path;
-            Shape.el.setAttribute("d", Shape.d.map(function(command) {
-                return command.command + ' ' + command.params.join(',');
-            }).join(' '));
-        }
-
-        if (Shape.type === "circle") {
-            Shape.type = "path";
-            Shape.d = this.circleToPath(Shape);
-            let path = this.createElement("path");
-            Shape.el.replaceWith(path);
-            Shape.el = path;
-            Shape.el.setAttribute("d", Shape.d.map(function(command) {
-                return command.command + ' ' + command.params.join(',');
-            }).join(' '));
-        }
-
-        if (Shape.type === "ellipse") {
-            Shape.type = "ellipse";
-            Shape.d = this.ellipseToPath(Shape);
-            let path = this.createElement("path");
-            Shape.el.replaceWith(path);
-            Shape.el = path;
-            Shape.el.setAttribute("d", Shape.d.map(function(command) {
-                return command.command + ' ' + command.params.join(',');
-            }).join(' '));
+        if (Shape.type !== "path") {
+            this.convertToPath(Shape);
         }
 
         if (Shape.type !== "path") {
@@ -623,10 +605,8 @@ class SVGDraw {
             if (merge) {
                 if (merge.type==="path") {
                     Shape.d = Shape.d.concat(merge.d);
-                } else if (merge.type==="line") {
-                    Shape.d = Shape.d.concat(this.lineToPath(merge));
                 } else {
-
+                    Shape.d = Shape.d.concat(this[merge.type + "ToPath"](merge));
                 }
                 merge.el.remove();
             }
