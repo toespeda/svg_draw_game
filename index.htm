@@ -3,229 +3,7 @@
     <head>
         <title>Test</title>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-        <style>
-            html, body {
-                height:100%;
-            }
-            body {
-                background-color: #eee;
-                padding: 0;
-                margin: 0;
-            }
-            #editor {
-
-            }
-            .col {
-                padding: 10px;
-                float: left;
-            }
-            .row {
-                clear: left;
-            }
-            svg {
-                background-color: #fff;
-            }
-            #layers {
-                margin: 0;
-                padding: 5px 0 10px 15px;
-            }
-            #layers li {
-                cursor: default;
-            }
-            #layers li:last-child .merge {
-                /*display: none;*/
-            }
-            #layers span {
-                cursor: pointer;
-                margin:0 5px;
-            }
-            #layers .error, #layers .success {
-                display: inline-block;
-                border-radius: 50%;
-                border: 2px solid red;
-                vertical-align: middle;
-                width: 8px;
-                height: 8px;
-            }
-
-            #layers .error:before, #layers .success:before {
-                content: "";
-                display: inline-block;
-                position: absolute;
-                transform: translate(-50%, -50%) rotate(-45deg);
-                height: 2px;
-                width: 2px;
-                margin: 4px 0 0 4px;
-            }
-
-            #layers .success {
-                border: 2px solid green;
-            }
-
-            #layers .error.visible:before {
-                background-color: red;
-            }
-
-            #layers .error.hidden:before, #layers .success.hidden:before {
-                height: 1px;
-                width: 8px;
-            }
-
-            #layers .success.visible:before {
-                background-color: green;
-            }
-
-            #examples {
-                float: right;
-            }
-            #examples svg {
-                width: 80px;
-                height: 80px;
-            }
-            #letters {
-                /*display:grid;*/
-                /*grid-auto-flow:column dense;*/
-                /*grid-template-rows:50px 50px;*/
-                /*grid-auto-columns:50px;*/
-            }
-            #letters > * {
-                width: 32px;
-                height: 32px;
-                margin: 4px;
-                box-shadow: 2px 2px 1px #000;
-            }
-            #letters > *.picked {
-                border-color: transparent;
-                background-color: transparent;
-                box-shadow:none;
-            }
-            #result {
-                margin:0 0 30px 0;
-            }
-            #result > * {
-                display: inline-block;
-                width: 32px;
-                height: 32px;
-                margin: 4px;
-                border-bottom: 3px solid transparent;
-                font-size: 20px;
-                text-align: center;
-                vertical-align: middle;
-            }
-            #result > *.empty {
-                border-bottom-color: #000;
-            }
-            #tools {
-
-            }
-            #tools ul {
-                background-color: #ddd;
-                padding: 5px;
-                border-top-left-radius: 5px;
-                border-top-right-radius: 5px;
-                list-style: none;
-                margin: 0;
-            }
-            #tools ul li {
-                display: inline-block;
-                position: relative;
-                background-color: #ddd;
-            }
-            #tools ul li ul {
-                display: none;
-                position: absolute;
-                left: -5px;
-                border-bottom-left-radius: 5px;
-                border-bottom-right-radius: 5px;
-            }
-            #tools ul li:hover ul {
-                display: block;
-            }
-            #tools:after {
-                clear: both;
-                content: "";
-                display: table;
-            }
-            #tools ul li > *:first-child {
-                padding: 5px;
-                border: 1px solid transparent;
-                border-radius: 5px;
-            }
-            #tools ul li > *:first-child:hover {
-                background-color: #eee;
-                border-color: #ccc;
-            }
-            #tools ul li > *:first-child.active {
-                box-shadow: 2px 2px 1px #000;
-                background-color: #fff;
-            }
-            #tools > {
-                display: inline-block;
-            }
-
-            #tools svg {
-                background-color: transparent;
-            }
-            svg use {
-                pointer-events: none;
-            }
-            #symbols {
-                display: none;
-            }
-
-            svg.editing > * {
-                opacity: 1;
-            }
-
-            svg.editing > *:hover {
-                stroke: #0000ff;
-            }
-
-            svg.editing .visible-on-error {
-
-                stroke: red;
-            }
-
-            svg.editing .visible-on-success {
-
-                stroke: green;
-            }
-
-            svg.editing .hidden-on-error {
-                stroke-dasharray: 5,5;
-                stroke: red;
-            }
-
-            svg.editing .hidden-on-success {
-                stroke-dasharray: 5,5;
-                stroke: green;
-            }
-
-
-            svg.playing > * {
-                opacity: .3;
-            }
-
-            svg.playing .show {
-                opacity: 1;
-            }
-
-            svg.playing .visible-on-error, svg.playing .visible-on-success, svg.error .hidden-on-error, svg.success .hidden-on-success {
-                opacity: 0;
-            }
-
-            svg.error .visible-on-error, svg.success .visible-on-success {
-                opacity: 1;
-            }
-
-
-
-
-
-
-
-
-        </style>
+        <link rel="stylesheet" href="styles.css"/>
     </head>
     <body>
 
@@ -390,6 +168,8 @@
 
         <script type="application/javascript" src="SVGDraw.js"></script>
         <script type="application/javascript" src="Sortable.js"></script>
+        <script type="application/javascript" src="Popup.js"></script>
+        <script type="application/javascript" src="Game.js"></script>
         
         <script>
 
@@ -422,11 +202,8 @@
             }, false);
 
             tools.addEventListener("click", (e) => {
-
                 let data = e.target.dataset;
-
                 if (data.type === "symbol") {
-
                     let id = e.target.querySelector("use").getAttribute("href");
                     let symbol = symbols.querySelector(id);
                     [...symbol.children].forEach(el => {
@@ -440,7 +217,7 @@
                 }
             });
 
-            document.addEventListener("keyup", (e) => {
+            /*document.addEventListener("keyup", (e) => {
 
                 if (e.key === "1") {
                     Draw.type = "line";
@@ -463,12 +240,10 @@
                 // if (e.key === "Delete") {
                 //     console.log(Shape);
                 // }
-            });
+            });*/
 
             let toggleVisibility = (tkl, index, status) => {
-
                 let scl = [...svg.children][index].classList;
-
                 if (scl.contains("visible-on-"+status)) {
                     scl.remove("visible-on-"+status);
                     scl.add("hidden-on-"+status);
@@ -480,16 +255,13 @@
                     scl.add("visible-on-"+status);
                     tkl.add("visible");
                 }
-
             };
 
             layers.addEventListener("mousedown", (e) => {
                 if (e.target.nodeName.toLowerCase() === "span") {
                     let elements = [...layers.children];
                     let index = elements.indexOf(e.target.parentNode);
-
                     let tkl = e.target.classList;
-
                     if (tkl.contains("remove")) {
                         Draw.removeShape(index);
                         e.target.parentNode.remove();
@@ -504,6 +276,22 @@
                         toggleVisibility(tkl, index, "error");
                     } else if (tkl.contains("success")) {
                         toggleVisibility(tkl, index, "success");
+                    } else if (tkl.contains("color")) {
+                        let attributes = document.createElement('div');
+                        let a = '';
+                        let shape = [...svg.children][index];
+                        [...shape.attributes].forEach(att => {
+                            a += '<span class="key">'+att.nodeName+'</span> <input name="'+att.nodeName+'" value="'+att.nodeValue+'" />';
+                        });
+                        attributes.innerHTML = '<form style="padding:10px 15px" action="" class="attributes">'+a+'<input type="submit" value="OK" /></form>';
+                        attributes.addEventListener("submit", e => {
+                            e.preventDefault();
+                            const params = new FormData(e.target);
+                            [...params.entries()].forEach(v => {
+                                shape.setAttribute(v[0], v[1]);
+                            })
+                        })
+                        Popup(e.target, attributes);
                     }
                 }
             });
@@ -518,14 +306,14 @@
             svg.addEventListener("added", (e) => {
                 let b = document.createElement('li');
                 b.classList.add(e.detail.type);
-                b.innerHTML = e.detail.type + ' <span class="remove">x</span> <span class="merge">v</span> <span class="error"></span> <span class="success"></span>';
+                b.innerHTML = e.detail.type + ' <span class="remove">x</span> <span class="merge">v</span> <span class="error"></span> <span class="success"></span> <span class="color">color</span>';
                 layers.appendChild(b);
             }, false);
 
             document.querySelector("#reverse").addEventListener("click", e => {
                 e.preventDefault();
                 Draw.reverseOrder();
-                for (var i = 1; i < layers.childNodes.length; i++){
+                for (let i = 1; i < layers.childNodes.length; i++){
                     layers.insertBefore(layers.childNodes[i], layers.firstChild);
                 }
             });
@@ -616,102 +404,16 @@
                 }
             });
 
-            //Create letters
-
             let letters = document.querySelector("#letters");
-
-            let alpha = [...'abcdefghijklmnopqrstuvwxyz'];
-
-            for (let i in alpha) {
-                if (+i === Math.floor(alpha.length/2)) {
-                    letters.appendChild(document.createElement("br"));
-                }
-                let e = document.createElement("button");
-                e.textContent = alpha[i];
-                letters.appendChild(e);
-            }
-
-            //Create word boxes
-            let word = "test";
 
             let result = document.querySelector("#result");
 
-            [...word].forEach(b => {
-                let box = document.createElement("span");
-                box.classList.add("empty");
-                result.appendChild(box);
-            });
+            let game = new Game(svg, result, letters);
+
+            // game.word("test");
 
             document.querySelector("#play").addEventListener("click", e => {
-
-                e.preventDefault();
-                let playButton = e.target;
-                let shapes = [...svg.querySelectorAll("*:not(.visible-on-error,.visible-on-success)")];
-                let index = 0;
-
-                let playing = e => {
-                    let target = e.target;
-                    if (target.classList.contains("picked")) {
-                        return;
-                    }
-                    target.classList.add("picked");
-                    let l = target.textContent;
-                    let r = new RegExp(l,"gi");
-                    let match = [];
-                    let matches = [];
-                    while ((match = r.exec(word)) !== null) {
-                        matches.push(match);
-                    }
-                    if (matches.length) {
-                        matches.forEach(m => {
-                            let ok = result.children[m.index];
-                            ok.textContent = l;
-                            ok.classList.remove("empty");
-                            if (!result.querySelectorAll(".empty").length) {
-                                stop("success");
-                            }
-                        });
-                    } else {
-                        shapes[index].classList.add("show");
-                        if (!shapes[++index]) {
-                            stop("error");
-                        }
-                    }
-                };
-
-                let play = () => {
-                    index = 0;
-                    svg.classList.remove("editing", "success", "error");
-                    svg.classList.add("playing");
-                    playButton.innerText="Stop";
-                    [...result.children].forEach(el=>{
-                        el.textContent = "";
-                        el.classList.add("empty");
-                    });
-                    letters.querySelectorAll(".picked").forEach(el => {
-                        el.classList.remove("picked");
-                    });
-                    shapes.forEach(el=>{
-                        el.classList.remove("show");
-                    });
-                    letters.addEventListener("click", playing);
-                };
-
-                let stop = (status) => {
-                    svg.classList.remove("playing");
-                    svg.classList.add(status);
-                    playButton.innerText="Play";
-                    letters.removeEventListener("click", playing);
-
-                };
-
-                if (playButton.innerText==="Stop") {
-                    stop();
-                } else {
-                    play();
-                }
-
-
+                game.play("testing");
             });
 
 
