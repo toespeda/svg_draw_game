@@ -111,6 +111,11 @@ let Layers = (layers, draw) => {
         }
     });
 
+    draw.svg.addEventListener("update", (e) => {
+        layers.innerHTML = "";
+        draw.addShapes();
+    });
+
     draw.svg.addEventListener("added", (e) => {
         //this.add(e.detail);
         let shape = e.detail;

@@ -1,0 +1,54 @@
+ul {
+    background-color: #ddd;
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    list-style: none;
+    margin: 0;
+}
+ul li {
+    display: inline-block;
+    position: relative;
+    background-color: #ddd;
+}
+ul li ul {
+    display: none;
+    position: absolute;
+    left: -5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+ul li:hover ul {
+    display: block;
+}
+ul li > *:first-child {
+    padding: 5px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+ul li > *:first-child:hover {
+    background-color: #eee;
+    border-color: #ccc;
+}
+ul li > *:first-child.active {
+    box-shadow: 2px 2px 1px #000;
+    background-color: #fff;
+}
+
+ul li svg {
+    background-color: transparent;
+}
+svg use {
+    pointer-events: none;
+}
+#symbols {
+    display: none;
+}
+
+pre {
+    overflow : scroll;
+    white-space : pre;
+    outline : none;
+    tab-size : 3;
+    margin: 0;
+}
