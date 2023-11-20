@@ -1,0 +1,90 @@
+:root {
+    --popup-bg-color:#fff;
+    --popup-color:#000;
+}
+.popup {
+    width:auto;
+    position: absolute;
+}
+.popup {
+    --offset-left:50%;
+    --offset-top:25px;
+}
+.popup {
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    border-radius:3px;
+    border: 1px solid rgba(0,0,0,.2);
+    background-color:var(--popup-bg-color);
+    color:#333;
+    filter:drop-shadow(3px 7px 3px rgba(0,0,0,.2));
+}
+.popup, .popup a {
+    color:var(--popup-color);
+}
+.popup.black {
+    border-color:#333;
+    background-color:#333;
+}
+
+.popup.grey {
+    border-color:#333;
+    background-color:#eee;
+}
+
+.popup.black, .popup.black a {
+    color:#eee;
+}
+.popup:after {
+    position: absolute;
+    pointer-events: none;
+    content: " ";
+    clip-path: polygon(0% 0%, 0% 105%, 105% 0%);
+    rotate: -45deg;
+    border: inherit;
+    border-style: solid none none solid;
+    background-color: inherit;
+    height: 18px;
+    width: 18px;
+}
+
+.popup.right:after {
+    rotate: -45deg;
+    top: 25px;
+    top: var(--offset-top);
+    margin-top: -9px;
+    left: -9px;
+}
+
+.popup.left:after {
+    top: 25px;
+    top: var(--offset-top);
+    margin-top: -9px;
+    rotate: 135deg;
+    right: -9px;
+}
+
+.popup.bottom:after {
+    top: 0;
+    left: 50%;
+    left: var(--offset-left);
+    margin-left: -9px;
+    rotate: 45deg;
+    margin-top: -9px;
+}
+.popup.top:after {
+    top: 100%;
+    left: 50%;
+    left: var(--offset-left);
+    margin-left: -9px;
+    rotate: -135deg;
+    margin-top: -9px;
+}
+
+.popup > .remove {
+    position: absolute;
+    right: 4px;
+    top: 0;
+    cursor: pointer;
+    line-height: 1;
+}

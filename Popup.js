@@ -1,32 +1,44 @@
-let Popup = (target, content) => {
+let Popup = (content, target) => {
 
     let targetdim = target.getBoundingClientRect();
 
-    let cont = null;
+    let popup = document.createElement("div");
 
-    if (typeof content === "text") {
-        cont = document.createElement("div");
-        cont.innerHTML = content || "";
+    document.body.appendChild(popup);
+
+    if (typeof content === "string") {
+        // let cont = document.createElement("div");
+        // cont.innerHTML = content;
+        // content = cont;
+        popup.innerHTML = content;
+        content = popup.firstChild;
     } else {
-        cont = content;
+        popup.appendChild(content);
     }
 
-    cont.style.position = "absolute";
-    cont.classList.add("popup");
-    document.body.appendChild(cont);
+    popup.style.position = "absolute";
+    popup.classList.add("popup");
 
     let remove = document.createElement('span');
     remove.classList.add("remove");
     remove.innerText = "x";
-    cont.insertBefore(remove, cont.firstChild);
+    popup.insertBefore(remove, popup.firstChild);
 
     remove.addEventListener("click", e => {
-        cont.remove();
+        popup.remove();
     });
 
-    let dim = cont.getBoundingClientRect();
+    content.addEventListener("close", e => {
+        popup.remove();
+    });
+
+    let dim = popup.getBoundingClientRect();
+
     let stemSize = 18;
     let stemOffset = 28;
+
+    let stemLong = stemSize+1 * Math.abs(Math.cos(-45)) + stemSize+1 * Math.abs(Math.sin(-45));//Stem is rotated box with border top and left
+
     let scrollTop = 0;
     let scrollLeft = 0;
 
@@ -115,7 +127,7 @@ let Popup = (target, content) => {
         }
         values.push(t);
 
-    };
+    }
 
     if (!value) {
         if (values.length) {
@@ -128,8 +140,27 @@ let Popup = (target, content) => {
         }
     }
 
-    cont.classList.add(value.direction);
-    cont.style.left = value.position.left+"px";
-    cont.style.top = value.position.top+"px";
+    popup.classList.add(value.direction);
+    popup.style.left = value.position.left+"px";
+    popup.style.top = value.position.top+"px";
+
+    switch (value.direction) {
+        case "top" : break;
+        case "bottom" : break;
+        case "right" :
+            if (dim.height < stemOffset + stemSize) {//A silly way to calculate..
+                let max = Math.max(Math.floor(dim.height/2), stemSize / 2);
+                popup.style.setProperty('--offset-top', max + 'px');
+                value.position.top += stemOffset - max;
+                popup.style.top = value.position.top + "px";
+            }
+            break;
+        case "left" : break;
+    }
+
+
+
+
+    return content;
 
 };

@@ -1,127 +1,85 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-        <title>Test</title>
+        <title>Editor</title>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="game.css"/>
         <link rel="stylesheet" href="styles.css"/>
+        <link rel="stylesheet" href="popup.css"/>
+        <link rel="stylesheet" href="layers.css"/>
     </head>
     <body>
 
-        <div class="row">
+        <div id="editor" class="row">
 
-            <div class="test col">
+            <div class="test col" style="display: flex;flex-direction: row-reverse;">
 
-                <div id="tools">
+                <ul id="tools" class="editor">
+                    <li><img data-action="move" src="symbols/pointer.svg" /></li>
+                    <li><img data-action="resize" src="symbols/resize.svg" /></li>
+                    <li><img data-action="draw" data-type="line" src="symbols/line.svg" /></li>
+                    <li><img data-action="draw" data-type="circle" src="symbols/circle.svg" /></li>
+                    <li><img data-action="draw" data-type="ellipse" src="symbols/ellipse.svg" /></li>
 
-                    <ul>
-                        <li><img data-action="move" src="symbols/pointer.svg" /></li>
-                        <li><img data-action="resize" src="symbols/resize.svg" /></li>
-                        <li><img data-action="draw" data-type="line" src="symbols/line.svg" /></li>
-                        <li><img data-action="draw" data-type="circle" src="symbols/circle.svg" /></li>
-                        <li><img data-action="draw" data-type="ellipse" src="symbols/ellipse.svg" /></li>
-                        <li>
-                            <svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg>
-                            <ul>
-                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg></li>
-                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star2" /></svg></li>
-                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#glow" /></svg></li>
-                                <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#sun" /></svg></li>
-                            </ul>
+                    <li>
+                        <svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg>
+                        <ul>
+                            <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg></li>
+                            <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star2" /></svg></li>
+                            <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#glow" /></svg></li>
+                            <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#fire" /></svg></li>
+                        </ul>
+                    </li>
+                    <li><img data-action="source" data-type="" src="symbols/source.svg" /></li>
+                </ul>
 
-                    </ul>
-
-                </div>
-
-                <svg class="editing" id="editor" xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-
-                    <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M246 176 L235 80"></path>
-                    <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
-                    <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
-
-<!--                    <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>-->
-
-<!--                    <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M 168,148.8000030517578 M 214.2276973253049,148.8000030517578 A 46.22769732530488,46.22769732530488,0,1,0,121.77230267469511,148.8000030517578 A 46.22769732530488,46.22769732530488,0,1,0,214.2276973253049,148.8000030517578"></path>-->
-
-                    <!--<path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L84 121" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L236 110" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M84 121 L128 124" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M128 124 L70 177" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M185 121 L244 165" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M192 185 L244 165" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L126 183" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L189 184" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L187 288" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M236 110 L185 121" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M126 183 L70 177" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L134 291" opacity="1"></path>-->
-
-                    <!--<path stroke="#000000" stroke-width="3" fill="transparent" d="
-                        M 93.11,36.46
-                        C 92.79,35.45 91.94,34.72 90.94,34.61
-                        L 61.53,31.46 49.6,2.911
-                        C 49.19,1.943 48.28,1.308 47.27,1.308 46.26,1.308 45.35,1.937 44.94,2.916
-                        L 33.01,31.46 3.6,34.61
-                        C 2.597,34.72 1.746,35.45 1.436,36.46 1.122,37.47 1.407,38.59 2.161,39.3
-                        L 24.2,60.1 17.95,90.59
-                        C 17.74,91.63 18.13,92.71 18.94,93.33 19.39,93.68 19.91,93.85 20.44,93.85 20.88,93.85 21.32,93.73 21.72,93.48
-                        L 47.27,77.78 72.82,93.48
-                        C 73.69,94.01 74.78,93.96 75.6,93.32 76.41,92.71 76.8,91.62 76.59,90.58
-                        L 70.34,60.08 92.38,39.28
-                        C 93.13,38.58 93.42,37.47 93.11,36.46
-                        Z "/>-->
-
+                <svg id="game" xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                    <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M 131,330.8000030517578 L 139.58333333333331,303.2183343691831 M 190,320.8000030517578 L 180.43859649122805,302.4102929093039" style="" class="static"></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 270.1754385964913,283.5096496024724 L 180.43859649122805,302.4102929093039 M 45.83333333333333,291.75647293254735 L 139.58333333333331,303.2183343691831" opacity="1" style="" class=""></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 133.11111111111111,190.67632021179298 L 45.83333333333333,291.75647293254735 M 270,283 L 179,197" opacity="1" style="" class=""></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 180,198 L 232,178 M 77,186 L 133.11111111111111,190.67632021179298" opacity="1" style="" class=""></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 135,134 L 77,187 M 172,135 L 231,179" opacity="1" style="" class=""></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 91,131 L 135,134 M 223,122 L 172,133" opacity="1" style="" class=""></path>
+                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 90,132 L 152,69.80000305175781 M 152,69.80000305175781 L 223,122" opacity="1" style="" class=""></path><path d="M 171.71552631578913,44.819769548949694 C 171.56539473684177,44.37839835060599,171.2007894736841,44.056610481862734,170.7718421052631,44.008777150022524 L 158.03210526315752,42.62595901136922,152.863289473684,30.091451826878597 C 152.6917105263155,29.665300325029534,152.28421052631558,29.38699730341378,151.85526315789457,29.38699730341378,151.4263157894731,29.38699730341378,151.01881578947325,29.66312608267316,150.82578947368393,30.093626069234972 L 145.67842105263145,42.62595901136922,132.94082894736812,44.008777150022524 C 132.50544736842096,44.056610481862734,132.13655263157864,44.37839835060599,132.0035789473681,44.819769548949694,131.8663157894734,45.25461802022427,131.9907105263157,45.75469376219006,132.3167105263155,46.059087692082244 L 141.86293421052613,55.190905588849105,139.15627631578923,68.60598092767076 C 139.06619736842083,69.04082939894528,139.23563157894716,69.49742029378366,139.58522368421012,69.80181422367595,139.77824999999973,69.954011188622,140.0034473684206,70.01923845931339,140.2350789473682,70.01923845931339,140.42596052631558,70.01923845931339,140.61469736842088,69.954011188622,140.78842105263146,69.86704149436724 L 151.85526315789457,62.974693224664506,162.92210526315768,69.86704149436724 C 163.2867105263154,70.08446573000434,163.75855263157877,70.06272330644062,164.1231578947365,69.78007180011213,164.46631578947364,69.49742029378366,164.63789473684176,69.04082939894528,164.5306578947367,68.60598092767076 L 161.8497368421048,55.190905588849105,171.39381578947325,46.059087692082244 C 171.71552631578913,45.75469376219006,171.84421052631575,45.25461802022427,171.71552631578913,44.819769548949694 Z " fill="orange" stroke="yellow" stroke-width="3" style="" class="visible-on-success"></path>
+                    <path title="glow" fill-rule="evenodd" clip-rule="evenodd" d="M 156.52872037914688,8.505733221943744 V 21.945742133110528 C 156.52872037914688,27.071086605402392,148.08466350710887,26.749228627123355,148.08466350710887,21.945742133110528 V 8.505733221943744 C 148.08466350710887,2.9122316903369505,156.52872037914688,2.69765970481759,156.52872037914688,8.505733221943744 Z  M 187.78202843601895,24.63276858813698,177.8448151658767,34.039799498746824 C 174.34362085308052,37.42906154274577,168.5769478672985,32.089145084934536,172.1296303317535,28.66574658869395 L 182.06684360189553,19.253839042049556 C 186.0314312796208,15.615868560289599,191.3347109004738,21.306902812587037,187.78202843601895,24.63276858813698 Z  M 122.50020094786726,19.253839042049556,132.43741421800945,28.66574658869395 C 135.99524549763032,32.05013199665834,130.34184644549762,37.419308270676645,126.75827109004734,34.039799498746824 L 116.82620663507099,24.63276858813698 C 112.85647014218009,20.872882205513786,119.47269763033174,16.386377053745484,122.50020094786726,19.253839042049556 Z  M 105.47306919431276,48.86477304372041 H 119.66320379146924 C 125.30630521327015,48.86477304372041,125.30630521327015,56.8624561403508,119.66320379146924,56.8624561403508 H 105.47306919431276 C 99.83511658767772,56.8624561403508,99.83511658767772,48.86477304372041,105.47306919431276,48.86477304372041 Z  M 184.9501800947867,48.86477304372041 H 199.1094218009478 C 205.030559241706,48.86477304372041,205.030559241706,56.8624561403508,199.1094218009478,56.8624561403508 H 184.9501800947867 C 179.02904265402844,56.8624561403508,179.02904265402844,48.86477304372041,184.9501800947867,48.86477304372041 Z  M 132.43741421800945,78.3684210526316,122.50020094786726,87.78032859927593 C 118.79305402843593,91.48657198551932,112.45486255924163,85.24447786132001,116.82620663507099,81.05057087162346 L 126.75827109004734,71.63866332497905 C 130.7280075829383,67.981186299081,136.72637725118483,74.36957950431628,132.43741421800945,78.3684210526316 Z  M 177.8448151658767,71.63866332497905,187.78202843601895,81.05057087162346 C 192.26149763033177,85.39077694235588,185.82547867298572,91.34027290448344,182.06684360189553,87.78032859927593 L 172.1296303317535,78.3684210526316 C 167.70164928909952,74.07698134224441,174.13766824644546,68.1274853801169,177.8448151658767,71.63866332497905 Z  M 156.52872037914688,83.78148705096069 V 97.19223614592035 C 156.52872037914688,102.6540685045947,148.08466350710887,102.45900306321353,148.08466350710887,97.19223614592035 V 83.78148705096069 C 148.08466350710887,78.07582289055975,156.52872037914688,77.78322472848792,156.52872037914688,83.78148705096069 Z " fill="yellow" stroke="none" style="" class="visible-on-success"></path>
+                    <path d="M 170.44374999999994,294.8466666666666 A 9.331087499999999,8.375616666666664,0,0,1,169.29625,286.0058333333333 C 171.39999999999992,282.57250000000005,172.165,278.53833333333324,171.59124999999995,274.59 A 24.18356249999999,21.707249999999984,0,0,0,168.7225,266.43583333333333,23.275124999999992,20.89183333333332,0,0,0,162.31562499999993,260.16999999999996,45.498375,40.83949999999998,0,0,1,145.39,236.56583333333327 C 125.748625,259.8266666666666,133.28387499999997,272.87333333333345,142.63599999999997,284.4608333333333 A 8.594774999999993,7.714699999999998,0,0,1,142.44474999999994,293.64499999999987,9.992812499999996,8.969583333333333,0,0,1,137.99818749999997,296.7349999999999,9.629437499999998,8.643416666666658,0,0,1,132.49018750000002,297.07833333333326 C 119.80075,294.15999999999997,107.8380625,288.75250000000005,99.74818749999997,280.4266666666665 A 53.83687499999997,48.32416666666665,0,0,1,89.35374999999999,264.3758333333332,55.29037500000001,49.62883333333332,0,0,1,86.32243749999999,245.92166666666662 C 86.32243749999999,245.92166666666662,84.79243749999999,220.42916666666662,118.93056249999998,195.486,118.93056249999998,195.486,159.25562499999998,164.7748333333333,145.39,142.08049999999997 A 7.136493749999998,6.405741666666667,0,0,1,146.53749999999997,135.35116666666664,6.411656249999998,5.755124999999997,0,0,1,153.61374999999995,133.82333333333332 L 155.43062499999996,134.41558333333333 A 87.68812499999997,78.70916666666665,0,0,1,189.3775,170.51708333333332 C 196.16687500000003,185.08299999999997,196.16687500000003,202.07800000000003,191.48125000000005,217.16749999999996,195.21062500000002,214.24916666666672,198.27062499999994,210.55833333333328,200.7568749999998,206.6099999999999 L 201.13937499999994,205.9233333333333 C 203.33874999999995,201.03083333333325,210.415,202.5929999999999,213.18812499999999,205.75166666666667,214.14437500000005,207.12499999999994,239.58062499999994,240.2566666666666,225.90624999999977,268.1525 A 63.380250000000004,56.8903333333333,0,0,1,204.86874999999995,289.09583333333336,70.41825,63.207666666666654,0,0,1,180.10187499999995,298.3658333333333,9.581625,8.600499999999995,0,0,1,174.74687500000005,297.93666666666655,9.964124999999994,8.94383333333333,0,0,1,170.44374999999994,294.8466666666666 Z " fill="red" stroke="#000000" stroke-width="0.5" style="" class="visible-on-error"></path>
                 </svg>
+
             </div>
 
-            <div class="col">
+            <div class="col editor">
                 <ol id="layers"></ol>
                 <button id="reverse">Reverse</button>
-                <button id="test">Step</button>
-            </div>
-
-            <div id="examples" class="col">
-                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                    <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M246 176 L235 80"></path>
-                    <circle stroke="#000000" stroke-width="3" fill="transparent" cx="182" cy="124" r="36.235341863986875"></circle>
-                    <ellipse stroke="#000000" stroke-width="3" fill="transparent" cx="100" cy="132" rx="36" ry="52.5"></ellipse>
-                </svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L84 121" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M152 50 L236 110" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M84 121 L128 124" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M128 124 L70 177" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M185 121 L244 165" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M192 185 L244 165" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L126 183" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L189 184" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M280 270 L187 288" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M236 110 L185 121" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M126 183 L70 177" opacity="1"></path>
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M44 280 L134 291" opacity="1"></path>
-                </svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                    <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80, 265 80, 235 40 C235 80, 225 80, 225 80"></path>
-                </svg>
             </div>
 
         </div>
 
+        <div id="examples" class="col">
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M 131,330.8000030517578 L 139.58333333333331,303.2183343691831 M 190,320.8000030517578 L 180.43859649122805,302.4102929093039" style="" class="static"></path>
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 270.1754385964913,283.5096496024724 L 180.43859649122805,302.4102929093039 M 45.83333333333333,291.75647293254735 L 139.58333333333331,303.2183343691831" opacity="1" style="" class=""></path>
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 133.11111111111111,190.67632021179298 L 45.83333333333333,291.75647293254735 M 270,283 L 179,197" opacity="1" style="" class=""></path>
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 180,198 L 232,178 M 77,186 L 133.11111111111111,190.67632021179298" opacity="1" style="" class=""></path>
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 135,134 L 77,187 M 172,135 L 231,179" opacity="1" style="" class=""></path>
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 91,131 L 135,134 M 223,122 L 172,133" opacity="1" style="" class=""></path>
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 90,132 L 152,69.80000305175781 M 152,69.80000305175781 L 223,122" opacity="1" style="" class=""></path><path d="M 171.71552631578913,44.819769548949694 C 171.56539473684177,44.37839835060599,171.2007894736841,44.056610481862734,170.7718421052631,44.008777150022524 L 158.03210526315752,42.62595901136922,152.863289473684,30.091451826878597 C 152.6917105263155,29.665300325029534,152.28421052631558,29.38699730341378,151.85526315789457,29.38699730341378,151.4263157894731,29.38699730341378,151.01881578947325,29.66312608267316,150.82578947368393,30.093626069234972 L 145.67842105263145,42.62595901136922,132.94082894736812,44.008777150022524 C 132.50544736842096,44.056610481862734,132.13655263157864,44.37839835060599,132.0035789473681,44.819769548949694,131.8663157894734,45.25461802022427,131.9907105263157,45.75469376219006,132.3167105263155,46.059087692082244 L 141.86293421052613,55.190905588849105,139.15627631578923,68.60598092767076 C 139.06619736842083,69.04082939894528,139.23563157894716,69.49742029378366,139.58522368421012,69.80181422367595,139.77824999999973,69.954011188622,140.0034473684206,70.01923845931339,140.2350789473682,70.01923845931339,140.42596052631558,70.01923845931339,140.61469736842088,69.954011188622,140.78842105263146,69.86704149436724 L 151.85526315789457,62.974693224664506,162.92210526315768,69.86704149436724 C 163.2867105263154,70.08446573000434,163.75855263157877,70.06272330644062,164.1231578947365,69.78007180011213,164.46631578947364,69.49742029378366,164.63789473684176,69.04082939894528,164.5306578947367,68.60598092767076 L 161.8497368421048,55.190905588849105,171.39381578947325,46.059087692082244 C 171.71552631578913,45.75469376219006,171.84421052631575,45.25461802022427,171.71552631578913,44.819769548949694 Z " fill="orange" stroke="yellow" stroke-width="3" style="" class="visible-on-success"></path>
+                <path title="glow" fill-rule="evenodd" clip-rule="evenodd" d="M 156.52872037914688,8.505733221943744 V 21.945742133110528 C 156.52872037914688,27.071086605402392,148.08466350710887,26.749228627123355,148.08466350710887,21.945742133110528 V 8.505733221943744 C 148.08466350710887,2.9122316903369505,156.52872037914688,2.69765970481759,156.52872037914688,8.505733221943744 Z  M 187.78202843601895,24.63276858813698,177.8448151658767,34.039799498746824 C 174.34362085308052,37.42906154274577,168.5769478672985,32.089145084934536,172.1296303317535,28.66574658869395 L 182.06684360189553,19.253839042049556 C 186.0314312796208,15.615868560289599,191.3347109004738,21.306902812587037,187.78202843601895,24.63276858813698 Z  M 122.50020094786726,19.253839042049556,132.43741421800945,28.66574658869395 C 135.99524549763032,32.05013199665834,130.34184644549762,37.419308270676645,126.75827109004734,34.039799498746824 L 116.82620663507099,24.63276858813698 C 112.85647014218009,20.872882205513786,119.47269763033174,16.386377053745484,122.50020094786726,19.253839042049556 Z  M 105.47306919431276,48.86477304372041 H 119.66320379146924 C 125.30630521327015,48.86477304372041,125.30630521327015,56.8624561403508,119.66320379146924,56.8624561403508 H 105.47306919431276 C 99.83511658767772,56.8624561403508,99.83511658767772,48.86477304372041,105.47306919431276,48.86477304372041 Z  M 184.9501800947867,48.86477304372041 H 199.1094218009478 C 205.030559241706,48.86477304372041,205.030559241706,56.8624561403508,199.1094218009478,56.8624561403508 H 184.9501800947867 C 179.02904265402844,56.8624561403508,179.02904265402844,48.86477304372041,184.9501800947867,48.86477304372041 Z  M 132.43741421800945,78.3684210526316,122.50020094786726,87.78032859927593 C 118.79305402843593,91.48657198551932,112.45486255924163,85.24447786132001,116.82620663507099,81.05057087162346 L 126.75827109004734,71.63866332497905 C 130.7280075829383,67.981186299081,136.72637725118483,74.36957950431628,132.43741421800945,78.3684210526316 Z  M 177.8448151658767,71.63866332497905,187.78202843601895,81.05057087162346 C 192.26149763033177,85.39077694235588,185.82547867298572,91.34027290448344,182.06684360189553,87.78032859927593 L 172.1296303317535,78.3684210526316 C 167.70164928909952,74.07698134224441,174.13766824644546,68.1274853801169,177.8448151658767,71.63866332497905 Z  M 156.52872037914688,83.78148705096069 V 97.19223614592035 C 156.52872037914688,102.6540685045947,148.08466350710887,102.45900306321353,148.08466350710887,97.19223614592035 V 83.78148705096069 C 148.08466350710887,78.07582289055975,156.52872037914688,77.78322472848792,156.52872037914688,83.78148705096069 Z " fill="yellow" stroke="none" style="" class="visible-on-success"></path>
+                <path d="M 170.44374999999994,294.8466666666666 A 9.331087499999999,8.375616666666664,0,0,1,169.29625,286.0058333333333 C 171.39999999999992,282.57250000000005,172.165,278.53833333333324,171.59124999999995,274.59 A 24.18356249999999,21.707249999999984,0,0,0,168.7225,266.43583333333333,23.275124999999992,20.89183333333332,0,0,0,162.31562499999993,260.16999999999996,45.498375,40.83949999999998,0,0,1,145.39,236.56583333333327 C 125.748625,259.8266666666666,133.28387499999997,272.87333333333345,142.63599999999997,284.4608333333333 A 8.594774999999993,7.714699999999998,0,0,1,142.44474999999994,293.64499999999987,9.992812499999996,8.969583333333333,0,0,1,137.99818749999997,296.7349999999999,9.629437499999998,8.643416666666658,0,0,1,132.49018750000002,297.07833333333326 C 119.80075,294.15999999999997,107.8380625,288.75250000000005,99.74818749999997,280.4266666666665 A 53.83687499999997,48.32416666666665,0,0,1,89.35374999999999,264.3758333333332,55.29037500000001,49.62883333333332,0,0,1,86.32243749999999,245.92166666666662 C 86.32243749999999,245.92166666666662,84.79243749999999,220.42916666666662,118.93056249999998,195.486,118.93056249999998,195.486,159.25562499999998,164.7748333333333,145.39,142.08049999999997 A 7.136493749999998,6.405741666666667,0,0,1,146.53749999999997,135.35116666666664,6.411656249999998,5.755124999999997,0,0,1,153.61374999999995,133.82333333333332 L 155.43062499999996,134.41558333333333 A 87.68812499999997,78.70916666666665,0,0,1,189.3775,170.51708333333332 C 196.16687500000003,185.08299999999997,196.16687500000003,202.07800000000003,191.48125000000005,217.16749999999996,195.21062500000002,214.24916666666672,198.27062499999994,210.55833333333328,200.7568749999998,206.6099999999999 L 201.13937499999994,205.9233333333333 C 203.33874999999995,201.03083333333325,210.415,202.5929999999999,213.18812499999999,205.75166666666667,214.14437500000005,207.12499999999994,239.58062499999994,240.2566666666666,225.90624999999977,268.1525 A 63.380250000000004,56.8903333333333,0,0,1,204.86874999999995,289.09583333333336,70.41825,63.207666666666654,0,0,1,180.10187499999995,298.3658333333333,9.581625,8.600499999999995,0,0,1,174.74687500000005,297.93666666666655,9.964124999999994,8.94383333333333,0,0,1,170.44374999999994,294.8466666666666 Z " fill="red" stroke="#000000" stroke-width="0.5" style="" class="visible-on-error"></path>
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <line stroke="#000000" stroke-width="3" x1="25" x2="28" y1="306" y2="32" style="" class="static"></line><line stroke="#000000" stroke-width="3" x1="28" x2="168" y1="32" y2="33" style="" class="static"></line><line stroke="#000000" stroke-width="3" x1="168" x2="168" y1="108" y2="33" style="" class="static"></line><circle stroke="#000000" stroke-width="3" fill="transparent" cx="168" cy="128" r="19" style=""></circle><line stroke="#000000" stroke-width="3" x1="169" x2="169" y1="206" y2="147" style=""></line><line stroke="#000000" stroke-width="3" x1="148" x2="170" y1="180" y2="158" style=""></line><line stroke="#000000" stroke-width="3" x1="194" x2="169" y1="183" y2="159" style=""></line><line stroke="#000000" stroke-width="3" x1="168" x2="153" y1="206" y2="240"></line><line stroke="#000000" stroke-width="3" x1="168" x2="184" y1="205" y2="241" style=""></line>
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80, 265 80, 235 40 C235 80, 225 80, 225 80"></path>
+            </svg>
+        </div>
+
         <div class="row">
-
             <div class="col">
-
-<!--                <div id="controllers">-->
-<!--                    -->
-<!--                </div>-->
-
-                <button id="play">Play</button>
-
+                <button id="play">Play</button> <button id="edit">Edit</button>
                 <div id="result"></div>
-
                 <div id="letters"></div>
-
             </div>
-
         </div>
 
         <svg id="symbols" width="24" height="24" viewBox="0 0 24 24" version="2" xmlns="http://www.w3.org/2000/svg">
@@ -154,10 +112,25 @@
                         stroke="none"
                         />
             </symbol>
-
-            <symbol id="sun" viewbox="0 0 24 24">
+            <symbol id="fire" viewbox="0 0 24 24">
                 <path
-                        d="M 4.91,18.03 6,17C 6.602,16.7 7.309,17.35 7,18L 6,19.09C 5.258,19.8 4.227,18.71 4.91,18.03ZM 17,6 18,4.91C 18.68,4.211 19.82,5.25 19.09,6L 18,7C 17.35,7.718 16.4,6.685 17,6ZM 18.03,19.09 17,18C 16.7,17.37 17.37,16.7 18,17L 19.09,18C 19.77,18.68 18.73,19.79 18.03,19.09ZM 6,7 4.91,6C 4.199,5.289 5.287,4.197 6,4.91L 7,6C 7.611,6.679 6.636,7.721 6,7ZM 4.25,12.75H 2.75C 1.77,12.75 1.77,11.25 2.75,11.25H 4.25C 5.23,11.25 5.23,12.75 4.25,12.75ZM 21.25,12.75H 19.75C 18.77,12.75 18.77,11.25 19.75,11.25H 21.25C 22.23,11.25 22.23,12.75 21.25,12.75ZM 11.25,21.25V 19.75C 11.25,18.77 12.75,18.77 12.75,19.75V 21.25C 12.75,22.23 11.25,22.23 11.25,21.25ZM 11.25,4.25V 2.75C 11.25,1.77 12.75,1.77 12.75,2.75V 4.25C 12.75,5.225 11.25,5.225 11.25,4.25ZM 12,17.75C 9.73,17.75 6.418,15.93 6.423,12.06 6.428,7.982 9.647,6.255 11.98,6.255 14.53,6.255 17.77,7.941 17.75,12 17.73,15.16 15.16,17.75 12,17.75ZM 11.98,7.772C 9.831,7.772 7.965,9.583 7.965,12.1 7.965,14.15 9.568,16.24 12.01,16.24 14.85,16.24 16.25,13.99 16.25,12 16.25,9.681 14.34,7.772 11.98,7.772Z"
+                        d="M 12.7,20.72
+                            A 0.9758,0.9758 0 0 1 12.58,19.69
+                            C 12.8,19.29 12.88,18.82 12.82,18.36
+                            A 2.529,2.529 0 0 0 12.52,17.41 2.434,2.434 0 0 0 11.85,16.68 4.758,4.758 0 0 1 10.08,13.93
+                            C 8.026,16.64 8.814,18.16 9.792,19.51
+                            A 0.8988,0.8988 0 0 1 9.772,20.58 1.045,1.045 0 0 1 9.307,20.94 1.007,1.007 0 0 1 8.731,20.98
+                            C 7.404,20.64 6.153,20.01 5.307,19.04
+                            A 5.63,5.63 0 0 1 4.22,17.17 5.782,5.782 0 0 1 3.903,15.02
+                            C 3.903,15.02 3.743,12.05 7.313,9.144 7.313,9.144 11.53,5.566 10.08,2.922
+                            A 0.7463,0.7463 0 0 1 10.2,2.138 0.6705,0.6705 0 0 1 10.94,1.96
+                            L 11.13,2.029
+                            A 9.17,9.17 0 0 1 14.68,6.235
+                            C 15.39,7.932 15.39,9.912 14.9,11.67 15.29,11.33 15.61,10.9 15.87,10.44
+                            L 15.91,10.36
+                            C 16.14,9.79 16.88,9.972 17.17,10.34 17.27,10.5 19.93,14.36 18.5,17.61
+                            A 6.628,6.628 0 0 1 16.3,20.05 7.364,7.364 0 0 1 13.71,21.13 1.002,1.002 0 0 1 13.15,21.08 1.042,1.042 0 0 1 12.7,20.72
+                            Z"
                         fill="#000"
                         stroke="#000000"
                         stroke-width="0.5"
@@ -166,262 +139,74 @@
 
         </svg>
 
-        <script type="application/javascript" src="SVGDraw.js"></script>
+        <script type="application/javascript" src="Draw.js"></script>
         <script type="application/javascript" src="Sortable.js"></script>
         <script type="application/javascript" src="Popup.js"></script>
         <script type="application/javascript" src="Game.js"></script>
+        <script type="application/javascript" src="Layers.js"></script>
+        <script type="application/javascript" src="Tools.js"></script>
         
         <script>
 
-            let svg = document.querySelector("#editor");
+            let editor = document.querySelector("#editor");
 
-            let Draw = new SVGDraw(svg);
+            let svg = document.querySelector("#game");
 
-            let layers = document.querySelector("#layers");
+            let draw = new Draw(svg);
 
-            let tools = document.querySelector("#tools");
-
-            let symbols = document.querySelector("#symbols");
-
-            let setTools = function(data){
-                for (var i in data) {
-                    let buttons = document.querySelectorAll("#tools > ul> li > *");
-                    buttons.forEach(el => {
-                        el.classList.remove("active");
-                    });
-                    buttons.forEach(el => {
-                        el.classList[el.dataset[i] === data[i] ? "add" : "remove"]("active");
-                    });
-                }
-            };
-
-            svg.addEventListener("action", (e) => {
-                setTools({
-                    action:e.detail
-                });
-            }, false);
-
-            tools.addEventListener("click", (e) => {
-                let data = e.target.dataset;
-                if (data.type === "symbol") {
-                    let id = e.target.querySelector("use").getAttribute("href");
-                    let symbol = symbols.querySelector(id);
-                    [...symbol.children].forEach(el => {
-                        Draw.addShape(svg.appendChild(el.cloneNode()));
-                    });
-                    setTools(data);
-
-                } else {
-                    Draw.set(data);
-                    setTools(data);
-                }
-            });
-
-            /*document.addEventListener("keyup", (e) => {
-
-                if (e.key === "1") {
-                    Draw.type = "line";
-                }
-                if (e.key === "2") {
-                    Draw.type = "circle";
-                }
-                if (e.key === "3") {
-                    Draw.type = "ellipse";
-                }
-                if (e.key === "4") {
-                    Draw.type = "path";
-                }
-                if (e.key === "l") {
-                    Draw.draw = 1;
-                }
-                if (e.key === "m") {
-                    Draw.draw = 0;
-                }
-                // if (e.key === "Delete") {
-                //     console.log(Shape);
-                // }
-            });*/
-
-            let toggleVisibility = (tkl, index, status) => {
-                let scl = [...svg.children][index].classList;
-                if (scl.contains("visible-on-"+status)) {
-                    scl.remove("visible-on-"+status);
-                    scl.add("hidden-on-"+status);
-                    tkl.add("hidden");
-                } else if (scl.contains("hidden-on-"+status)) {
-                    scl.remove("hidden-on-"+status);
-                    tkl.remove(...["hidden", "visible"]);
-                } else {
-                    scl.add("visible-on-"+status);
-                    tkl.add("visible");
-                }
-            };
-
-            layers.addEventListener("mousedown", (e) => {
-                if (e.target.nodeName.toLowerCase() === "span") {
-                    let elements = [...layers.children];
-                    let index = elements.indexOf(e.target.parentNode);
-                    let tkl = e.target.classList;
-                    if (tkl.contains("remove")) {
-                        Draw.removeShape(index);
-                        e.target.parentNode.remove();
-                    } else if (tkl.contains("merge")) {
-                        if (Draw.mergeShape(index, 1)) {
-                            e.target.parentNode.nextElementSibling.remove();
-                        }
-                    } else if (tkl.contains("visibility")) {
-                        e.target.innerText = e.target.innerText === "o" ? "ø" : "o";
-                        [...svg.children][index].classList[e.target.innerText === "o"  ? "remove" : "add"]("hidden");
-                    } else if (tkl.contains("error")) {
-                        toggleVisibility(tkl, index, "error");
-                    } else if (tkl.contains("success")) {
-                        toggleVisibility(tkl, index, "success");
-                    } else if (tkl.contains("color")) {
-                        let attributes = document.createElement('div');
-                        let a = '';
-                        let shape = [...svg.children][index];
-                        [...shape.attributes].forEach(att => {
-                            a += '<span class="key">'+att.nodeName+'</span> <input name="'+att.nodeName+'" value="'+att.nodeValue+'" />';
-                        });
-                        attributes.innerHTML = '<form style="padding:10px 15px" action="" class="attributes">'+a+'<input type="submit" value="OK" /></form>';
-                        attributes.addEventListener("submit", e => {
-                            e.preventDefault();
-                            const params = new FormData(e.target);
-                            [...params.entries()].forEach(v => {
-                                shape.setAttribute(v[0], v[1]);
-                            })
-                        })
-                        Popup(e.target, attributes);
-                    }
-                }
-            });
+            let layers = Layers("#layers", draw);
 
             Sortable(layers);
 
-            layers.addEventListener("sorted", (e) => {
-                //Rearrange shapes
-                Draw.moveShape(e.detail.startIndex, e.detail.endIndex);
-            }, false);
+            draw.addShapes();
 
-            svg.addEventListener("added", (e) => {
-                let b = document.createElement('li');
-                b.classList.add(e.detail.type);
-                b.innerHTML = e.detail.type + ' <span class="remove">x</span> <span class="merge">v</span> <span class="error"></span> <span class="success"></span> <span class="color">color</span>';
-                layers.appendChild(b);
-            }, false);
+            Tools("#tools", draw);
 
             document.querySelector("#reverse").addEventListener("click", e => {
                 e.preventDefault();
-                Draw.reverseOrder();
+                draw.reverseOrder();
                 for (let i = 1; i < layers.childNodes.length; i++){
                     layers.insertBefore(layers.childNodes[i], layers.firstChild);
                 }
             });
 
-            document.querySelector("#test").addEventListener("click", e => {
-                e.preventDefault();
-
-                let shapes = [...svg.querySelectorAll("*:not(.visible-on-error,.visible-on-success)")];
-
-                [...layers.children].forEach(el => {
-                    el.style.fontWeight = "";
-                });
-
-                let test = e.target;
-
-                let stop = () => {
-                    svg.classList.remove("playing");
-                    test.innerText = "Step";
-                    shapes.forEach(el=>{
-                        el.classList.remove("show");
-                    });
-                    test.nextSibling.remove();
-                    [...layers.children].forEach(el => {
-                        el.style.fontWeight = "";
-                    });
-                };
-
-                if (test.innerText==="Stop") {
-
-                    stop();
-
-                } else {
-
-                    svg.classList.add("playing");
-
-                    test.innerText = "Stop";
-                    let i = 0;
-                    let next = document.createElement("button");
-                    next.innerText = "Next";
-                    test.parentNode.insertBefore(next, test.nextSibling);
-
-                    next.addEventListener("click", e => {
-
-                        if (!shapes[i]) {
-
-                            svg.classList.add("error");
-
-                            setTimeout(function(){
-                                stop();
-                            },2000)
-
-
-                        } else {
-
-                            shapes[i].classList.add("show");
-                            layers.children[[...svg.children].indexOf(shapes[i])].style.fontWeight = "bold";
-                            i++;
-
-                        }
-
-                    });
-                }
-            });
-
-            Draw.addShapes();
-
-            let examples = document.querySelector("#examples");
-
-            examples.addEventListener("click", e => {
+            document.querySelector("#examples").addEventListener("click", e => {
                 if (e.target.nodeName === "svg") {
                     layers.innerHTML = "";
-                    Draw.addShapes(e.target.innerHTML);
-
+                    draw.addShapes(e.target.innerHTML);
+                    if (!editor.classList.contains("editing")) {
+                        game.play();
+                    }
                 }
             });
 
-            layers.addEventListener("mouseover", (e) => {
-                let shape = Draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
-                if (shape) {
-                    shape.el.style.stroke = "#0000ff";
-                }
-            });
-
-            layers.addEventListener("mouseout", (e) => {
-                let shape = Draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
-                if (shape) {
-                    shape.el.style.stroke = "";
-                }
-            });
-
-            let letters = document.querySelector("#letters");
-
-            let result = document.querySelector("#result");
-
-            let game = new Game(svg, result, letters);
-
-            // game.word("test");
+            let game = new Game(svg, "#result", "#letters");
 
             document.querySelector("#play").addEventListener("click", e => {
-                game.play("testing");
+                editor.classList.remove("editing");
+                if (Popup) {//Hide input
+                    let w = Popup('<input type="password" style="border:none;outline:none;margin:4px" />', e.target);
+                    w.addEventListener("change", e => {
+                        e.target.dispatchEvent(new CustomEvent("close"));
+                        game.play(e.target.value);
+                    });
+                    w.focus();
+                } else {
+                    game.play(prompt("Write word"));
+                }
+
             });
+
+            document.querySelector("#edit").addEventListener("click", e => {
+                svg.classList.remove("error", "success");
+                editor.classList.add("editing");
+            });
+
+            editor.classList.add("editing");
 
 
         </script>
 
-
-
-
-        
     </body>
+
 </html>

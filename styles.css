@@ -5,8 +5,6 @@ body {
     background-color: #eee;
     padding: 0;
     margin: 0;
-}
-#editor {
 
 }
 .col {
@@ -19,100 +17,9 @@ body {
 svg {
     background-color: #fff;
 }
-#layers {
-    margin: 0;
-    padding: 5px 0 10px 15px;
-}
-#layers li {
-    cursor: default;
-}
-#layers li:last-child .merge {
-    /*display: none;*/
-}
-#layers span {
-    cursor: pointer;
-    margin:0 5px;
-}
-#layers .error, #layers .success {
-    display: inline-block;
-    border-radius: 50%;
-    border: 2px solid red;
-    vertical-align: middle;
-    width: 8px;
-    height: 8px;
-}
 
-#layers .error:before, #layers .success:before {
-    content: "";
-    display: inline-block;
-    position: absolute;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    height: 2px;
-    width: 2px;
-    margin: 4px 0 0 4px;
-}
 
-#layers .success {
-    border: 2px solid green;
-}
-
-#layers .error.visible:before {
-    background-color: red;
-}
-
-#layers .error.hidden:before, #layers .success.hidden:before {
-    height: 1px;
-    width: 8px;
-}
-
-#layers .success.visible:before {
-    background-color: green;
-}
-
-#examples {
-    float: right;
-}
-#examples svg {
-    width: 80px;
-    height: 80px;
-}
-#letters {
-    /*display:grid;*/
-    /*grid-auto-flow:column dense;*/
-    /*grid-template-rows:50px 50px;*/
-    /*grid-auto-columns:50px;*/
-}
-#letters > * {
-    width: 32px;
-    height: 32px;
-    margin: 4px;
-    box-shadow: 2px 2px 1px #000;
-}
-#letters > *.picked {
-    border-color: transparent;
-    background-color: transparent;
-    box-shadow:none;
-}
-#result {
-    margin:0 0 30px 0;
-}
-#result > * {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    margin: 4px;
-    border-bottom: 3px solid transparent;
-    font-size: 20px;
-    text-align: center;
-    vertical-align: middle;
-}
-#result > *.empty {
-    border-bottom-color: #000;
-}
-#tools {
-
-}
-#tools ul {
+ul {
     background-color: #ddd;
     padding: 5px;
     border-top-left-radius: 5px;
@@ -120,44 +27,36 @@ svg {
     list-style: none;
     margin: 0;
 }
-#tools ul li {
+ul li {
     display: inline-block;
     position: relative;
     background-color: #ddd;
 }
-#tools ul li ul {
+ul li ul {
     display: none;
     position: absolute;
     left: -5px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 }
-#tools ul li:hover ul {
+ul li:hover ul {
     display: block;
 }
-#tools:after {
-    clear: both;
-    content: "";
-    display: table;
-}
-#tools ul li > *:first-child {
+ul li > *:first-child {
     padding: 5px;
     border: 1px solid transparent;
     border-radius: 5px;
 }
-#tools ul li > *:first-child:hover {
+ul li > *:first-child:hover {
     background-color: #eee;
     border-color: #ccc;
 }
-#tools ul li > *:first-child.active {
+ul li > *:first-child.active {
     box-shadow: 2px 2px 1px #000;
     background-color: #fff;
 }
-#tools > {
-    display: inline-block;
-}
 
-#tools svg {
+ul li svg {
     background-color: transparent;
 }
 svg use {
@@ -167,143 +66,43 @@ svg use {
     display: none;
 }
 
-svg.editing > * {
+#tools, .editor {
+    display: none;
+}
+
+.editing #tools {
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.editing .editor {
+    display: block;
+}
+
+.editing svg > * {
     opacity: 1;
 }
 
-svg.editing > *:hover {
+.editing svg > *:hover {
     stroke: #0000ff;
 }
 
-svg.editing .visible-on-error {
-
-    stroke: red;
-}
-
-svg.editing .visible-on-success {
-
-    stroke: green;
-}
-
-svg.editing .hidden-on-error {
-    stroke-dasharray: 5,5;
-    stroke: red;
-}
-
-svg.editing .hidden-on-success {
-    stroke-dasharray: 5,5;
-    stroke: green;
-}
-
-
-svg.playing > * {
-    opacity: .3;
-}
-
-svg.playing .show {
+.editing svg .visible-on-error {
     opacity: 1;
+    stroke: red;
 }
 
-svg.playing .visible-on-error, svg.playing .visible-on-success, svg.error .hidden-on-error, svg.success .hidden-on-success {
+.editing svg .hidden {
     opacity: 0;
 }
 
-svg.error .visible-on-error, svg.success .visible-on-success {
+.editing svg .hidden-on-success {
     opacity: 1;
+    stroke-dasharray: 5,5;
+    stroke: green;
 }
 
-body {
-    --popup-bg-color:#fff;
-    --popup-color:#000;
-}
-.popup {
-    width:auto;
-    position: absolute;
-}
-.popup {
-    --offset-left:50%;
-    --offset-top:25px;
-}
-.popup {
-    -moz-border-radius:3px;
-    -webkit-border-radius:3px;
-    border-radius:3px;
-    border: 1px solid rgba(0,0,0,.2);
-    background-color:var(--popup-bg-color);
-    color:#333;
-    filter:drop-shadow(3px 7px 3px rgba(0,0,0,.2));
-}
-.popup, .popup a {
-    color:var(--popup-color);
-}
-.popup.black {
-    border-color:#333;
-    background-color:#333;
-}
-
-.popup.grey {
-    border-color:#333;
-    background-color:#eee;
-}
-
-.popup.black, .popup.black a {
-    color:#eee;
-}
-.popup:after {
-    position: absolute;
-    pointer-events: none;
-    content: " ";
-    clip-path: polygon(0% 0%, 0% 105%, 105% 0%);
-    rotate: -45deg;
-    border: inherit;
-    border-style: solid none none solid;
-    background-color: inherit;
-    height: 18px;
-    width: 18px;
-}
-
-.popup.right:after {
-    rotate: -45deg;
-    top: 25px;
-    top: var(--offset-top);
-    margin-top: -9px;
-    left: -9px;
-}
-
-.popup.left:after {
-    top: 25px;
-    top: var(--offset-top);
-    margin-top: -9px;
-    rotate: 135deg;
-    right: -9px;
-}
-
-.popup.bottom:after {
-    top: 0;
-    left: 50%;
-    left: var(--offset-left);
-    margin-left: -9px;
-    rotate: 45deg;
-    margin-top: -9px;
-}
-.popup.top:after {
-    top: 100%;
-    left: 50%;
-    left: var(--offset-left);
-    margin-left: -9px;
-    rotate: -135deg;
-    margin-top: -9px;
-}
-
-.popup > .remove {
-    position: absolute;
-    right: 4px;
-    top: 0;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.attributes {
+.popup .attributes {
     display: grid;
     grid-template-columns: 1fr 2fr;
 }
@@ -317,3 +116,13 @@ body {
     margin: 0 10px 5px 0;
     padding: 0 0 0 5px;
 }
+
+#examples {
+    float: right;
+    padding: 10px;
+}
+#examples svg {
+    width: 80px;
+    height: 80px;
+}
+

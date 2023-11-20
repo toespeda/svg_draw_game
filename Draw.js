@@ -1,4 +1,4 @@
-class SVGDraw {
+class Draw {
 
     svg = null;
 
@@ -11,7 +11,6 @@ class SVGDraw {
     action = "resize";
 
     constructor(svg) {
-
         svg.addEventListener("mousedown", (e) => {
 
             let Shape = null;
@@ -37,14 +36,15 @@ class SVGDraw {
 
             let testProximity = (pos, c) => {
 
-                if (!c.type.match(/(line)/)) {//Temp
+                if (!c.type.match(/(line|path)/)) {//Temp
                     return null;
                 }
 
                 let start = null;
                 let end = null;
 
-                if (c.type === "path") {
+                if (c.type === "path" && c.d.length === 2) {
+
                     for (let m in c.d) {
                         if (c.d[m].command === "M") {
                             start = {
@@ -59,6 +59,7 @@ class SVGDraw {
                             };
                         }
                     }
+
                 } else if (c.type === "line") {
                     start = {
                         left : c.x1,
@@ -70,18 +71,24 @@ class SVGDraw {
                     };
                 }
 
-                let d = {
-                    start : this.getDistance(pos, start),
-                    end : this.getDistance(pos, end)
+                if (start && end) {
+
+                    let d = {
+                        start : this.getDistance(pos, start),
+                        end : this.getDistance(pos, end)
+                    }
+
+                    if (d.start < d.end && d.start < 10) {
+                        return [start, end];
+                    } else if (d.end < 10) {
+                        return [end, start];
+                    } else {
+
+                    }
                 }
 
-                if (d.start < d.end && d.start < 10) {
-                    return [start, end];
-                } else if (d.end < 10) {
-                    return [end, start];
-                } else {
-                    return null;
-                }
+                return null;
+
             };
 
             let getEdges = (pos, shape) => {
@@ -102,7 +109,7 @@ class SVGDraw {
 
             let edges = getEdges(startPos);
 
-            // console.log("edges", edges);
+            console.log("edges", edges);
 
             if (edges.length) {
 
@@ -111,7 +118,7 @@ class SVGDraw {
                     // Shape = this.createShape(this.type, edges[0].path[0]);
                     Shape = this.addShape(this.type, edges[0].path[0]);
 
-                } else if (this.type === edges[0].shape.type) {
+                } else {//if (this.type === edges[0].shape.type)
 
                     Shape = edges[0].shape;
 
@@ -239,14 +246,28 @@ class SVGDraw {
 
                         Shape.d.forEach(t => {
                             if (t.command.match(/[A]/)) {
-                                t.params[5] += diff.left;
-                                t.params[6] += diff.top;
+
+                                for (var v in t.params) {
+                                    if (v%7 === 5) {
+                                        t.params[v] += diff.left;
+                                    } else if (v%7 === 6) {
+                                        t.params[v] += diff.top;
+                                    }
+                                }
+
+                            } else if (t.command.match(/[V]/)) {
+
+                                t.params[0] += diff.top;
+
+                            } else if (t.command.match(/[H]/)) {
+
+                                t.params[0] += diff.left;
+
                             } else {
                                 for (var v in t.params) {
                                     t.params[v] += diff[v%2 ? "top" : "left"];
                                 }
                             }
-
                         });
 
                     } else if (this.action === "resize") {
@@ -259,17 +280,41 @@ class SVGDraw {
                         // };
 
                         Shape.d.forEach(t => {
+
                             if (t.command.match(/[A]/)) {
+
+                                for (var v in t.params) {
+                                    if (v % 7 === 0) {
+                                        t.params[v] *= diffP.left;
+                                    } else if (v % 7 === 1) {
+                                        t.params[v] *= diffP.top;
+                                    } else if (v % 7 === 5) {
+                                        t.params[v] *= diffP.left;
+                                    } else if (v % 7 === 6) {
+                                        t.params[v] *= diffP.top;
+                                    }
+                                }
+
+                                // t.params[0] *= diffP.left;
+                                // t.params[1] *= diffP.top;
+                                // t.params[5] *= diffP.left;
+                                // t.params[6] *= diffP.top;
+
+                            } else if (t.command.match(/[V]/)) {
+
+                                t.params[0] *= diffP.top;
+
+                            } else if (t.command.match(/[H]/)) {
+
                                 t.params[0] *= diffP.left;
-                                t.params[1] *= diffP.top;
-                                t.params[5] *= diffP.left;
-                                t.params[6] *= diffP.top;
 
                             } else {
+
                                 for (var v in t.params) {
                                     t.params[v] *= diffP[v % 2 ? "top" : "left"];
                                     //t.params[v] -= diff[v%2 ? "top" : "left"];
                                 }
+
                             }
                         });
 
@@ -748,8 +793,6 @@ class SVGDraw {
         }
         this.shapes.reverse();
     }
-
-
 
 }
 

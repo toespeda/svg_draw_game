@@ -1,0 +1,69 @@
+#layers {
+    margin: 0;
+    padding: 5px 0 10px 15px;
+}
+#layers li {
+    cursor: default;
+    line-height: 1.2em;
+}
+#layers li:last-child .merge {
+    /*display: none;*/
+}
+#layers span {
+    cursor: pointer;
+    margin:0 5px;
+
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+
+    float: left;
+}
+#layers .title {
+    min-width: 60px;
+    max-width: 60px;
+}
+#layers .error, #layers .success, #layers .display {
+
+    border-radius: 50%;
+    border: 2px solid red;
+
+    width: 8px;
+    height: 8px;
+    transform: translate(0, 50%);
+}
+
+#layers .error:before, #layers .success:before {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    height: 2px;
+    width: 2px;
+    margin: 4px 0 0 4px;
+}
+
+#layers .success {
+    border: 2px solid green;
+}
+
+#layers .display {
+    border: 2px solid black;
+}
+
+#layers .display.static {
+    background-color: black;
+}
+
+#layers .error.visible:before {
+    background-color: red;
+}
+
+#layers .error.hidden:before, #layers .success.hidden:before {
+    height: 1px;
+    width: 8px;
+}
+
+#layers .success.visible:before {
+    background-color: green;
+}

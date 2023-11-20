@@ -1,0 +1,55 @@
+#letters {
+    /*display:grid;*/
+    /*grid-auto-flow:column dense;*/
+    /*grid-template-rows:50px 50px;*/
+    /*grid-auto-columns:50px;*/
+}
+#letters > * {
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+    box-shadow: 2px 2px 1px #000;
+}
+#letters > *.picked {
+    border-color: transparent;
+    background-color: transparent;
+    box-shadow:none;
+}
+#result {
+    margin:0 0 30px 0;
+}
+#result > * {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+    border-bottom: 3px solid transparent;
+    font-size: 20px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#result > *.empty {
+    border-bottom-color: #000;
+}
+
+#result.error > *.empty {
+    border-bottom-color: red;
+}
+
+#result.success {
+    color: green;
+}
+
+svg .pending {
+    opacity: .3;
+    stroke: #000;
+}
+
+svg .visible-on-error, svg .visible-on-success, svg.error .hidden-on-error, svg.success .hidden-on-success {
+    opacity: 0;
+}
+
+svg.error .visible-on-error, svg.success .visible-on-success {
+    opacity: 1;
+}

@@ -1,18 +1,18 @@
 class Game {
 
     result = null;
-
     svg = null;
-
     letters = null;
-
     str = "";
+    shapes = null;
+    index = null;
+    playing = false;
 
     constructor(svg, result, letters) {
 
-        this.result = result;
-        this.svg = svg;
-        this.letters = letters;
+        this.svg = typeof svg === "string" ? document.querySelector(svg) : svg;
+        this.result = typeof result === "string" ? document.querySelector(result) : result;
+        this.letters = typeof letters === "string" ? document.querySelector(letters) : letters;
 
         let alpha = [...'abcdefghijklmnopqrstuvwxyz'];
 
@@ -25,32 +25,11 @@ class Game {
             this.letters.appendChild(e);
         }
 
-        //Create word boxes
+        this.letters.addEventListener("click", e => {
+            if (!this.str || !this.playing) {
+                return;
+            }
 
-    }
-
-    word(str) {
-        this.result.innerHTML = "";
-        this.str = str;
-        //let word = "test";
-        [...this.str].forEach(b => {
-            let box = document.createElement("span");
-            box.classList.add("empty");
-            this.result.appendChild(box);
-        });
-    }
-
-    play(word){
-
-        if (word) {
-            this.word(word);
-        }
-
-        // let playButton = e.target;
-        let shapes = [...this.svg.querySelectorAll("*:not(.visible-on-error,.visible-on-success)")];
-        let index = 0;
-
-        let playing = e => {
             let target = e.target;
             if (target.classList.contains("picked")) {
                 return;
@@ -69,47 +48,63 @@ class Game {
                     ok.textContent = l;
                     ok.classList.remove("empty");
                     if (!this.result.querySelectorAll(".empty").length) {
-                        stop("success");
+                        this.stop("success");
                     }
                 });
             } else {
-                shapes[index].classList.add("show");
-                if (!shapes[++index]) {
-                    stop("error");
+                this.shapes[this.index].classList.remove("pending");
+                if (!this.shapes[++this.index]) {
+                    this.stop("error");
+                    [...this.str].forEach((l,i) => {
+                        if (this.result.children[i].classList.contains("empty")) {
+                            this.result.children[i].textContent = l;
+                        }
+                    });
                 }
             }
-        };
+        });
+    }
 
-        let play = () => {
-            index = 0;
-            this.svg.classList.remove("editing", "success", "error");
-            this.svg.classList.add("playing");
-            // playButton.innerText="Stop";
-            [...this.result.children].forEach(el=>{
-                el.textContent = "";
-                el.classList.add("empty");
-            });
-            this.letters.querySelectorAll(".picked").forEach(el => {
-                el.classList.remove("picked");
-            });
-            shapes.forEach(el=>{
-                el.classList.remove("show");
-            });
-            this.letters.addEventListener("click", playing);
-        };
+    word(str) {
+        this.result.innerHTML = "";
+        this.str = str;
+        [...this.str].forEach(b => {
+            let box = document.createElement("span");
+            box.classList.add("empty");
+            this.result.appendChild(box);
+        });
+    }
 
-        let stop = (status) => {
-            this.svg.classList.remove("playing");
-            this.svg.classList.add(status);
-            // playButton.innerText="Play";
-            this.letters.removeEventListener("click", playing);
+    stop(status){
+        this.playing = false;
+        this.svg.classList.add(status);
+        this.result.classList.add(status);
+        this.shapes.forEach(el=>{
+            el.classList.remove("pending");
+        });
+    }
 
-        };
-
-        // if (playButton.innerText==="Stop") {
-        //     stop();
-        // } else {
-            play();
-        // }
+    play(word){
+        if (word) {
+            this.word(word);
+        }
+        if (!this.str) {
+            this.word(prompt("Write word"));
+        }
+        this.shapes = [...this.svg.querySelectorAll("*:not(.static,.visible-on-error,.visible-on-success)")];
+        this.index = 0;
+        this.svg.classList.remove("success", "error");
+        this.result.classList.remove("success", "error");
+        this.playing = true;
+        [...this.result.children].forEach(el=>{
+            el.textContent = "";
+            el.classList.add("empty");
+        });
+        this.letters.querySelectorAll(".picked").forEach(el => {
+            el.classList.remove("picked");
+        });
+        this.shapes.forEach(el=>{
+            el.classList.add("pending");
+        });
     }
 }
