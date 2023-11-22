@@ -12,11 +12,9 @@
 #layers span {
     cursor: pointer;
     margin:0 5px;
-
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-
     float: left;
 }
 #layers .title {
@@ -24,10 +22,8 @@
     max-width: 60px;
 }
 #layers .error, #layers .success, #layers .display {
-
     border-radius: 50%;
     border: 2px solid red;
-
     width: 8px;
     height: 8px;
     transform: translate(0, 50%);
@@ -51,19 +47,19 @@
     border: 2px solid black;
 }
 
-#layers .display.static {
-    background-color: black;
-}
-
-#layers .error.visible:before {
-    background-color: red;
-}
-
 #layers .error.hidden:before, #layers .success.hidden:before {
     height: 1px;
     width: 8px;
 }
 
-#layers .success.visible:before {
+#layers .display.static {
+    background-color: black;
+}
+
+#layers .error.visible:before, #layers .error.hidden:before {
+    background-color: red;
+}
+
+#layers .success.visible:before, #layers .success.hidden:before {
     background-color: green;
 }

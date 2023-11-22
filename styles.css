@@ -48,10 +48,10 @@ svg {
 }
 
 .editing svg .hidden {
-    opacity: 0;
+    display: none;
 }
 
-.editing svg .hidden-on-success {
+.editing svg .visible-on-success {
     opacity: 1;
     stroke-dasharray: 5,5;
     stroke: green;

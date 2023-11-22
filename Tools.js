@@ -87,7 +87,7 @@ let Tools = (tools, draw) => {
 
     tools.addEventListener("click", (e) => {
         let data = e.target.dataset;
-        console.log(data);
+        // console.log(data);
         if (data.type === "symbol") {
 
             let id = e.target.querySelector("use").getAttribute("href");

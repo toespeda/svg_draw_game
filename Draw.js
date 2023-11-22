@@ -8,10 +8,17 @@ class Draw {
 
     draw = 0;
 
-    action = "resize";
+    action = "move";
 
     constructor(svg) {
+
         svg.addEventListener("mousedown", (e) => {
+
+            console.log({
+                "type" : this.type,
+                "draw" : this.draw,
+                "action" : this.action
+            });
 
             let Shape = null;
 
@@ -28,6 +35,8 @@ class Draw {
                 };
             };
 
+            let node = false;
+
             let startPos = getPos(e);
 
             let lastPos = startPos;
@@ -43,7 +52,7 @@ class Draw {
                 let start = null;
                 let end = null;
 
-                if (c.type === "path" && c.d.length === 2) {
+                if (c.type === "path" && c.d.length === 2) { // For now, only M-L paths are allowed
 
                     for (let m in c.d) {
                         if (c.d[m].command === "M") {
@@ -94,7 +103,7 @@ class Draw {
             let getEdges = (pos, shape) => {
                 let s = [];
                 for (let i = 0; i < this.shapes.length; i++) {
-                    if (!shape || this.shapes[i].el !== shape) {
+                    if (!this.shapes[i].el.classList.contains("hidden") && (!shape || this.shapes[i].el !== shape)) {
                         let proximity = testProximity(pos, this.shapes[i]);
                         if (proximity) {
                             s.push({
@@ -107,42 +116,123 @@ class Draw {
                 return s;
             };
 
-            let edges = getEdges(startPos);
+            // console.log("edges", edges);
 
-            console.log("edges", edges);
+            if (this.action === "node") {
 
-            if (edges.length) {
+                console.log("Do node edit");
 
-                if (this.draw) {
+                let edges = getEdges(startPos);
 
-                    // Shape = this.createShape(this.type, edges[0].path[0]);
-                    Shape = this.addShape(this.type, edges[0].path[0]);
+                if (edges.length) {
 
-                } else {//if (this.type === edges[0].shape.type)
+                    console.log("Found edges");
 
-                    Shape = edges[0].shape;
+                    if (this.draw) {
 
-                    // Closest first
-                    if (Shape.type === "path") {
-                        for (let m in Shape.d) {
-                            if (Shape.d[m].command === "M") {
-                                Shape.d[m].params[0] = edges[0].path[1].left;
-                                Shape.d[m].params[1] = edges[0].path[1].top;
+                        Shape = this.addShape(this.type, edges[0].path[0]);
+
+                    } else {
+
+                        Shape = edges[0].shape;
+
+                        // Closest first
+                        if (Shape.type === "path") {
+                            for (let m in Shape.d) {
+                                if (Shape.d[m].command === "M") {
+                                    Shape.d[m].params[0] = edges[0].path[1].left;
+                                    Shape.d[m].params[1] = edges[0].path[1].top;
+                                }
+                                if (Shape.d[m].command === "L") {
+                                    Shape.d[m].params[0] = edges[0].path[0].left;
+                                    Shape.d[m].params[1] = edges[0].path[0].top;
+                                }
                             }
-                            if (Shape.d[m].command === "L") {
-                                Shape.d[m].params[0] = edges[0].path[0].left;
-                                Shape.d[m].params[1] = edges[0].path[0].top;
-                            }
+                        } else if (Shape.type === "line") {
+                            Shape.x1 = edges[0].path[1].left;
+                            Shape.y1 = edges[0].path[1].top;
+                            Shape.x2 = edges[0].path[0].left;
+                            Shape.y2 = edges[0].path[0].top;
                         }
-                    } else if (Shape.type === "line") {
-                        Shape.x1 = edges[0].path[1].left;
-                        Shape.y1 = edges[0].path[1].top;
-                        Shape.x2 = edges[0].path[0].left;
-                        Shape.y2 = edges[0].path[0].top;
+
                     }
 
+                } else {
+
+                    console.log("check path", e.target);
+
+                    //Test quadratic curve on lines
+                    if (e.target.nodeName.match(/(path|line)/)) {
+
+                        Shape = this.getShapeByElement(e.target);
+
+                        if (Shape.type !== "path") {
+
+                            this.convertToPath(Shape);
+
+                            Shape.d[1].command = "Q";
+                            Shape.d[1].params = [...[startPos.left, startPos.top], ...Shape.d[1].params];
+
+                            node = {
+                                position : 1,
+                                start : 0
+                            };
+
+                        } else {
+
+                            //TODO: Find closest node
+                            for (let m in Shape.d) {
+
+                                switch (Shape.d[m].command) {
+                                    case "M" :
+                                        break;
+                                    case "L" :
+                                        break;
+                                    case "S" :
+                                        break;
+                                    case "Q" :
+                                        node = {
+                                            position : m,
+                                            start : 0
+                                        };
+                                        break;
+                                    case "L" :
+                                        break;
+                                    case "H" :
+                                        break;
+                                    case "V" :
+                                        break;
+                                    case "C" :
+                                        break;
+                                    case "S" :
+                                        break;
+                                    case "Q" :
+                                        break;
+                                    case "T" :
+                                        break;
+                                    case "A" :
+                                        break;
+                                }
+
+                                // if (Shape.d[m].command === "M") {
+                                //     Shape.d[m].params[0] = edges[0].path[1].left;
+                                //     Shape.d[m].params[1] = edges[0].path[1].top;
+                                // }
+                                // if (Shape.d[m].command === "L") {
+                                //     Shape.d[m].params[0] = edges[0].path[0].left;
+                                //     Shape.d[m].params[1] = edges[0].path[0].top;
+                                // }
+                            }
+
+                            //console.log(Shape.d);
+
+                        }
+
+                    }
 
                 }
+
+
 
             } else if (!this.draw && e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
 
@@ -214,15 +304,22 @@ class Draw {
             }
 
             if (!Shape && this.action === "draw") {
+
                 // Shape = this.createShape(this.type, startPos);
                 Shape = this.addShape(this.type, startPos);
-            } else {
-                //return;
+
             }
 
             if (!Shape) {
                 return;
             }
+
+            if (e.ctrlKey) {
+                Shape = this.duplicateShape(Shape);
+            }
+
+
+
 
             let move = (e) => {
 
@@ -318,29 +415,46 @@ class Draw {
                             }
                         });
 
+
                     } else {
 
-                        let edges = getEdges(pos, Shape.el);
+                        if (node) {
 
-                        if (edges.length) {
-                            pos = edges[0].path[0];
-                        }
+                            Shape.d[node.position].params.splice(node.start, 2, pos.left, pos.top);
 
-                        let point = null;
-                        for (let m in Shape.d) {
-                            if (Shape.d[m].command === "L") {
-                                point = Shape.d[m];
-                            }
-                        }
+                            // Shape.d[1].params[0] = pos.left;
+                            // Shape.d[1].params[1] = pos.top;
 
-                        if (point){
-                            point.params = [pos.left, pos.top];
+
                         } else {
-                            Shape.d.push({
-                                command : "L",
-                                params : [pos.left, pos.top]
-                            });
+
+                            let edges = getEdges(pos, Shape.el);
+
+                            if (edges.length) {
+                                pos = edges[0].path[0];
+                            }
+
+                            let point = null;
+                            for (let m in Shape.d) {
+                                if (Shape.d[m].command === "L") {
+                                    point = Shape.d[m];
+                                }
+                            }
+
+                            if (point){
+                                point.params = [pos.left, pos.top];
+                            } else {
+                                Shape.d.push({
+                                    command : "L",
+                                    params : [pos.left, pos.top]
+                                });
+                            }
+
                         }
+
+
+
+
 
                     }
 
@@ -510,9 +624,16 @@ class Draw {
         return data;
     }
 
+    duplicateShape(Shape){
+        let duplicate = {...Shape};
+        duplicate.el = Shape.el.cloneNode(true);
+        this.svg.insertBefore(duplicate.el, Shape.el.nextSibling);
+        this.shapes.push(duplicate);
+        this.svg.dispatchEvent(new CustomEvent("added", { detail: duplicate }));
+        return duplicate;
+    }
+
     addShape(Shape, position) {
-        //console.log(typeof Shape);
-        //console.log("Shape.constructor.name", Shape.constructor.name);
         if (Shape.constructor.name === "String") {
             Shape = this.createShape(Shape, position);
         } else {
@@ -524,10 +645,8 @@ class Draw {
         return Shape;
     }
 
-    addShapes(content){
-        if (content) {
-            this.svg.innerHTML = content;
-        }
+    init(content){
+        this.svg.innerHTML = content || "";
         this.shapes = [];
         [...this.svg.children].forEach(el => {
             this.addShape(el);

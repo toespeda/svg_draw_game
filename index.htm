@@ -17,9 +17,10 @@
 
                 <ul id="tools" class="editor">
                     <li><img data-action="move" src="symbols/pointer.svg" /></li>
+                    <li><img data-action="node" src="symbols/node.svg" /></li>
                     <li><img data-action="resize" src="symbols/resize.svg" /></li>
                     <li><img data-action="draw" data-type="line" src="symbols/line.svg" /></li>
-                    <li><img data-action="draw" data-type="circle" src="symbols/circle.svg" /></li>
+<!--                    <li><img data-action="draw" data-type="circle" src="symbols/circle.svg" /></li>-->
                     <li><img data-action="draw" data-type="ellipse" src="symbols/ellipse.svg" /></li>
 
                     <li>
@@ -29,6 +30,8 @@
                             <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star2" /></svg></li>
                             <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#glow" /></svg></li>
                             <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#fire" /></svg></li>
+                            <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#face1" /></svg></li>
+                            <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#face2" /></svg></li>
                         </ul>
                     </li>
                     <li><img data-action="source" data-type="" src="symbols/source.svg" /></li>
@@ -68,7 +71,175 @@
                 <path d="M 170.44374999999994,294.8466666666666 A 9.331087499999999,8.375616666666664,0,0,1,169.29625,286.0058333333333 C 171.39999999999992,282.57250000000005,172.165,278.53833333333324,171.59124999999995,274.59 A 24.18356249999999,21.707249999999984,0,0,0,168.7225,266.43583333333333,23.275124999999992,20.89183333333332,0,0,0,162.31562499999993,260.16999999999996,45.498375,40.83949999999998,0,0,1,145.39,236.56583333333327 C 125.748625,259.8266666666666,133.28387499999997,272.87333333333345,142.63599999999997,284.4608333333333 A 8.594774999999993,7.714699999999998,0,0,1,142.44474999999994,293.64499999999987,9.992812499999996,8.969583333333333,0,0,1,137.99818749999997,296.7349999999999,9.629437499999998,8.643416666666658,0,0,1,132.49018750000002,297.07833333333326 C 119.80075,294.15999999999997,107.8380625,288.75250000000005,99.74818749999997,280.4266666666665 A 53.83687499999997,48.32416666666665,0,0,1,89.35374999999999,264.3758333333332,55.29037500000001,49.62883333333332,0,0,1,86.32243749999999,245.92166666666662 C 86.32243749999999,245.92166666666662,84.79243749999999,220.42916666666662,118.93056249999998,195.486,118.93056249999998,195.486,159.25562499999998,164.7748333333333,145.39,142.08049999999997 A 7.136493749999998,6.405741666666667,0,0,1,146.53749999999997,135.35116666666664,6.411656249999998,5.755124999999997,0,0,1,153.61374999999995,133.82333333333332 L 155.43062499999996,134.41558333333333 A 87.68812499999997,78.70916666666665,0,0,1,189.3775,170.51708333333332 C 196.16687500000003,185.08299999999997,196.16687500000003,202.07800000000003,191.48125000000005,217.16749999999996,195.21062500000002,214.24916666666672,198.27062499999994,210.55833333333328,200.7568749999998,206.6099999999999 L 201.13937499999994,205.9233333333333 C 203.33874999999995,201.03083333333325,210.415,202.5929999999999,213.18812499999999,205.75166666666667,214.14437500000005,207.12499999999994,239.58062499999994,240.2566666666666,225.90624999999977,268.1525 A 63.380250000000004,56.8903333333333,0,0,1,204.86874999999995,289.09583333333336,70.41825,63.207666666666654,0,0,1,180.10187499999995,298.3658333333333,9.581625,8.600499999999995,0,0,1,174.74687500000005,297.93666666666655,9.964124999999994,8.94383333333333,0,0,1,170.44374999999994,294.8466666666666 Z " fill="red" stroke="#000000" stroke-width="0.5" style="" class="visible-on-error"></path>
             </svg>
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
-                <line stroke="#000000" stroke-width="3" x1="25" x2="28" y1="306" y2="32" style="" class="static"></line><line stroke="#000000" stroke-width="3" x1="28" x2="168" y1="32" y2="33" style="" class="static"></line><line stroke="#000000" stroke-width="3" x1="168" x2="168" y1="108" y2="33" style="" class="static"></line><circle stroke="#000000" stroke-width="3" fill="transparent" cx="168" cy="128" r="19" style=""></circle><line stroke="#000000" stroke-width="3" x1="169" x2="169" y1="206" y2="147" style=""></line><line stroke="#000000" stroke-width="3" x1="148" x2="170" y1="180" y2="158" style=""></line><line stroke="#000000" stroke-width="3" x1="194" x2="169" y1="183" y2="159" style=""></line><line stroke="#000000" stroke-width="3" x1="168" x2="153" y1="206" y2="240"></line><line stroke="#000000" stroke-width="3" x1="168" x2="184" y1="205" y2="241" style=""></line>
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="25"
+                        x2="28"
+                        y1="306"
+                        y2="32"
+                        style=""
+                        class="static"
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="28"
+                        x2="168"
+                        y1="32"
+                        y2="33"
+                        style=""
+                        class="static"
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="168"
+                        x2="168"
+                        y1="108"
+                        y2="33"
+                        style=""
+                        class="static"
+                ></line>
+
+                <circle
+                        stroke="#000000"
+                        stroke-width="3"
+                        fill="transparent"
+                        cx="168"
+                        cy="128"
+                        r="19"
+                        style=""
+                        class="hidden-on-success"
+                ></circle>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="169"
+                        x2="169"
+                        y1="206"
+                        y2="147"
+                        style=""
+                        class="hidden-on-success"
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="148"
+                        x2="170"
+                        y1="180"
+                        y2="158"
+                        style=""
+                        class="hidden-on-success"
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="194"
+                        x2="169"
+                        y1="183"
+                        y2="159"
+                        style=""
+                        class="hidden-on-success"
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="168"
+                        x2="153"
+                        y1="206"
+                        y2="240"
+                        class="hidden-on-success"
+                        style=""
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="168"
+                        x2="184"
+                        y1="205"
+                        y2="241"
+                        style=""
+                        class="hidden-on-success"
+                ></line>
+
+                <path
+                        stroke="#000000"
+                        stroke-width="3"
+                        fill="transparent"
+                        stroke-linejoin="round"
+                        d="
+		M 167,191
+		M 186,191
+		A 19,19,0,1,0,148,191
+		A 19,19,0,1,0,186,191
+		M 168,269
+		L 168,210
+		M 169,221
+		L 133,206
+		M 168,222
+		L 201,203
+		M 167,269
+		L 152,303
+		M 167,268
+		L 183,304"
+                        style=""
+                        class="visible-on-success"
+                ></path>
+
+                <path
+                        d="
+		M 177.63,136.28
+		C 175.97,134.11,173.37,132.68,170.4,132.68,167.442,132.68,164.826,134.11,163.179,136.28
+		M 174.49,126.916
+		V 124.236
+		M 166.148,126.95600000000002
+		V 124.26599999999999
+		M 164.886,125.656
+		H 167.559
+		M 173.17000000000002,125.586
+		H 175.86"
+                        fill="transparent"
+                        stroke="#000000"
+                        stroke-width="2"
+                        style=""
+                        class="visible-on-error"
+                ></path>
+
+                <path
+                        d="
+		M 177.63,188.67000000000002
+		C 175.97,190.84,173.37,192.26999999999998,170.4,192.26999999999998,167.442,192.26999999999998,164.826,190.84,163.179,188.67000000000002
+		M 174.49,180.265
+		V 182.951
+		M 166.148,180.23000000000002
+		V 182.916
+		M 164.886,181.526
+		H 167.559
+		M 173.17000000000002,181.599
+		H 175.86"
+                        fill="transparent"
+                        stroke="#000000"
+                        stroke-width="2"
+                        style=""
+                        class="visible-on-success"
+                ></path>
+
+
+
+
+
+
+
+
+
             </svg>
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
                 <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M246 176 L235 80, 265 80, 235 40 C235 80, 225 80, 225 80"></path>
@@ -77,7 +248,7 @@
 
         <div class="row">
             <div class="col">
-                <button id="play">Play</button> <button id="edit">Edit</button>
+                <button id="play">Play</button> <button id="edit">Edit</button> <button id="new">New</button>
                 <div id="result"></div>
                 <div id="letters"></div>
             </div>
@@ -138,6 +309,50 @@
                 />
             </symbol>
 
+            <symbol id="face1" viewbox="0 0 24 24">
+                <path
+                        d="M 19.63,17.28
+C 17.97,15.11 15.37,13.68 12.4,13.68 9.442,13.68 6.826,15.11 5.179,17.28
+
+M 16.49,7.916
+V 5.236
+
+M 8.148,7.956
+V 5.266
+
+M 6.886,6.656
+H 9.559
+
+M 15.17,6.586
+H 17.86"
+                        fill="transparent"
+                        stroke="#000000"
+                        stroke-width="2"
+                />
+            </symbol>
+
+            <symbol id="face2" viewbox="0 0 24 24">
+                <path
+                        d="M 19.63,13.67
+                        C 17.97,15.84 15.37,17.27 12.4,17.27 9.442,17.27 6.826,15.84 5.179,13.67
+
+                        M 16.49,5.265
+                        V 7.951
+
+                        M 8.148,5.23
+                        V 7.916
+
+                        M 6.886,6.526
+                        H 9.559
+
+                        M 15.17,6.599
+                        H 17.86"
+                        fill="transparent"
+                        stroke="#000000"
+                        stroke-width="2"
+                />
+            </symbol>
+
         </svg>
 
         <script type="application/javascript" src="Draw.js"></script>
@@ -159,7 +374,7 @@
 
             Sortable(layers);
 
-            draw.addShapes();
+            draw.init(document.querySelector("#examples svg:nth-child(2)").innerHTML);
 
             Tools("#tools", draw);
 
@@ -174,10 +389,10 @@
             document.querySelector("#examples").addEventListener("click", e => {
                 if (e.target.nodeName === "svg") {
                     layers.innerHTML = "";
-                    draw.addShapes(e.target.innerHTML);
-                    if (!editor.classList.contains("editing")) {
-                        game.play();
-                    }
+                    draw.init(e.target.innerHTML);
+                    // if (!editor.classList.contains("editing")) {
+                    //     game.play();
+                    // }
                 }
             });
 
@@ -201,6 +416,11 @@
             document.querySelector("#edit").addEventListener("click", e => {
                 svg.classList.remove("error", "success");
                 editor.classList.add("editing");
+            });
+
+            document.querySelector("#new").addEventListener("click", e => {
+                layers.innerHTML = "";
+                draw.init();
             });
 
             editor.classList.add("editing");

@@ -113,7 +113,7 @@ let Layers = (layers, draw) => {
 
     draw.svg.addEventListener("update", (e) => {
         layers.innerHTML = "";
-        draw.addShapes();
+        draw.init();
     });
 
     draw.svg.addEventListener("added", (e) => {
@@ -126,7 +126,7 @@ let Layers = (layers, draw) => {
         //console.log(shape.el.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
         let s = shape.el.className.baseVal.match(/\b(static)\b/);
         if (s) {
-            console.log(s);
+            // console.log(s);
             b.querySelector(".display").classList.add(s[1]);
         }
         s = shape.el.className.baseVal.match(/\b(visible|hidden)-on-(\w+)\b/);
