@@ -54,6 +54,13 @@ class Draw {
 
                 if (c.type === "path" && c.d.length === 2) { // For now, only M-L paths are allowed
 
+                    console.log("Check path position");
+
+                    let nodes = this.getNodePos(c);
+                    // for (let m in nodes) {
+                    //     console.log(nodes[m]);
+                    // }
+
                     for (let m in c.d) {
                         if (c.d[m].command === "M") {
                             start = {
@@ -170,61 +177,29 @@ class Draw {
 
                             this.convertToPath(Shape);
 
+                            //No edges found, convert L to Q
+
                             Shape.d[1].command = "Q";
                             Shape.d[1].params = [...[startPos.left, startPos.top], ...Shape.d[1].params];
 
+                            Shape.el.setAttribute("d", Shape.d.map(function(command) {
+                                return command.command + ' ' + command.params.join(',');
+                            }).join(' '));
+
+
+                            // Make the control point the handler
                             node = {
-                                position : 1,
+                                index : 1,
                                 start : 0
                             };
 
                         } else {
 
-                            //TODO: Find closest node
-                            for (let m in Shape.d) {
+                            let nodes = this.getClosestNode(Shape, startPos);
 
-                                switch (Shape.d[m].command) {
-                                    case "M" :
-                                        break;
-                                    case "L" :
-                                        break;
-                                    case "S" :
-                                        break;
-                                    case "Q" :
-                                        node = {
-                                            position : m,
-                                            start : 0
-                                        };
-                                        break;
-                                    case "L" :
-                                        break;
-                                    case "H" :
-                                        break;
-                                    case "V" :
-                                        break;
-                                    case "C" :
-                                        break;
-                                    case "S" :
-                                        break;
-                                    case "Q" :
-                                        break;
-                                    case "T" :
-                                        break;
-                                    case "A" :
-                                        break;
-                                }
-
-                                // if (Shape.d[m].command === "M") {
-                                //     Shape.d[m].params[0] = edges[0].path[1].left;
-                                //     Shape.d[m].params[1] = edges[0].path[1].top;
-                                // }
-                                // if (Shape.d[m].command === "L") {
-                                //     Shape.d[m].params[0] = edges[0].path[0].left;
-                                //     Shape.d[m].params[1] = edges[0].path[0].top;
-                                // }
+                            if (nodes.length) {
+                                node = nodes[0];
                             }
-
-                            //console.log(Shape.d);
 
                         }
 
@@ -420,7 +395,7 @@ class Draw {
 
                         if (node) {
 
-                            Shape.d[node.position].params.splice(node.start, 2, pos.left, pos.top);
+                            Shape.d[node.index].params.splice(node.start, 2, pos.left, pos.top);
 
                             // Shape.d[1].params[0] = pos.left;
                             // Shape.d[1].params[1] = pos.top;
@@ -451,10 +426,6 @@ class Draw {
                             }
 
                         }
-
-
-
-
 
                     }
 
@@ -576,6 +547,89 @@ class Draw {
         });
         this.svg = svg;
     }
+
+    getClosestNode(Shape, startPos) {
+        let positions = this.getNodePos(Shape);
+
+        for (let m in positions) {
+            let position = positions[m];
+            let nodePos = Shape.d[position.index].params.slice(position.start, position.start + 2);
+            let startx = nodePos[0] - startPos.left;
+            let starty = nodePos[1] - startPos.top;
+            position.distance = Math.sqrt(startx*startx+starty*starty);
+        }
+
+        positions.sort(function(a, b){
+            return a.distance - b.distance;
+        });
+
+        console.log("positions", positions);
+
+        return positions;
+    }
+
+    getNodePos(Shape) {
+
+        let positions = [];
+
+        for (let m=0; m<Shape.d.length; m++) {
+
+            switch (Shape.d[m].command) {
+                case "M" :
+                    positions.push({
+                        // el : Shape.el,
+                        // params : Shape.d[m].params,
+                        command : "M",
+                        index : m,
+                        start : 0
+                    });
+                    break;
+                case "L" :
+                    positions.push({
+                        command : "L",
+                        index : m,
+                        start : 0
+                    });
+                    break;
+                case "S" :
+                    break;
+                case "Q" :
+                    positions.push({
+                        command : "Q",
+                        index : m,
+                        start : 0
+                    });
+                    positions.push({
+                        command : "Q",
+                        index : m,
+                        start : 2
+                    });
+                    break;
+                case "L" :
+                    break;
+                case "H" :
+                    break;
+                case "V" :
+                    break;
+                case "C" :
+                    break;
+                case "S" :
+                    break;
+                case "Q" :
+                    break;
+                case "T" :
+                    break;
+                case "A" :
+                    break;
+            }
+
+        }
+
+        //console.log("Positions", positions);
+
+        return positions;
+
+    };
 
     set(data){
         for (var i in data) {
@@ -743,9 +797,7 @@ class Draw {
         let path = this.createElement("path");
         Shape.el.replaceWith(path);
         Shape.el = path;
-        Shape.el.setAttribute("d", Shape.d.map(function(command) {
-            return command.command + ' ' + command.params.join(',');
-        }).join(' '));
+
     }
 
     mergeShape(index, count) {
@@ -754,6 +806,9 @@ class Draw {
 
         if (Shape.type !== "path") {
             this.convertToPath(Shape);
+            Shape.el.setAttribute("d", Shape.d.map(function(command) {
+                return command.command + ' ' + command.params.join(',');
+            }).join(' '));
         }
 
         if (Shape.type !== "path") {
