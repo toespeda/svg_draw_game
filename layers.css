@@ -29,7 +29,7 @@
     transform: translate(0, 50%);
 }
 
-#layers .error:before, #layers .success:before {
+#layers .error:before, #layers .success:before, #layers .display:before {
     content: "";
     display: inline-block;
     position: absolute;
@@ -47,14 +47,23 @@
     border: 2px solid black;
 }
 
-#layers .error.hidden:before, #layers .success.hidden:before {
+/*#layers .display {*/
+/*    border: 2px solid black;*/
+/*}*/
+
+#layers .display.static:before {
+    width: 10px;
+    height: 10px;
+}
+
+#layers .error.hidden:before, #layers .success.hidden:before, #layers .display.hidden:before {
     height: 1px;
     width: 8px;
 }
 
-#layers .display.static {
-    background-color: black;
-}
+/*#layers .display.static {*/
+/*    background-color: black;*/
+/*}*/
 
 #layers .error.visible:before, #layers .error.hidden:before {
     background-color: red;
@@ -63,3 +72,8 @@
 #layers .success.visible:before, #layers .success.hidden:before {
     background-color: green;
 }
+
+#layers .display.static:before, #layers .display.hidden:before {
+    background-color: black;
+}
+

@@ -17,6 +17,21 @@ let Layers = (layers, draw) => {
         }
     };
 
+    let toggleDisplay = (tkl, index) => {
+        let scl = [...draw.svg.children][index].classList;
+        if (scl.contains("static")) {
+            scl.remove("static");
+            scl.add("hidden-on-pending");
+            tkl.add("hidden");
+        } else if (scl.contains("hidden-on-pending")) {
+            scl.remove("hidden-on-pending");
+            tkl.remove(...["hidden", "static"]);
+        } else {
+            scl.add("static");
+            tkl.add("static");
+        }
+    };
+
     layers.addEventListener("mouseup", (e) => {
         if (e.target.nodeName.toLowerCase() === "span") {
             e.stopImmediatePropagation();
@@ -33,17 +48,23 @@ let Layers = (layers, draw) => {
 
             } else if (tkl.contains("display")) {
 
-                [...draw.svg.children][index].classList.toggle("static", e.target.classList.toggle("static"));
+                // [...draw.svg.children][index].classList.toggle("static", e.target.classList.toggle("static"));
+
+                toggleDisplay(tkl, index);
 
             } else if (tkl.contains("visibility")) {
 
-                e.target.innerText = e.target.innerText === "o" ? "ø" : "o";
-                [...draw.svg.children][index].classList[e.target.innerText === "o"  ? "remove" : "add"]("hidden");
+                // e.target.innerText = e.target.innerText === "o" ? "ø" : "o";
+                // [...draw.svg.children][index].classList[e.target.innerText === "o"  ? "remove" : "add"]("hidden");
 
             } else if (tkl.contains("error")) {
+
                 toggleVisibility(tkl, index, "error");
+
             } else if (tkl.contains("success")) {
+
                 toggleVisibility(tkl, index, "success");
+
             } else if (tkl.contains("title")) {
                 e.target.setAttribute("contentEditable", "true");
                 if (document.body.createTextRange) {
@@ -121,13 +142,16 @@ let Layers = (layers, draw) => {
         let shape = e.detail;
         let b = document.createElement('li');
         b.classList.add(shape.type);
-        b.innerHTML = '<span class="title">' + (shape.el.getAttribute("title") || shape.type) + '</span> <span class="remove">x</span> <span class="merge">v</span> <span class="visibility">o</span> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attributes</span>';
+        b.innerHTML = '<span class="title">' + (shape.el.getAttribute("title") || shape.type) + '</span> <span class="remove">x</span> <span class="merge">v</span> <span class="visibility">o</span> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
         layers.appendChild(b);
         //console.log(shape.el.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
         let s = shape.el.className.baseVal.match(/\b(static)\b/);
         if (s) {
-            // console.log(s);
             b.querySelector(".display").classList.add(s[1]);
+        }
+        s = shape.el.className.baseVal.match(/\b(hidden-on-pending)\b/);
+        if (s) {
+            b.querySelector(".display").classList.add("hidden");
         }
         s = shape.el.className.baseVal.match(/\b(visible|hidden)-on-(\w+)\b/);
         if (s) {

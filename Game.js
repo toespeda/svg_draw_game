@@ -75,6 +75,13 @@ class Game {
         });
     }
 
+    clear(){
+        this.svg.classList.remove("error", "success");
+        this.shapes.forEach(el=>{
+            el.classList.remove("pending");
+        });
+    }
+
     stop(status){
         this.playing = false;
         this.svg.classList.add(status);
