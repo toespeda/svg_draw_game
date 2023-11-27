@@ -54,11 +54,86 @@
             <div class="col editor">
                 <ol id="layers"></ol>
                 <button id="reverse">Reverse</button>
+                <button id="merge">Merge</button>
             </div>
 
         </div>
 
         <div id="examples" class="col">
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <path
+                        stroke="#000000"
+                        stroke-width="3"
+                        fill="transparent"
+                        stroke-linejoin="round"
+                        d="
+		M 41,257
+		L 111,207
+		M 117,166
+		L 107,71"
+                        style=""
+                ></path>
+
+                <path
+                        stroke="#000000"
+                        stroke-width="3"
+                        fill="transparent"
+                        stroke-linejoin="round"
+                        d="
+		M 148,256
+		L 218,206
+		M 224,165
+		L 214,70"
+                        style=""
+                ></path>
+
+            </svg>
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="76"
+                        x2="144"
+                        y1="216"
+                        y2="116"
+                        style=""
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="144"
+                        x2="207"
+                        y1="116"
+                        y2="154"
+                        style=""
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="207"
+                        x2="136"
+                        y1="154"
+                        y2="248"
+                        style=""
+                ></line>
+
+                <line
+                        stroke="#000000"
+                        stroke-width="3"
+                        x1="136"
+                        x2="76"
+                        y1="248"
+                        y2="216"
+                        style=""
+                ></line>
+
+
+            </svg>
+
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
                 <path stroke="#000000" stroke-width="3" fill="transparent" stroke-linejoin="round" d="M 131,330.8000030517578 L 139.58333333333331,303.2183343691831 M 190,320.8000030517578 L 180.43859649122805,302.4102929093039" style="" class="static"></path>
                 <path stroke="#000000" stroke-width="3" fill="none" stroke-linejoin="round" d="M 270.1754385964913,283.5096496024724 L 180.43859649122805,302.4102929093039 M 45.83333333333333,291.75647293254735 L 139.58333333333331,303.2183343691831" opacity="1" style="" class=""></path>
@@ -232,14 +307,6 @@
                         class="visible-on-success"
                 ></path>
 
-
-
-
-
-
-
-
-
             </svg>
 
         </div>
@@ -372,7 +439,7 @@ H 17.86"
 
             Sortable(layers);
 
-            draw.init(document.querySelector("#examples svg:nth-child(2)").innerHTML);
+            draw.init(document.querySelector("#examples svg:nth-child(1)").innerHTML);
 
             Tools("#tools", draw);
 
@@ -382,6 +449,10 @@ H 17.86"
                 for (let i = 1; i < layers.childNodes.length; i++){
                     layers.insertBefore(layers.childNodes[i], layers.firstChild);
                 }
+            });
+
+            document.querySelector("#merge").addEventListener("click", e => {
+                draw.mergeAll();
             });
 
             document.querySelector("#examples").addEventListener("click", e => {

@@ -6,72 +6,49 @@ class Draw {
 
     type = "line";
 
-    draw = 0;
-
     action = "move";
 
     constructor(svg) {
 
+        this.svg = svg;
+
         svg.addEventListener("mousedown", (e) => {
 
-            /*console.log({
+            console.log({
                 "type" : this.type,
-                "draw" : this.draw,
                 "action" : this.action
-            });*/
+            });
 
             let Shape = null;
 
-            let offset = svg.getBoundingClientRect();
+            let offset = this.svg.getBoundingClientRect();
 
             let getPos = function(e){
                 return [e.clientX - offset.left, e.clientY - offset.top];
-                // return {
-                //     left : e.clientX - offset.left,
-                //     top : e.clientY - offset.top
-                // };
             };
 
-            let node = false;
+            let nodeHandle = false;
 
             let startPos = getPos(e);
 
             let lastPos = startPos;
 
-            if (this.action === "node") {
-
-                // console.log("Do node edit");
+            if (this.action === "node") { // Edge before target
 
                 let edges = this.getEdges(startPos);
 
                 if (edges.length) {
 
-                    //console.log("Found edges", edges);
+                    Shape = edges[0].shape;
 
-                    if (this.draw) {
-
-                        //Shape = this.addShape(this.type, edges[0].path[0]);
-
-                    } else {
-
-                        Shape = edges[0].shape;
-
-                        // Closest first
-                        if (Shape.type === "path") {
-
-                            node = edges[0];
-
-                        } else if (Shape.type === "line") {
-
-                            node = this.getShapeAttr(Shape, edges[0].position);
-
-                        }
-
+                    // Closest first
+                    if (Shape.type === "path") {
+                        nodeHandle = edges[0];
+                    } else if (Shape.type === "line") {
+                        nodeHandle = this.getShapeAttr(Shape, edges[0].position);
                     }
 
                 } else {
-
-                    // console.log("check path", e.target);
 
                     //Test quadratic curve on lines
                     if (e.target.nodeName.match(/(path|line)/)) {
@@ -82,28 +59,26 @@ class Draw {
 
                             this.convertToPath(Shape);
 
-                            //No edges found, convert L to Q
+                            //Convert L to Q
 
                             Shape.d[1].command = "Q";
                             Shape.d[1].params = [...startPos, ...Shape.d[1].params];
 
-                            Shape.el.setAttribute("d", Shape.d.map(function(command) {
-                                return command.command + ' ' + command.params.join(',');
-                            }).join(' '));
-
+                            this.redrawShape(Shape);
 
                             // Make the control point the handler
-                            node = {
+                            nodeHandle = {
                                 index : 1,
                                 start : 0
                             };
 
                         } else {
 
-                            let nodes = this.getClosestNode(Shape, startPos);
+                            //let nodes = this.getClosestNode(Shape, startPos);
+                            let nodes = this.getClosestShapePos(Shape, startPos);
 
                             if (nodes.length) {
-                                node = nodes[0];
+                                nodeHandle = nodes[0];
                             }
 
                         }
@@ -112,73 +87,23 @@ class Draw {
 
                 }
 
-            } else if (!this.draw && e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
+            } else if (this.action === "draw") {
+
+                let edges = this.getEdges(startPos);
+
+                if (edges.length) {
+                    startPos = edges[0].params;
+                }
+
+            } else if (e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
 
                 Shape = this.getShapeByElement(e.target);
-
-                if (Shape.type === "circle") {
-
-                    if (Shape.r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
-                        this.action = "resize";
-                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-                        // resizing = 1;
-                    } else {
-                        this.action = "move";
-                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-                        // moving = 1;
-                    }
-
-                } else if (Shape.type === "ellipse") {
-
-                    let dx = Shape.cx - startPos[0];
-                    let dy = Shape.cy - startPos[1];
-
-                    let theta = Math.atan2(dy, dx); // range (-PI, PI]
-
-                    let a = Shape.rx;
-                    let b = Shape.ry;
-
-                    let x = a * a * Math.sin(theta) * Math.sin(theta);
-                    let y = b * b * Math.cos(theta) * Math.cos(theta);
-
-                    let r = (a * b) / Math.sqrt(x + y);
-
-                    if (r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
-                        // resizing = 1;
-                        this.action = "resize";
-                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-                    } else {
-                        this.action = "move";
-                        this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-                        // moving = 1;
-                    }
-
-                } else if (Shape.type === "path") {
-
-                    // resizing = 1;
-                    //this.action = "resize";
-                    //this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-
-                    // this.action = "move";
-                    // this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-
-                    //console.log("Is path", Shape.el.getBBox(), Shape.el.getBoundingClientRect());
-
-                } else {
-
-                    //this.action = "move"
-                    //this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
-
-                    // moving = 1;
-
-                }
+                this.setActionByPos(Shape, startPos);
 
             }
 
             if (!Shape && this.action === "draw") {
-
                 Shape = this.addShape(this.type, startPos);
-
             }
 
             if (!Shape) {
@@ -189,188 +114,40 @@ class Draw {
                 Shape = this.duplicateShape(Shape);
             }
 
-
-
-
             let move = (e) => {
 
                 let pos = getPos(e);
 
-                let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
+                let edges = this.getEdges(pos, Shape.el);
 
+                if (edges.length) {
+                    pos = edges[0].params;
+                }
+
+                let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
                 let diffP = [pos[0] / lastPos[0], pos[1] / lastPos[1]];
 
-                lastPos = pos;
+                if (this.action === "move") {
 
-                if (Shape.type === "path") {
+                    this.moveShape(Shape, diff);
 
-                    if (this.action === "move") {
+                } else if (this.action === "resize") {
 
-                        Shape.d.forEach(t => {
-                            if (t.command.match(/[A]/)) {
+                    this.resizeShape(Shape, diffP, pos, diff);
 
-                                for (var v in t.params) {
-                                    if (v%7 === 5) {
-                                        t.params[v] += diff[0];
-                                    } else if (v%7 === 6) {
-                                        t.params[v] += diff[1];
-                                    }
-                                }
+                } else {
 
-                            } else if (t.command.match(/[V]/)) {
+                    if (Shape.type === "path") {
 
-                                t.params[0] += diff[1];
+                        Shape.d[nodeHandle.index].params.splice(nodeHandle.start, 2, pos[0], pos[1]);
 
-                            } else if (t.command.match(/[H]/)) {
-
-                                t.params[0] += diff[0];
-
-                            } else {
-                                for (var v in t.params) {
-                                    t.params[v] += diff[v%2 ? 1 : 0];
-                                }
-                            }
-                        });
-
-                    } else if (this.action === "resize") {
-
-                        // let bb = Shape.el.getBoundingClientRect();
-                        //
-                        // let center = {
-                        //     left : bb.x + (bb.width/2),
-                        //     top : bb.y + (bb.height/2)
-                        // };
-
-                        Shape.d.forEach(t => {
-
-                            if (t.command.match(/[A]/)) {
-
-                                for (var v in t.params) {
-                                    if (v % 7 === 0) {
-                                        t.params[v] *= diffP[0];
-                                    } else if (v % 7 === 1) {
-                                        t.params[v] *= diffP[1];
-                                    } else if (v % 7 === 5) {
-                                        t.params[v] *= diffP[0];
-                                    } else if (v % 7 === 6) {
-                                        t.params[v] *= diffP[1];
-                                    }
-                                }
-
-
-
-                            } else if (t.command.match(/[V]/)) {
-
-                                t.params[0] *= diffP[1];
-
-                            } else if (t.command.match(/[H]/)) {
-
-                                t.params[0] *= diffP[0];
-
-                            } else {
-
-                                for (var v in t.params) {
-                                    t.params[v] *= diffP[v % 2 ? 1 : 0];
-                                    //t.params[v] -= diff[v%2 ? "top" : "left"];
-                                }
-
-                            }
-                        });
-
-
-                    } else {
-
-                        let edges = this.getEdges(pos, Shape.el);
-
-                        if (edges.length) {
-
-                            pos = edges[0].params;
-
-                        }
-
-                        if (node) {
-
-                            Shape.d[node.index].params.splice(node.start, 2, pos[0], pos[1]);
-
-                        } else {
-
-                            //TODO! Needs rewrite
-
-                            let point = null;
-                            for (let m in Shape.d) {
-                                if (Shape.d[m].command === "L") {
-                                    point = Shape.d[m];
-                                }
-                            }
-
-                            if (point){
-                                point.params = pos;
-                            } else {
-                                Shape.d.push({
-                                    command : "L",
-                                    params : pos
-                                });
-                            }
-
-                        }
-
-                    }
-
-                    let d = Shape.d.map(function(command) {
-                        return command.command + ' ' + command.params.join(',');
-                    }).join(' ');
-
-                    Shape.el.setAttribute("d", d);
-
-                } else if (Shape.type === "circle") {
-
-                    if (this.action === "move") {
-
-                        Shape.cx += diff[0];
-                        Shape.cy += diff[1];
-
-                        Shape.el.setAttribute("cx", Shape.cx);
-                        Shape.el.setAttribute("cy", Shape.cy);
-
-                    } else if (this.action === "resize") {
-
-                        Shape.r = this.getDistance(pos, [Shape.cx, Shape.cy]);
-
-                        Shape.el.setAttribute("r", Shape.r);
-
-                    } else {
+                    } else if (Shape.type === "circle") {
 
                         Shape.cx = startPos[0];
                         Shape.cy = startPos[1];
-
                         Shape.r = this.getDistance(startPos, pos);
 
-                        Shape.el.setAttribute("r", Shape.r);
-
-                        Shape.el.setAttribute("cx", Shape.cx);
-                        Shape.el.setAttribute("cy", Shape.cy);
-
-                    }
-
-                } else if (Shape.type === "ellipse") {
-
-                    if (this.action === "move") {
-
-                        Shape.cx += diff[0];
-                        Shape.cy += diff[1];
-
-                        Shape.el.setAttribute("cx", Shape.cx);
-                        Shape.el.setAttribute("cy", Shape.cy);
-
-                    } else if (this.action === "resize") {
-
-                        Shape.rx += diff[0];
-                        Shape.ry += diff[1];
-
-                        Shape.el.setAttribute("rx", Shape.rx);
-                        Shape.el.setAttribute("ry", Shape.ry);
-
-                    } else {
+                    } else if (Shape.type === "ellipse") {
 
                         Shape.rx = Math.abs(pos[0] - startPos[0]);
                         Shape.ry = Math.abs(pos[1] - startPos[1]);
@@ -378,55 +155,25 @@ class Draw {
                         Shape.cx += diff[0]/2;
                         Shape.cy += diff[1]/2;
 
-                        Shape.el.setAttribute("rx", Shape.rx);
-                        Shape.el.setAttribute("ry", Shape.ry);
+                    } else if (Shape.type === "line") {
 
-                        Shape.el.setAttribute("cx", Shape.cx);
-                        Shape.el.setAttribute("cy", Shape.cy);
+                        if (nodeHandle) {
 
-                    }
-
-                } else if (Shape.type === "line") {
-
-                    let edges = this.getEdges(pos, Shape.el);
-
-                    if (edges.length) {
-
-                        pos = edges[0].params;
-
-                        //pos = edges[0].path[0];
-                    }
-
-                    if (this.action === "move") {
-
-                        Shape.x1 += diff[0];
-                        Shape.y1 += diff[1];
-                        Shape.x2 += diff[0];
-                        Shape.y2 += diff[1];
-
-                    } else {
-
-                        if (node) {
-
-                            Shape[node[0]] = pos[0];
-                            Shape[node[1]] = pos[1];
+                            Shape[nodeHandle[0]] = pos[0];
+                            Shape[nodeHandle[1]] = pos[1];
 
                         } else {
                             Shape.x2 = pos[0];
                             Shape.y2 = pos[1];
                         }
 
-
-
                     }
 
-                    Shape.el.setAttribute("x1", Shape.x1);
-                    Shape.el.setAttribute("y1", Shape.y1);
-
-                    Shape.el.setAttribute("x2", Shape.x2);
-                    Shape.el.setAttribute("y2", Shape.y2);
-
                 }
+
+                this.redrawShape(Shape);
+
+                lastPos = pos;
 
             };
 
@@ -434,38 +181,316 @@ class Draw {
                 svg.removeEventListener("mousemove", move);
                 svg.removeEventListener("mouseup", stop);
                 //Update shape preview
-
             };
 
             svg.addEventListener("mousemove", move, false);
             svg.addEventListener("mouseup", stop);
 
         });
-        this.svg = svg;
+
     }
 
-    getShapePos(shape, pos){
-        //Math.pow is slow
+    setActionByPos(Shape, startPos){
+        if (Shape.type === "circle") {
+
+            if (Shape.r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
+                this.action = "resize";
+                this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+            } else {
+                this.action = "move";
+                this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+            }
+
+        } else if (Shape.type === "ellipse") {
+
+            let dx = Shape.cx - startPos[0];
+            let dy = Shape.cy - startPos[1];
+
+            let theta = Math.atan2(dy, dx); // range (-PI, PI]
+
+            let a = Shape.rx;
+            let b = Shape.ry;
+
+            let x = a * a * Math.sin(theta) * Math.sin(theta);
+            let y = b * b * Math.cos(theta) * Math.cos(theta);
+
+            let r = (a * b) / Math.sqrt(x + y);
+
+            if (r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
+                this.action = "resize";
+                this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+            } else {
+                this.action = "move";
+                this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
+            }
+
+        }
+    }
+
+    moveShape(Shape, diff){
+        if (Shape.type === "path") {
+
+            Shape.d.forEach(t => {
+
+                if (t.command.match(/[A]/)) {
+
+                    for (var v in t.params) {
+                        if (v%7 === 5) {
+                            t.params[v] += diff[0];
+                        } else if (v%7 === 6) {
+                            t.params[v] += diff[1];
+                        }
+                    }
+
+                } else if (t.command.match(/[V]/)) {
+
+                    t.params[0] += diff[1];
+
+                } else if (t.command.match(/[H]/)) {
+
+                    t.params[0] += diff[0];
+
+                } else {
+                    for (var v in t.params) {
+                        t.params[v] += diff[v%2 ? 1 : 0];
+                    }
+                }
+
+            });
+
+        } else if (Shape.type === "circle") {
+
+            Shape.cx += diff[0];
+            Shape.cy += diff[1];
+
+        } else if (Shape.type === "ellipse") {
+
+            Shape.cx += diff[0];
+            Shape.cy += diff[1];
+
+        } else if (Shape.type === "line") {
+
+            Shape.x1 += diff[0];
+            Shape.y1 += diff[1];
+            Shape.x2 += diff[0];
+            Shape.y2 += diff[1];
+
+        }
+
+    }
+
+    redrawShape(Shape) {
+        if (Shape.type === "path") {
+            Shape.el.setAttribute("d", Shape.d.map(function(command) {
+                return command.command + ' ' + command.params.join(',');
+            }).join(' '));
+        } else if (Shape.type === "circle") {
+            Shape.el.setAttribute("r", Shape.r);
+            Shape.el.setAttribute("cx", Shape.cx);
+            Shape.el.setAttribute("cy", Shape.cy);
+        } else if (Shape.type === "ellipse") {
+            Shape.el.setAttribute("rx", Shape.rx);
+            Shape.el.setAttribute("ry", Shape.ry);
+            Shape.el.setAttribute("cx", Shape.cx);
+            Shape.el.setAttribute("cy", Shape.cy);
+        } else if (Shape.type === "line") {
+            Shape.el.setAttribute("x1", Shape.x1);
+            Shape.el.setAttribute("y1", Shape.y1);
+            Shape.el.setAttribute("x2", Shape.x2);
+            Shape.el.setAttribute("y2", Shape.y2);
+        }
+    }
+
+    resizeShape(Shape, diffP, pos, diff){
+
+        if (Shape.type === "path") {
+
+            Shape.d.forEach(t => {
+
+                if (t.command.match(/[A]/)) {
+
+                    for (var v in t.params) {
+                        if (v % 7 === 0) {
+                            t.params[v] *= diffP[0];
+                        } else if (v % 7 === 1) {
+                            t.params[v] *= diffP[1];
+                        } else if (v % 7 === 5) {
+                            t.params[v] *= diffP[0];
+                        } else if (v % 7 === 6) {
+                            t.params[v] *= diffP[1];
+                        }
+                    }
+
+                } else if (t.command.match(/[V]/)) {
+
+                    t.params[0] *= diffP[1];
+
+                } else if (t.command.match(/[H]/)) {
+
+                    t.params[0] *= diffP[0];
+
+                } else {
+
+                    for (var v in t.params) {
+                        t.params[v] *= diffP[v % 2 ? 1 : 0];
+                    }
+
+                }
+
+            });
+
+        } else if (Shape.type === "circle") {
+
+            Shape.r = this.getDistance(pos, [Shape.cx, Shape.cy]);
+
+        } else if (Shape.type === "ellipse") {
+
+            Shape.rx += diff[0];
+            Shape.ry += diff[1];
+
+        } else if (Shape.type === "line") {
+
+        }
+
+    }
+
+    getShapePos(shape) {
+
         let positions = [];
-        if (shape.type==="line") {
-            let startx = shape.x1 - pos[0];
-            let starty = shape.y1 - pos[1];
+
+        if (shape.type === "path") {
+
+            for (let m=0; m<shape.d.length; m++) {
+
+                switch (shape.d[m].command) {
+                    case "M" :
+                        positions.push({
+                            // el : shape.el,
+                            params : shape.d[m].params.slice(0, 2),
+                            command : "M",
+                            index : m,
+                            start : 0
+                        });
+                        break;
+                    case "L" :
+                        positions.push({
+                            params : shape.d[m].params.slice(0, 2),
+                            command : "L",
+                            index : m,
+                            start : 0
+                        });
+                        break;
+                    case "S" :
+                        break;
+                    case "Q" :
+                        positions.push({
+                            params : shape.d[m].params.slice(0, 2),
+                            command : "Q",
+                            index : m,
+                            start : 0
+                        });
+                        positions.push({
+                            params : shape.d[m].params.slice(2, 4),
+                            command : "Q",
+                            index : m,
+                            start : 2
+                        });
+                        break;
+                    case "L" :
+                        break;
+                    case "H" :
+                        break;
+                    case "V" :
+                        break;
+                    case "C" :
+                        break;
+                    case "S" :
+                        break;
+                    case "Q" :
+                        break;
+                    case "T" :
+                        break;
+                    case "A" :
+                        break;
+                }
+
+            }
+
+        } else if (shape.type === "line") {
             positions.push({
                 params:[shape.x1, shape.y1],
-                position:"start",
-                distance:Math.sqrt(startx*startx+starty*starty)
+                position:"start"
             });
-            let endx = shape.x2 - pos[0];
-            let endy = shape.y2 - pos[1];
             positions.push({
                 params:[shape.x2, shape.y2],
-                position:"end",
-                distance:Math.sqrt(endx*endx+endy*endy)
+                position:"end"
             });
         }
+
+
+
+        return positions;
+    }
+
+    getClosestShapePos(shape, pos){
+        //Math.pow is slow
+
+        let positions = this.getShapePos(shape);
+
+        for (let m in positions) {
+            let position = positions[m];
+            let startx = position.params[0] - pos[0];
+            let starty = position.params[1] - pos[1];
+            position.distance = Math.sqrt(startx*startx+starty*starty);
+        }
+
+        // if (shape.type==="path") {
+        //
+        //     positions = this.getNodePos(shape);
+        //
+        //     for (let m in positions) {
+        //         let position = positions[m];
+        //         // let nodePos = shape.d[position.index].params.slice(position.start, position.start + 2);
+        //         // let startx = nodePos[0] - pos[0];
+        //         // let starty = nodePos[1] - pos[1];
+        //         // position.params = nodePos;
+        //         let startx = position.params[0] - pos[0];
+        //         let starty = position.params[1] - pos[1];
+        //         position.distance = Math.sqrt(startx*startx+starty*starty);
+        //     }
+        //
+        //     //return this.getClosestNode(shape, pos);
+        //
+        // } else if (shape.type==="line") {
+        //
+        //     positions = this.getShapePos(shape);
+        //     for (let m in positions) {
+        //         let position = positions[m];
+        //         let startx = position.params[0] - pos[0];
+        //         let starty = position.params[1] - pos[1];
+        //         position.distance = Math.sqrt(startx*startx+starty*starty);
+        //     }
+        //
+        //     // let startx = shape.x1 - pos[0];
+        //     // let starty = shape.y1 - pos[1];
+        //     // positions.push({
+        //     //     params:[shape.x1, shape.y1],
+        //     //     position:"start",
+        //     //     distance:Math.sqrt(startx*startx+starty*starty)
+        //     // });
+        //     // let endx = shape.x2 - pos[0];
+        //     // let endy = shape.y2 - pos[1];
+        //     // positions.push({
+        //     //     params:[shape.x2, shape.y2],
+        //     //     position:"end",
+        //     //     distance:Math.sqrt(endx*endx+endy*endy)
+        //     // });
+        // }
+
         positions.sort(function(a, b){
             return a.distance - b.distance;
         });
+
         return positions;
     }
 
@@ -486,7 +511,15 @@ class Draw {
         for (let i = 0; i < this.shapes.length; i++) {
             if (!shape || this.shapes[i].el !== shape) {//!this.shapes[i].el.classList.contains("hidden") && ()
 
-                if (this.shapes[i].type==="path") {
+                let shapePositions = this.getClosestShapePos(this.shapes[i], pos);
+
+                if (shapePositions.length) {
+                    let closest = shapePositions[0];
+                    closest.shape = this.shapes[i];
+                    positions.push(closest);
+                }
+
+                /*if (this.shapes[i].type==="path") {
                     let nodePositions = this.getClosestNode(this.shapes[i], pos);
                     if (nodePositions.length) {
                         let closest = nodePositions[0];
@@ -495,21 +528,19 @@ class Draw {
                     }
 
                 } else if (this.shapes[i].type==="line") {
-                    let shapePositions = this.getShapePos(this.shapes[i], pos);
+                    let shapePositions = this.getClosestShapePos(this.shapes[i], pos);
                     if (shapePositions.length) {
                         let closest = shapePositions[0];
                         closest.shape = this.shapes[i];
                         positions.push(closest);
                     }
-                }
+                }*/
 
             }
         }
         positions.sort(function(a, b){
             return a.distance - b.distance;
         });
-
-
 
         if (positions.length && positions[0].distance < 10) {
             return positions;
@@ -520,85 +551,88 @@ class Draw {
         // return s;
     }
 
-    getClosestNode(Shape, startPos) {
-        let positions = this.getNodePos(Shape);
+    // getClosestNode(Shape, startPos) {
+    //     let positions = this.getNodePos(Shape);
+    //
+    //     for (let m in positions) {
+    //         let position = positions[m];
+    //         let nodePos = Shape.d[position.index].params.slice(position.start, position.start + 2);
+    //         let startx = nodePos[0] - startPos[0];
+    //         let starty = nodePos[1] - startPos[1];
+    //         position.params = nodePos;
+    //         position.distance = Math.sqrt(startx*startx+starty*starty);
+    //     }
+    //     positions.sort(function(a, b){
+    //         return a.distance - b.distance;
+    //     });
+    //     return positions;
+    // }
 
-        for (let m in positions) {
-            let position = positions[m];
-            let nodePos = Shape.d[position.index].params.slice(position.start, position.start + 2);
-            let startx = nodePos[0] - startPos[0];
-            let starty = nodePos[1] - startPos[1];
-            position.params = nodePos;
-            position.distance = Math.sqrt(startx*startx+starty*starty);
-        }
-        positions.sort(function(a, b){
-            return a.distance - b.distance;
-        });
-        return positions;
-    }
-
-    getNodePos(Shape) {
-
-        let positions = [];
-
-        for (let m=0; m<Shape.d.length; m++) {
-
-            switch (Shape.d[m].command) {
-                case "M" :
-                    positions.push({
-                        // el : Shape.el,
-                        // params : Shape.d[m].params,
-                        command : "M",
-                        index : m,
-                        start : 0
-                    });
-                    break;
-                case "L" :
-                    positions.push({
-                        command : "L",
-                        index : m,
-                        start : 0
-                    });
-                    break;
-                case "S" :
-                    break;
-                case "Q" :
-                    positions.push({
-                        command : "Q",
-                        index : m,
-                        start : 0
-                    });
-                    positions.push({
-                        command : "Q",
-                        index : m,
-                        start : 2
-                    });
-                    break;
-                case "L" :
-                    break;
-                case "H" :
-                    break;
-                case "V" :
-                    break;
-                case "C" :
-                    break;
-                case "S" :
-                    break;
-                case "Q" :
-                    break;
-                case "T" :
-                    break;
-                case "A" :
-                    break;
-            }
-
-        }
-
-        //console.log("Positions", positions);
-
-        return positions;
-
-    };
+    // getNodePos(Shape) {
+    //
+    //     let positions = [];
+    //
+    //     for (let m=0; m<Shape.d.length; m++) {
+    //
+    //         switch (Shape.d[m].command) {
+    //             case "M" :
+    //                 positions.push({
+    //                     // el : Shape.el,
+    //                     params : Shape.d[m].params.slice(0, 2),
+    //                     command : "M",
+    //                     index : m,
+    //                     start : 0
+    //                 });
+    //                 break;
+    //             case "L" :
+    //                 positions.push({
+    //                     params : Shape.d[m].params.slice(0, 2),
+    //                     command : "L",
+    //                     index : m,
+    //                     start : 0
+    //                 });
+    //                 break;
+    //             case "S" :
+    //                 break;
+    //             case "Q" :
+    //                 positions.push({
+    //                     params : Shape.d[m].params.slice(0, 2),
+    //                     command : "Q",
+    //                     index : m,
+    //                     start : 0
+    //                 });
+    //                 positions.push({
+    //                     params : Shape.d[m].params.slice(2, 4),
+    //                     command : "Q",
+    //                     index : m,
+    //                     start : 2
+    //                 });
+    //                 break;
+    //             case "L" :
+    //                 break;
+    //             case "H" :
+    //                 break;
+    //             case "V" :
+    //                 break;
+    //             case "C" :
+    //                 break;
+    //             case "S" :
+    //                 break;
+    //             case "Q" :
+    //                 break;
+    //             case "T" :
+    //                 break;
+    //             case "A" :
+    //                 break;
+    //         }
+    //
+    //     }
+    //
+    //     //console.log("Positions", positions);
+    //
+    //     return positions;
+    //
+    // };
 
     set(data){
         for (var i in data) {
@@ -676,7 +710,7 @@ class Draw {
         });
     }
 
-    moveShape(startIndex, endIndex) {
+    shapeStack(startIndex, endIndex) {
         if (endIndex > startIndex) {
             this.svg.insertBefore(this.shapes[startIndex].el, this.shapes[endIndex].el.nextSibling);
         } else {
@@ -769,15 +803,25 @@ class Draw {
 
     }
 
+    mergeAll(){
+        for (let x=0;x<this.shapes.length;x++) {
+            let Shape = this.shapes[x];
+            let positions = this.getShapePos(Shape);
+            for (let x=0; x<positions.length; x++) {
+
+            }
+
+
+        }
+    }
+
     mergeShape(index, count) {
 
         let Shape = this.shapes[index];
 
         if (Shape.type !== "path") {
             this.convertToPath(Shape);
-            Shape.el.setAttribute("d", Shape.d.map(function(command) {
-                return command.command + ' ' + command.params.join(',');
-            }).join(' '));
+            this.redrawShape(Shape);
         }
 
         if (Shape.type !== "path") {
@@ -801,10 +845,7 @@ class Draw {
         }
 
         this.shapes.splice(index+1, count);
-
-        Shape.el.setAttribute("d", Shape.d.map(function(command) {
-            return command.command + ' ' + command.params.join(',');
-        }).join(' '));
+        this.redrawShape(Shape);
 
         return true;
 
@@ -820,7 +861,6 @@ class Draw {
         let el = document.createElementNS("http://www.w3.org/2000/svg", type);
         el.setAttribute("stroke","#000000");
         el.setAttribute("stroke-width",3);
-        // el.setAttribute("opacity",.8);
         if (type === "path") {
             el.setAttribute("fill","transparent");
             el.setAttribute("stroke-linejoin","round");
@@ -847,9 +887,7 @@ class Draw {
 
     createShape(type, startPos) {
         let Shape = {
-            type : type,
-            // start : startPos,
-            // end : startPos
+            type : type
         };
         Shape.el = this.createElement(type);
         if (type === "path") {
@@ -908,7 +946,6 @@ class Draw {
             Shape.x2 = +el.getAttribute("x2");
             Shape.y2 = +el.getAttribute("y2");
         }
-        // console.log(Shape);
         return Shape;
     }
 

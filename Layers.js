@@ -115,7 +115,7 @@ let Layers = (layers, draw) => {
 
     layers.addEventListener("sorted", (e) => {
         //Rearrange shapes
-        draw.moveShape(e.detail.startIndex, e.detail.endIndex);
+        draw.shapeStack(e.detail.startIndex, e.detail.endIndex);
     }, false);
 
     layers.addEventListener("mouseover", (e) => {
@@ -142,7 +142,7 @@ let Layers = (layers, draw) => {
         let shape = e.detail;
         let b = document.createElement('li');
         b.classList.add(shape.type);
-        b.innerHTML = '<span class="title">' + (shape.el.getAttribute("title") || shape.type) + '</span> <span class="remove">x</span> <span class="merge">v</span> <span class="visibility">o</span> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
+        b.innerHTML = '<span class="title">' + (shape.el.getAttribute("title") || shape.type) + '</span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
         layers.appendChild(b);
         //console.log(shape.el.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
         let s = shape.el.className.baseVal.match(/\b(static)\b/);
