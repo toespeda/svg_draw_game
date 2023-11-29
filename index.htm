@@ -22,7 +22,7 @@
                     <li><img data-action="draw" data-type="line" src="symbols/line.svg" /></li>
 <!--                    <li><img data-action="draw" data-type="circle" src="symbols/circle.svg" /></li>-->
                     <li><img data-action="draw" data-type="ellipse" src="symbols/ellipse.svg" /></li>
-
+                    <li><img data-action="source" data-type="" src="symbols/source.svg" /></li>
                     <li>
                         <svg width="24" height="24" version="2.0" data-type="symbol"><use href="#star" /></svg>
                         <ul>
@@ -34,7 +34,6 @@
                             <li><svg width="24" height="24" version="2.0" data-type="symbol"><use href="#face2" /></svg></li>
                         </ul>
                     </li>
-                    <li><img data-action="source" data-type="" src="symbols/source.svg" /></li>
                 </ul>
 
                 <svg id="game" xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
@@ -60,6 +59,51 @@
         </div>
 
         <div id="examples" class="col">
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+
+
+                <path fill="none" stroke="red" stroke-width="2" d="M 10,50
+           Q 25,25 40,50
+           T 70,50 100,50 130,50 160,50 190,50"></path>
+
+
+                <g>
+                    <polyline points="10,50 25,25 40,50" stroke="rgba(0,0,0,.2)" fill="none"></polyline>
+                    <circle cx="25" cy="25" r="1.5"></circle>
+
+
+                    <circle cx="10" cy="50" r="1.5"></circle>
+                    <circle cx="40" cy="50" r="1.5"></circle>
+
+                    <g id="SmoothQuadraticDown">
+                        <polyline points="40,50 55,75 70,50" stroke="rgba(0,0,0,.2)" stroke-dasharray="2" fill="none"></polyline>
+                        <circle cx="55" cy="75" r="1.5" fill="lightgrey"></circle>
+                        <circle cx="70" cy="50" r="1.5"></circle>
+                    </g>
+
+                    <g id="SmoothQuadraticUp">
+                        <polyline points="70,50 85,25 100,50" stroke="rgba(0,0,0,.2)" stroke-dasharray="2" fill="none"></polyline>
+                        <circle cx="85" cy="25" r="1.5" fill="lightgrey"></circle>
+                        <circle cx="100" cy="50" r="1.5"></circle>
+                    </g>
+
+                    <use href="#SmoothQuadraticDown" x="60"></use>
+                    <use href="#SmoothQuadraticUp" x="60"></use>
+                    <use href="#SmoothQuadraticDown" x="120"></use>
+                </g>
+            </svg>
+
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <path
+                        fill="none"
+                        stroke="red"
+                        stroke-width="2"
+                        d="M 10,90
+           C 30,90 25,10 50,10
+           S 70,90 90,90" />
+            </svg>
 
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
                 <path
@@ -479,7 +523,7 @@ H 17.86"
 
             document.querySelector("#new").addEventListener("click", e => {
                 layers.innerHTML = "";
-                draw.init();
+                draw.init("");
             });
 
             editor.classList.add("editing");
