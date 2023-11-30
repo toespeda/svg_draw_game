@@ -2,8 +2,24 @@ let Layers = (layers, draw) => {
 
     layers = typeof layers === "string" ? document.querySelector(layers) : layers;
 
-    let toggleVisibility = (tkl, index, status) => {
-        let scl = [...draw.svg.children][index].classList;
+    let svgElements = {};
+
+    let uniqueKey = ($limit) => {
+
+        $limit = $limit || 10;
+
+        let $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let $randstring = '';
+
+        for (let $i = 0; $i < $limit; $i++) {
+            $randstring += $characters[Math.round(Math.random()*51)];
+        }
+
+        return $randstring;
+    };
+
+    let toggleVisibility = (tkl, scl, status) => {
+
         if (scl.contains("visible-on-"+status)) {
             scl.remove("visible-on-"+status);
             scl.add("hidden-on-"+status);
@@ -17,8 +33,8 @@ let Layers = (layers, draw) => {
         }
     };
 
-    let toggleDisplay = (tkl, index) => {
-        let scl = [...draw.svg.children][index].classList;
+    let toggleDisplay = (tkl, scl) => {
+
         if (scl.contains("static")) {
             scl.remove("static");
             scl.add("hidden-on-pending");
@@ -34,23 +50,33 @@ let Layers = (layers, draw) => {
 
     layers.addEventListener("mouseup", (e) => {
         if (e.target.nodeName.toLowerCase() === "span") {
+
             e.stopImmediatePropagation();
-            let elements = [...layers.children];
-            let index = elements.indexOf(e.target.parentNode);
+
+            let target = e.target.parentNode;
+
+            let shape = svgElement(target.dataset.el);
+
+            let index = [...target.parentNode.children].indexOf(target);
+
             let tkl = e.target.classList;
+
             if (tkl.contains("remove")) {
-                draw.removeShape(index);
-                e.target.parentNode.remove();
+
+                draw.removeShape(shape);
+                target.remove();
+
             } else if (tkl.contains("merge")) {
-                if (draw.mergeShape(index, 1)) {
-                    e.target.parentNode.nextElementSibling.remove();
+
+                if (draw.mergeShape(shape, 1)) {
+                    target.nextElementSibling.remove();
                 }
 
             } else if (tkl.contains("display")) {
 
                 // [...draw.svg.children][index].classList.toggle("static", e.target.classList.toggle("static"));
 
-                toggleDisplay(tkl, index);
+                toggleDisplay(tkl, shape.classList);
 
             } else if (tkl.contains("visibility")) {
 
@@ -59,11 +85,11 @@ let Layers = (layers, draw) => {
 
             } else if (tkl.contains("error")) {
 
-                toggleVisibility(tkl, index, "error");
+                toggleVisibility(tkl, shape.classList, "error");
 
             } else if (tkl.contains("success")) {
 
-                toggleVisibility(tkl, index, "success");
+                toggleVisibility(tkl, shape.classList, "success");
 
             } else if (tkl.contains("title")) {
                 e.target.setAttribute("contentEditable", "true");
@@ -81,7 +107,7 @@ let Layers = (layers, draw) => {
                 let originalTitle = e.target.innerText;
                 let blur = e => {
                     if (e.target.innerText !== originalTitle) {
-                        [...draw.svg.children][index].setAttribute("title", e.target.innerText);
+                        shape.setAttribute("title", e.target.innerText);
                     }
                     e.target.removeEventListener("blur", blur);
                     e.target.removeEventListener("keydown", blur);
@@ -96,7 +122,6 @@ let Layers = (layers, draw) => {
             } else if (tkl.contains("attributes")) {
                 let attributes = document.createElement('div');
                 let a = '';
-                let shape = [...draw.svg.children][index];
                 [...shape.attributes].forEach(att => {
                     a += '<span class="key">'+att.nodeName+'</span> <input name="'+att.nodeName+'" value="'+att.nodeValue+'" />';
                 });
@@ -119,17 +144,25 @@ let Layers = (layers, draw) => {
     }, false);
 
     layers.addEventListener("mouseover", (e) => {
-        let shape = draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
-        if (shape) {
-            shape.el.style.stroke = "#0000ff";
+        //let shape = draw.getShapeByIndex(getPath(layers, e.target));
+        if (e.target.nodeName.toLowerCase() === "div") {
+            //let shape = draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
+            let shape = svgElement(e.target.dataset.el);
+            if (shape) {
+                shape.style.stroke = "#0000ff";
+            }
         }
     });
 
     layers.addEventListener("mouseout", (e) => {
-        let shape = draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
-        if (shape) {
-            shape.el.style.stroke = "";
+        //let shape = draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
+        if (e.target.nodeName.toLowerCase() === "div") {
+            let shape = svgElement(e.target.dataset.el);
+            if (shape) {
+                shape.style.stroke = "";
+            }
         }
+
     });
 
     draw.svg.addEventListener("update", (e) => {
@@ -137,26 +170,65 @@ let Layers = (layers, draw) => {
         draw.init();
     });
 
-    draw.svg.addEventListener("added", (e) => {
-        //this.add(e.detail);
-        let shape = e.detail;
-        let b = document.createElement('li');
-        b.classList.add(shape.type);
-        b.innerHTML = '<span class="title">' + (shape.el.getAttribute("title") || shape.type) + '</span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
-        layers.appendChild(b);
-        //console.log(shape.el.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
-        let s = shape.el.className.baseVal.match(/\b(static)\b/);
+    let addContent = (b, shape) => {
+        b.classList.add(shape.nodeName);
+        b.innerHTML = '<span class="title">' + (shape.getAttribute("title") || shape.nodeName) + '</span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
+
+        //console.log(shape.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
+        let s = shape.className.baseVal.match(/\b(static)\b/);
         if (s) {
             b.querySelector(".display").classList.add(s[1]);
         }
-        s = shape.el.className.baseVal.match(/\b(hidden-on-pending)\b/);
+        s = shape.className.baseVal.match(/\b(hidden-on-pending)\b/);
         if (s) {
             b.querySelector(".display").classList.add("hidden");
         }
-        s = shape.el.className.baseVal.match(/\b(visible|hidden)-on-(\w+)\b/);
+        s = shape.className.baseVal.match(/\b(visible|hidden)-on-(\w+)\b/);
         if (s) {
             b.querySelector("."+s[2]).classList.add(s[1]);
         }
+    };
+
+    let svgElement = (key, el) => {
+        if (key) {
+            if (el) {
+                svgElements[key] = el;
+            } else {
+                return svgElements[key];
+            }
+        }
+        return el;
+    };
+
+    let addLayer = (layer, shape) => {
+        let b = document.createElement('div');
+        layer.appendChild(b);
+        let key = uniqueKey();
+        b.dataset.el = key;
+        svgElement(key, shape);
+        addContent(b, shape);
+        return b;
+    };
+
+    let addLayers = function(parent, children){
+        [...children].forEach(c => {
+            let layer = addLayer(parent, c);
+            if (c.children.length) {
+                addLayers(layer, c.children);
+            }
+        });
+    }
+
+    draw.svg.addEventListener("init", (e) => {
+        layers.innerHTML = "";
+        addLayers(layers, draw.svg.children);
+    });
+
+    draw.svg.addEventListener("added", (e) => {
+
+        layers.innerHTML = "";
+        addLayers(layers, draw.svg.children);
+
     });
 
     return layers;

@@ -18,7 +18,7 @@ let Sortable = function(layers) {
         //     e.target.parentNode.remove();
         // }
 
-        if (e.target.nodeName.toLowerCase() === "li") {
+        if (e.target.nodeName.toLowerCase() === "div") {
 
             let elements = [...layers.childNodes];//Sortable elements
 
@@ -42,6 +42,8 @@ let Sortable = function(layers) {
             };
 
             target.style.position = "absolute";
+
+            target.classList.add("dragging");
 
             // Create placeholder for visible placement
             let placeholder = document.createElement("div");
@@ -110,6 +112,7 @@ let Sortable = function(layers) {
                 target.style.position = "";
                 target.style.left = "";
                 target.style.top = "";
+                target.classList.remove("dragging");
 
                 placeholder.replaceWith(target);
 

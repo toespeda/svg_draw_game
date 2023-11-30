@@ -603,10 +603,9 @@ class Draw {
 
     addShapes(el){
         [...el.children].forEach(c => {
+            this.addShape(c);
             if (c.children.length) {
                 this.addShapes(c);
-            } else {
-                this.addShape(c);
             }
         });
     }
@@ -617,6 +616,7 @@ class Draw {
         }
         this.shapes = [];
         this.addShapes(this.svg);
+        this.svg.dispatchEvent(new CustomEvent("init"));
     }
 
     shapeStack(startIndex, endIndex) {
@@ -726,6 +726,10 @@ class Draw {
 
     mergeShape(index, count) {
 
+        if (typeof index !== "number") {
+            index = this.getShapeIndexByElement(index);
+        }
+
         let Shape = this.shapes[index];
 
         if (Shape.type !== "path") {
@@ -761,9 +765,14 @@ class Draw {
     }
 
     removeShape(index) {
-        let Shape = this.shapes[index];
-        Shape.el.remove();
-        this.shapes.splice(index, 1);
+        if (typeof index !== "number") {
+            index = this.getShapeIndexByElement(index);
+        }
+        if (index > -1) {
+            let Shape = this.shapes[index];
+            Shape.el.remove();
+            this.shapes.splice(index, 1);
+        }
     }
 
     createElement(type){
@@ -858,12 +867,21 @@ class Draw {
         return Shape;
     }
 
-    getShapeByElement(el){
+    getShapeIndexByElement(el){
         for (let i = 0; i < this.shapes.length; i++) {
             if (this.shapes[i].el === el) {
-                return this.shapes[i];
+                return i;
             }
         }
+        return -1;
+    }
+
+    getShapeByElement(el){
+        let index = this.getShapeIndexByElement(el);
+        if (index > -1) {
+            return this.shapes[index];
+        }
+        return null;
     }
 
     getShapeByIndex(index){

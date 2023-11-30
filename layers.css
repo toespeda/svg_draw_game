@@ -1,11 +1,38 @@
 #layers {
-    margin: 0;
-    padding: 5px 0 10px 15px;
+    counter-reset: item;
+    margin: 0 0 15px 0;
 }
-#layers li {
+
+#layers > div, #layers div > div {
+    margin: 0;
+    padding: 0 0 0 16px;
+    clear: left;
+}
+
+#layers > div:before, #layers div > div:before {
+    content: " ";
+    float: left;
+    min-width: 16px;
+    min-height: 1em;
+}
+
+#layers > div:not(.dragging):before, #layers div > div:not(.dragging):before {
+    content: counter(item) " ";
+    counter-increment: item;
+}
+
+#layers > div:after, #layers div > div:after {
+    clear: both;
+    content: "";
+    display: table;
+}
+
+#layers > div {
     cursor: default;
     line-height: 1.2em;
+    padding: 0;
 }
+
 #layers li:last-child .merge {
     /*display: none;*/
 }
@@ -15,9 +42,10 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    float: left;
+    float: right;
 }
 #layers .title {
+    float: left;
     min-width: 60px;
     max-width: 60px;
 }

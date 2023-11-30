@@ -51,7 +51,7 @@
             </div>
 
             <div class="col editor">
-                <ol id="layers"></ol>
+                <div id="layers"></div>
                 <button id="reverse">Reverse</button>
                 <button id="merge">Merge</button>
             </div>
@@ -92,6 +92,7 @@
                     <use href="#SmoothQuadraticUp" x="60"></use>
                     <use href="#SmoothQuadraticDown" x="120"></use>
                 </g>
+
             </svg>
 
 
@@ -491,7 +492,7 @@ H 17.86"
 
             document.querySelector("#examples").addEventListener("click", e => {
                 if (e.target.nodeName === "svg") {
-                    layers.innerHTML = "";
+                    //layers.innerHTML = "";
                     draw.init(e.target.innerHTML);
                     // if (!editor.classList.contains("editing")) {
                     //     game.play();
@@ -522,7 +523,7 @@ H 17.86"
             });
 
             document.querySelector("#new").addEventListener("click", e => {
-                layers.innerHTML = "";
+                //layers.innerHTML = "";
                 draw.init("");
             });
 
