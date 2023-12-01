@@ -140,7 +140,7 @@ let Layers = (layers, draw) => {
 
     layers.addEventListener("sorted", (e) => {
         //Rearrange shapes
-        draw.shapeStack(e.detail.startIndex, e.detail.endIndex);
+        draw.shapeStack(e.detail.startIndex, e.detail.endIndex, svgElement(e.detail.startContainer.dataset.el), svgElement(e.detail.endContainer.dataset.el));
     }, false);
 
     layers.addEventListener("mouseover", (e) => {

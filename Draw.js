@@ -1,11 +1,8 @@
 class Draw {
 
     svg = null;
-
     shapes = [];
-
     type = "line";
-
     action = "move";
 
     constructor(svg) {
@@ -20,7 +17,6 @@ class Draw {
             });
 
             let Shape = null;
-
             let offset = this.svg.getBoundingClientRect();
 
             let mousePos = function(e){
@@ -28,11 +24,8 @@ class Draw {
             };
 
             let nodeHandle = false;
-
             let startPos = mousePos(e);
-
             let offsetPos = [0,0];
-
             let lastPos = startPos;
 
             if (this.action === "node") {
@@ -41,19 +34,16 @@ class Draw {
                 if (e.target.nodeName.match(/(path|line)/)) {
 
                     Shape = this.getShapeByElement(e.target);
-
                     let positions = this.getClosestShapePos(Shape, startPos);
 
                     // console.log(positions);
-
-                    console.log("nodeHandle", positions[0]);
+                    //console.log("nodeHandle", positions[0]);
 
                     if (positions.length) {// && positions[0].distance < 10
 
                         if (Shape.type === "path") {
 
                             nodeHandle = positions[0];
-
                             offsetPos = [nodeHandle.params[0] - startPos[0], nodeHandle.params[1] - startPos[1]];
 
                             if (nodeHandle.distance > 10) {
@@ -141,6 +131,8 @@ class Draw {
             } else if (e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
 
                 Shape = this.getShapeByElement(e.target);
+                console.log("Shape", Shape);
+                console.log("getBoundingClientRect", Shape.el.getBoundingClientRect());
                 this.setActionByPos(Shape, startPos);
 
             }
@@ -280,7 +272,7 @@ class Draw {
 
                 if (t.command.match(/[A]/)) {
 
-                    for (var v in t.params) {
+                    for (let v in t.params) {
                         if (v%7 === 5) {
                             t.params[v] += diff[0];
                         } else if (v%7 === 6) {
@@ -297,7 +289,7 @@ class Draw {
                     t.params[0] += diff[0];
 
                 } else {
-                    for (var v in t.params) {
+                    for (let v in t.params) {
                         t.params[v] += diff[v%2 ? 1 : 0];
                     }
                 }
@@ -355,7 +347,7 @@ class Draw {
 
                 if (t.command.match(/[A]/)) {
 
-                    for (var v in t.params) {
+                    for (let v in t.params) {
                         if (v % 7 === 0) {
                             t.params[v] *= diffP[0];
                         } else if (v % 7 === 1) {
@@ -377,7 +369,7 @@ class Draw {
 
                 } else {
 
-                    for (var v in t.params) {
+                    for (let v in t.params) {
                         t.params[v] *= diffP[v % 2 ? 1 : 0];
                     }
 
@@ -583,7 +575,7 @@ class Draw {
     duplicateShape(Shape){
         let duplicate = {...Shape};
         duplicate.el = Shape.el.cloneNode(true);
-        this.svg.insertBefore(duplicate.el, Shape.el.nextSibling);
+        Shape.el.parentNode.insertBefore(duplicate.el, Shape.el.nextSibling);
         this.shapes.push(duplicate);
         this.svg.dispatchEvent(new CustomEvent("added", { detail: duplicate }));
         return duplicate;
@@ -599,7 +591,6 @@ class Draw {
         this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
         return Shape;
     }
-
 
     addShapes(el){
         [...el.children].forEach(c => {
@@ -619,14 +610,19 @@ class Draw {
         this.svg.dispatchEvent(new CustomEvent("init"));
     }
 
-    shapeStack(startIndex, endIndex) {
+    shapeStack(startIndex, endIndex, startContainer, endContainer) {
+
+        startContainer = startContainer || this.svg;
+        endContainer = endContainer || this.svg;
+
         if (endIndex > startIndex) {
-            this.svg.insertBefore(this.shapes[startIndex].el, this.shapes[endIndex].el.nextSibling);
+            endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex].nextSibling);
         } else {
-            this.svg.insertBefore(this.shapes[startIndex].el, this.shapes[endIndex].el);
+            endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex]);
         }
-        //Rearrange shapes
-        this.shapes.splice(endIndex, 0, this.shapes.splice(startIndex, 1)[0]);
+
+        // //Rearrange shapes
+        // this.shapes.splice(endIndex, 0, this.shapes.splice(startIndex, 1)[0]);
     }
 
     ellipseToPath(merge) {
@@ -719,8 +715,6 @@ class Draw {
             for (let x=0; x<positions.length; x++) {
 
             }
-
-
         }
     }
 
@@ -745,8 +739,9 @@ class Draw {
             return false;
         }
 
-        for (let x=1;x<count+1;x++) {
-            let merge = this.shapes[index+x];
+        for (let x=0;x<count;x++) {
+            index = this.getShapeIndexByElement(Shape.el.nextElementSibling);
+            let merge = this.shapes[index];
             if (merge) {
                 if (merge.type==="path") {
                     Shape.d = Shape.d.concat(merge.d);
@@ -754,10 +749,29 @@ class Draw {
                     Shape.d = Shape.d.concat(this[merge.type + "ToPath"](merge));
                 }
                 merge.el.remove();
+                this.shapes.splice(index, 1);
             }
         }
 
-        this.shapes.splice(index+1, count);
+
+
+        // for (let x=1;x<count+1;x++) {
+        //     let merge = this.shapes[index+x];
+        //     if (merge) {
+        //         if (merge.type==="path") {
+        //             Shape.d = Shape.d.concat(merge.d);
+        //         } else {
+        //             Shape.d = Shape.d.concat(this[merge.type + "ToPath"](merge));
+        //         }
+        //         merge.el.remove();
+        //     }
+        // }
+        //
+        // this.shapes.splice(index+1, count);
+
+
+
+
         this.redrawShape(Shape);
 
         return true;

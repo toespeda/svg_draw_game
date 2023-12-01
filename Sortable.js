@@ -11,21 +11,17 @@ let Sortable = function(layers) {
             };
         };
 
-        // if (e.target.nodeName.toLowerCase() === "span") {
-        //     let elements = [...layers.children];
-        //     let index = elements.indexOf(e.target.parentNode);
-        //     layers.dispatchEvent(new CustomEvent("removed", { detail: {index:index} }));
-        //     e.target.parentNode.remove();
-        // }
-
         if (e.target.nodeName.toLowerCase() === "div") {
 
-            let elements = [...layers.childNodes];//Sortable elements
-
             const target = e.target;
+            //console.log("target", target);
+            const startContainer = target.parentNode;
+            let endContainer = startContainer;
+
+            let elements = [...startContainer.querySelectorAll('div:not(.placeholder)')];//Sortable elements
 
             let startIndex = elements.indexOf(target);
-            let hoverIndex = null;
+            //let hoverIndex = null;
             let endIndex = startIndex;
 
             let targetDisplay = window.getComputedStyle(target).display;//Needed for when reinserting later
@@ -49,21 +45,28 @@ let Sortable = function(layers) {
             let placeholder = document.createElement("div");
             placeholder.style.height = bounds.height + "px";
             placeholder.style.backgroundColor = "yellow";
-            layers.insertBefore(placeholder, target.nextSibling);
+            placeholder.classList.add("placeholder");
+
+            startContainer.insertBefore(placeholder, target.nextSibling);
 
             let move = function(e){
 
                 let pos = getPos(e);
 
-                target.style.display = "none";//Hide
+                //Hide to see what's beneath the dragging element
+                target.style.display = "none";
                 let hoverElement = document.elementFromPoint(e.clientX, e.clientY);
                 target.style.display = targetDisplay;
 
-                hoverIndex = elements.indexOf(hoverElement);
 
-                if (hoverIndex > -1) {//Is hovering sortable element
+                if (hoverElement.nodeName.toLowerCase() === "div" && !hoverElement.classList.contains("placeholder")) {
 
-                    endIndex = hoverIndex;
+                    if (hoverElement.parentNode !== endContainer) {
+                        endContainer = hoverElement.parentNode;
+                        elements = [...endContainer.querySelectorAll('div:not(.placeholder)')];
+                    }
+
+                    endIndex = elements.indexOf(hoverElement);
 
                     let bcr = hoverElement.getBoundingClientRect();
 
@@ -76,7 +79,7 @@ let Sortable = function(layers) {
                         <
                         hoverCenter
                     ) {
-                        layers.insertBefore(placeholder, hoverElement);
+                        endContainer.insertBefore(placeholder, hoverElement);
                     } else if (
                         (pos.top > lastPos.top)//moving down
                         &&
@@ -84,7 +87,7 @@ let Sortable = function(layers) {
                         >
                         hoverCenter
                     ) {
-                        layers.insertBefore(placeholder, hoverElement.nextSibling);
+                        endContainer.insertBefore(placeholder, hoverElement.nextSibling);
                     }
                 }
 
@@ -116,14 +119,17 @@ let Sortable = function(layers) {
 
                 placeholder.replaceWith(target);
 
-                if (startIndex !== endIndex) {
-
-                    elements.splice(endIndex, 0, elements.splice(startIndex, 1)[0]);//At position, delete 0, add element taken from elements
+                if ((startIndex !== endIndex) || (startContainer !== endContainer)) {
 
                     //Add custom event to layers element
-                    layers.dispatchEvent(new CustomEvent("sorted", { detail: {startIndex:startIndex,endIndex:endIndex} }));
-
-
+                    layers.dispatchEvent(new CustomEvent("sorted", {
+                        detail: {
+                            startIndex:startIndex,
+                            endIndex:endIndex,
+                            startContainer:startContainer,
+                            endContainer:endContainer
+                        }
+                    }));
 
                 }
 

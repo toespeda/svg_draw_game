@@ -34,15 +34,15 @@ svg {
     display: block;
 }
 
-.editing svg > * {
+.editing svg  * {
     opacity: 1;
 }
 
-.editing svg > *:hover {
+.editing svg *:hover {
     stroke: #0000ff;
 }
 
-.editing svg .visible-on-error {
+.editing svg .visible-on-error, .editing svg .visible-on-error * {
     /*opacity: 1;*/
     stroke: red;
 }
@@ -52,7 +52,7 @@ svg {
     opacity: .3;
 }
 
-.editing svg .visible-on-success {
+.editing svg .visible-on-success, .editing svg .visible-on-success * {
     /*opacity: 1;*/
     stroke: green;
 }
@@ -75,9 +75,13 @@ svg {
 #examples {
     float: right;
     padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
 }
+
 #examples svg {
     width: 80px;
     height: 80px;
+    margin: 5px;
 }
 

@@ -37,10 +37,11 @@ let Tools = (tools, draw) => {
         [...children].forEach((o, i) => {
 
             let nodeName = o.nodeName.toLowerCase();
+
             let node = "";
             let nodeType = "";
 
-            block = nodeName.match(/\b(path|line|circle|ellipse)\b/gi);
+            block = true;//nodeName.match(/\b(path|line|circle|ellipse)\b/gi);
 
             if (o.nodeType === 1) {
 
@@ -52,15 +53,15 @@ let Tools = (tools, draw) => {
                         let n = o.attributes[a].name.toLowerCase();
                         let v = o.attributes[a].value;
                         if (n==="d") {
-                            v = v.replace(/\n/g,'').replace(/([MmLlSsQqLlHhVvCcSsQqTtAaZz])/g, "\n" + tabs + '\t\t' + "$1");
+                            v = v.replace(/\n/g,'').replace(/([MmLlSsQqLlHhVvCcSsQqTtAaZz])/g, "\n" + tabs + '\t\t' + "$1") + "\n" + tabs + '\t';
                         }
                         collection.push('\n' + tabs + '\t' + n + '="' + v + '"');
                     }
-                    attributes = " " + collection.join(" ");
+                    attributes = " " + collection.join(" ") + '\n';
                 }
 
                 if (block) {
-                    node = tabs + '&lt' + nodeName + attributes + '\n&gt' + tidy(o, level + 1, block[0]) + '' + tabs + '&lt/' + nodeName + '&gt\n';
+                    node = tabs + '&lt' + nodeName + attributes + tabs + '&gt\n' + tidy(o, level + 1, block[0]) + tabs + '&lt/' + nodeName + '&gt\n';
                 } else {
                     node = '&lt' + nodeName + attributes + '&gt'+ tidy(o, level + 1) + '&lt/' + nodeName + '&gt';
                 }
@@ -85,43 +86,44 @@ let Tools = (tools, draw) => {
 
     };
 
+    let toggleSource = (show) => {
+
+        let source = draw.svg.previousElementSibling;
+
+        if (!source || source.nodeName.toLowerCase() !== "pre") {
+            let svgDim = draw.svg.getBoundingClientRect();
+            source = document.createElement('pre');
+            source.style.width = svgDim.width + "px";
+            source.style.height = svgDim.height + "px";
+            source.style.lineHeight = "1.2em";
+            source.setAttribute("contentEditable", "true");
+            draw.svg.parentNode.insertBefore(source, draw.svg);
+        }
+
+        if (show) {
+            draw.svg.style.display = "none";
+            source.style.display = "block";
+            source.innerHTML = tidy(draw.svg);//.replace(/&/g, '&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/"/g, '&quot;');
+        } else {
+            draw.svg.innerHTML = source.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');//.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+            draw.svg.style.display = "block";
+            source.style.display = "none";
+            draw.svg.dispatchEvent(new CustomEvent("update"));
+        }
+
+    };
+
     tools.addEventListener("click", (e) => {
         let data = e.target.dataset;
-        // console.log(data);
         if (data.type === "symbol") {
-
             let id = e.target.querySelector("use").getAttribute("href");
             let symbol = symbols.querySelector(id);
             [...symbol.children].forEach(el => {
                 draw.addShape(draw.svg.appendChild(el.cloneNode()));
             });
             setTools(data);
-
         } else if (data.action === "source") {
-
-            let source = draw.svg.previousElementSibling;
-
-            if (!source || source.nodeName.toLowerCase() !== "pre") {
-                let svgDim = draw.svg.getBoundingClientRect();
-                source = document.createElement('pre');
-                source.style.width = svgDim.width + "px";
-                source.style.height = svgDim.height + "px";
-
-                source.setAttribute("contentEditable", "true");
-                draw.svg.parentNode.insertBefore(source, draw.svg);
-            }
-
-            if (e.target.classList.toggle("active")) {
-                draw.svg.style.display = "none";
-                source.style.display = "block";
-                source.innerHTML = tidy(draw.svg);//.replace(/&/g, '&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/"/g, '&quot;');
-            } else {
-                draw.svg.innerHTML = source.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');//.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
-                draw.svg.style.display = "block";
-                source.style.display = "none";
-                draw.svg.dispatchEvent(new CustomEvent("update"));
-            }
-
+            toggleSource(e.target.classList.toggle("active"));
         } else {
             draw.set(data);
             setTools(data);

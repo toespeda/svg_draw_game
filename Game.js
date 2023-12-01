@@ -4,7 +4,7 @@ class Game {
     svg = null;
     letters = null;
     str = "";
-    shapes = null;
+    shapes = [];
     index = null;
     playing = false;
 
@@ -98,7 +98,7 @@ class Game {
         if (!this.str) {
             this.word(prompt("Write word"));
         }
-        this.shapes = [...this.svg.querySelectorAll("*:not(.static,.visible-on-error,.visible-on-success)")];
+        this.shapes = [...this.svg.querySelectorAll(":scope > *:not(.static,.visible-on-error,.visible-on-success)")];
         this.index = 0;
         this.svg.classList.remove("success", "error");
         this.result.classList.remove("success", "error");

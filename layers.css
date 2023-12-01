@@ -5,20 +5,25 @@
 
 #layers > div, #layers div > div {
     margin: 0;
-    padding: 0 0 0 16px;
+    padding: 0 0 0 20px;
     clear: left;
 }
 
 #layers > div:before, #layers div > div:before {
     content: " ";
     float: left;
-    min-width: 16px;
+    min-width: 15px;
     min-height: 1em;
 }
 
-#layers > div:not(.dragging):before, #layers div > div:not(.dragging):before {
+#layers div:not(.dragging):before {
     content: counter(item) " ";
     counter-increment: item;
+}
+
+#layers div.dragging:before, #layers div.dragging div:before {
+    content: " ";
+    counter-increment: none;
 }
 
 #layers > div:after, #layers div > div:after {
