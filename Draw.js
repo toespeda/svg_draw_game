@@ -27,6 +27,7 @@ class Draw {
             let startPos = mousePos(e);
             let offsetPos = [0,0];
             let lastPos = startPos;
+
             //let basePos = null;
 
             if (this.action === "node") {
@@ -154,6 +155,30 @@ class Draw {
 
             Shape.basePos = Shape.el.getBoundingClientRect();
 
+            let center = [Shape.basePos.x + Shape.basePos.width/2, Shape.basePos.y + Shape.basePos.height/2];
+
+            let lastAngle = this.getAngle(center, startPos);
+
+            //Fix rotating horizontal and vertical lines
+            if (this.action === "rotate" && Shape.type === "path") {
+                for (let m=0; m<Shape.d.length; m++) {
+                    if (Shape.d[m].command.match(/[Vv]/)) {
+                        let prev = Shape.d[m-1];
+                        if (prev) {
+                            Shape.d[m].command = "L";
+                            Shape.d[m].params.unshift(prev.params.slice(-2)[0]);
+                        }
+                    } else if (Shape.d[m].command.match(/[Hh]/)) {
+                        let prev = Shape.d[m-1];
+                        if (prev) {
+                            Shape.d[m].command = "L";
+                            Shape.d[m].params.push(prev.params.slice(-2)[1]);
+                        }
+                    }
+                }
+            }
+
+
             // let guide = document.createElement("div");
             // guide.style.top = Shape.basePos.y + "px";
             // guide.style.left = Shape.basePos.x + "px";
@@ -180,6 +205,10 @@ class Draw {
                 let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
                 let diffP = [(pos[0] - Shape.basePos.x) / (lastPos[0] - Shape.basePos.x), (pos[1] - Shape.basePos.y) / (lastPos[1] - Shape.basePos.y)];
 
+                let angle = this.getAngle(center, pos);
+
+                let diffAngle = angle - lastAngle;
+
                 if (this.action === "move") {
 
                     this.moveShape(Shape, diff);
@@ -187,6 +216,12 @@ class Draw {
                 } else if (this.action === "resize") {
 
                     this.resizeShape(Shape, diffP, pos, diff);
+
+                } else if (this.action === "rotate") {
+
+
+
+                    this.rotateShape(Shape, center, diffAngle);
 
                 } else {
 
@@ -228,6 +263,8 @@ class Draw {
 
                 lastPos = pos;
 
+                lastAngle = angle;
+
             };
 
             let stop = function(){
@@ -244,6 +281,12 @@ class Draw {
 
     }
 
+    getAngle(p1, p2){
+        let dx = p1[0] - p2[0];
+        let dy = p1[1] - p2[1];
+        return Math.atan2(dy, dx);
+    }
+
     setActionByPos(Shape, startPos){
         if (Shape.type === "circle") {
 
@@ -257,10 +300,7 @@ class Draw {
 
         } else if (Shape.type === "ellipse") {
 
-            let dx = Shape.cx - startPos[0];
-            let dy = Shape.cy - startPos[1];
-
-            let theta = Math.atan2(dy, dx); // range (-PI, PI]
+            let theta = this.getAngle([Shape.cx, Shape.cy], startPos);
 
             let a = Shape.rx;
             let b = Shape.ry;
@@ -357,6 +397,86 @@ class Draw {
         }
     }
 
+    rotate(center, pos, radians) {
+        //let radians = (Math.PI / 180) * angle;
+        let cos = Math.cos(radians);
+        let sin = Math.sin(radians);
+        let nx = (cos * (pos[0] - center[0])) + (sin * (pos[1] - center[1])) + center[0];
+        let ny = (cos * (pos[1] - center[1])) - (sin * (pos[0] - center[0])) + center[1];
+        return [nx, ny];
+    }
+
+    rotateShape(Shape, center, radians){
+
+        if (Shape.type === "path") {
+
+            for (let m=0; m<Shape.d.length; m++) {
+
+                let t = Shape.d[m];
+
+                if (t.command.match(/[Aa]/)) {
+
+                    for (let v=0;v<t.params.length;v+=7) {
+                        let rotated = this.rotate(center, [t.params[v+5], t.params[v+6]], radians);
+                        t.params[v+5] = rotated[0];
+                        t.params[v+6] = rotated[1];
+                    }
+
+                } else if (t.command.match(/[Vv]/)) {
+
+                    // let prev = Shape.d[m-1];
+                    //
+                    // if (prev) {
+                    //     Shape.d[m].command = "L";
+                    //     let ppos = prev.params.slice(-2);
+                    //     t.params = this.rotate(center, [ppos[0], t.params[0]], radians);
+                    // }
+
+                } else if (t.command.match(/[Hh]/)) {
+
+                    // let prev = Shape.d[m-1];
+                    //
+                    // if (prev) {
+                    //     Shape.d[m].command = "L";
+                    //     let ppos = prev.params.slice(-2);
+                    //     t.params = this.rotate(center, [t.params[0], ppos[1]], radians);
+                    // }
+
+                } else if (t.command.match(/[MmLCSQT]/)) {
+                    for (let v=0;v<t.params.length;v+=2) {
+                        let rotated = this.rotate(center, [t.params[v], t.params[v+1]], radians);
+                        t.params[v] = rotated[0];
+                        t.params[v+1] = rotated[1];
+                    }
+                } else if (t.command.match(/[lcsqt]/)) {
+
+                }
+
+            }
+
+
+
+        } else if (Shape.type === "circle") {
+
+            // Shape.cx += diff[0];
+            // Shape.cy += diff[1];
+
+        } else if (Shape.type === "ellipse") {
+
+            // Shape.cx += diff[0];
+            // Shape.cy += diff[1];
+
+        } else if (Shape.type === "line") {
+
+            // Shape.x1 += diff[0];
+            // Shape.y1 += diff[1];
+            // Shape.x2 += diff[0];
+            // Shape.y2 += diff[1];
+
+        }
+
+    }
+
     resizeShape(Shape, diffP, pos, diff){
 
         if (Shape.type === "path") {
@@ -448,10 +568,9 @@ class Draw {
 
             for (let m=0; m<shape.d.length; m++) {
 
-                let paramSize = 0
-
                 switch (shape.d[m].command) {
                     case "M" :
+                        //(x, y)+
                         positions.push({
                             params : shape.d[m].params.slice(0, 2),
                             command : "M",
@@ -460,11 +579,10 @@ class Draw {
                         });
                         break;
                     case "L" :
-
-                        paramSize = 2;//(0-2) End point
-                        for (let i = 0; i < shape.d[m].params.length; i += paramSize) {
+                        //(x, y)+
+                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
                             positions.push({
-                                params : shape.d[m].params.slice(i, i + paramSize),
+                                params : shape.d[m].params.slice(i, i + 2),
                                 command : "L",
                                 index : m,
                                 start : i
@@ -472,10 +590,10 @@ class Draw {
                         }
                         break;
                     case "S" :
-                        paramSize = 2;// (0-2,2-4) Shifted current point, end point
-                        for (let i = 0; i < shape.d[m].params.length; i += paramSize) {
+                        // (x2,y2, x,y)+
+                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
                             positions.push({
-                                params : shape.d[m].params.slice(i, i + paramSize),
+                                params : shape.d[m].params.slice(i, i + 2),
                                 command : "S",
                                 index : m,
                                 start : i
@@ -483,10 +601,10 @@ class Draw {
                         }
                         break;
                     case "Q" :
-                        paramSize = 2;// (0-2,2-4) Control point, end point
-                        for (let i = 0; i < shape.d[m].params.length; i += paramSize) {
+                        // (x1,y1, x,y)+
+                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
                             positions.push({
-                                params : shape.d[m].params.slice(i, i + paramSize),
+                                params : shape.d[m].params.slice(i, i + 2),
                                 command : "Q",
                                 index : m,
                                 start : i
@@ -498,21 +616,21 @@ class Draw {
                     case "V" :
                         break;
                     case "C" :
-                        paramSize = 2;// (0-2,2-4,4-6) Start control point, end control point, end point
-                        for (let i = 0; i < shape.d[m].params.length; i += paramSize) {
+                        // (x1,y1, x2,y2, x,y)+
+                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
                             positions.push({
-                                params : shape.d[m].params.slice(i, i + paramSize),
-                                command : "Q",
+                                params : shape.d[m].params.slice(i, i + 2),
+                                command : "C",
                                 index : m,
                                 start : i
                             });
                         }
                         break;
                     case "T" :
-                        paramSize = 2;//(0-2) End point
-                        for (let i = 0; i < shape.d[m].params.length; i += paramSize) {
+                        //(x,y)+
+                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
                             positions.push({
-                                params : shape.d[m].params.slice(i, i + paramSize),
+                                params : shape.d[m].params.slice(i, i + 2),
                                 command : "T",
                                 index : m,
                                 start : i
@@ -520,6 +638,15 @@ class Draw {
                         }
                         break;
                     case "A" :
+                        // (rx ry angle large-arc-flag sweep-flag x y)+
+                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
+                            positions.push({
+                                params : shape.d[m].params.slice(i, i + 2),
+                                command : "A",
+                                index : m,
+                                start : i
+                            });
+                        }
                         break;
                 }
 
