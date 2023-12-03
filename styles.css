@@ -85,3 +85,7 @@ svg {
     margin: 5px;
 }
 
+#editor .guide {
+    position: absolute;
+}
+
