@@ -133,11 +133,7 @@ class Draw {
             } else if (e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
 
                 Shape = this.getShapeByElement(e.target);
-                //console.log("Shape", Shape);
-
-                //basePos = Shape.el.getBoundingClientRect();
-                //console.log(Shape.el.getBoundingClientRect(), Shape.el.getBBox());
-                this.setActionByPos(Shape, startPos);
+                //this.setActionByPos(Shape, startPos);
 
             }
 
@@ -160,34 +156,25 @@ class Draw {
             let lastAngle = this.getAngle(center, startPos);
 
             //Fix rotating horizontal and vertical lines
-            if (this.action === "rotate" && Shape.type === "path") {
-                for (let m=0; m<Shape.d.length; m++) {
-                    if (Shape.d[m].command.match(/[Vv]/)) {
-                        let prev = Shape.d[m-1];
-                        if (prev) {
-                            Shape.d[m].command = "L";
-                            Shape.d[m].params.unshift(prev.params.slice(-2)[0]);
-                        }
-                    } else if (Shape.d[m].command.match(/[Hh]/)) {
-                        let prev = Shape.d[m-1];
-                        if (prev) {
-                            Shape.d[m].command = "L";
-                            Shape.d[m].params.push(prev.params.slice(-2)[1]);
-                        }
-                    }
+            if (this.action === "rotate") {
+                if (Shape.type === "path") {
+                    this.convertCommand(Shape);
+                } else if (Shape.type === "ellipse") {
+                    this.convertToPath(Shape);
+                    this.redrawShape(Shape);
                 }
+
             }
 
-
-            // let guide = document.createElement("div");
-            // guide.style.top = Shape.basePos.y + "px";
-            // guide.style.left = Shape.basePos.x + "px";
-            // guide.style.width = Shape.basePos.width + "px";
-            // guide.style.height = Shape.basePos.height + "px";
-            // guide.style.pointerEvents = "none";
-            // guide.style.outline = "1px solid orange";
-            // guide.classList.add("guide");
-            // svg.parentNode.insertBefore(guide, svg);
+            let guide = document.createElement("div");
+            guide.style.top = Shape.basePos.y + "px";
+            guide.style.left = Shape.basePos.x + "px";
+            guide.style.width = Shape.basePos.width + "px";
+            guide.style.height = Shape.basePos.height + "px";
+            guide.style.pointerEvents = "none";
+            guide.style.outline = "1px solid orange";
+            guide.classList.add("guide");
+            svg.parentNode.insertBefore(guide, svg);
 
             let move = (e) => {
 
@@ -218,8 +205,6 @@ class Draw {
                     this.resizeShape(Shape, diffP, pos, diff);
 
                 } else if (this.action === "rotate") {
-
-
 
                     this.rotateShape(Shape, center, diffAngle);
 
@@ -270,7 +255,7 @@ class Draw {
             let stop = function(){
                 svg.removeEventListener("mousemove", move);
                 svg.removeEventListener("mouseup", stop);
-                // guide.remove();
+                guide.remove();
                 //Update shape preview
             };
 
@@ -288,6 +273,7 @@ class Draw {
     }
 
     setActionByPos(Shape, startPos){
+
         if (Shape.type === "circle") {
 
             if (Shape.r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
@@ -319,6 +305,7 @@ class Draw {
             }
 
         }
+
     }
 
     moveShape(Shape, diff){
@@ -417,6 +404,7 @@ class Draw {
                 if (t.command.match(/[Aa]/)) {
 
                     for (let v=0;v<t.params.length;v+=7) {
+                        t.params[v+2] += radians*90;
                         let rotated = this.rotate(center, [t.params[v+5], t.params[v+6]], radians);
                         t.params[v+5] = rotated[0];
                         t.params[v+6] = rotated[1];
@@ -424,23 +412,11 @@ class Draw {
 
                 } else if (t.command.match(/[Vv]/)) {
 
-                    // let prev = Shape.d[m-1];
-                    //
-                    // if (prev) {
-                    //     Shape.d[m].command = "L";
-                    //     let ppos = prev.params.slice(-2);
-                    //     t.params = this.rotate(center, [ppos[0], t.params[0]], radians);
-                    // }
+
 
                 } else if (t.command.match(/[Hh]/)) {
 
-                    // let prev = Shape.d[m-1];
-                    //
-                    // if (prev) {
-                    //     Shape.d[m].command = "L";
-                    //     let ppos = prev.params.slice(-2);
-                    //     t.params = this.rotate(center, [t.params[0], ppos[1]], radians);
-                    // }
+
 
                 } else if (t.command.match(/[MmLCSQT]/)) {
                     for (let v=0;v<t.params.length;v+=2) {
@@ -453,8 +429,6 @@ class Draw {
                 }
 
             }
-
-
 
         } else if (Shape.type === "circle") {
 
@@ -866,6 +840,24 @@ class Draw {
             params: [merge.x2, merge.y2]
         });
         return d;
+    }
+
+    convertCommand(Shape){
+        for (let m=0; m<Shape.d.length; m++) {
+            if (Shape.d[m].command.match(/[Vv]/)) {
+                let prev = Shape.d[m-1];
+                if (prev) {
+                    Shape.d[m].command = "L";
+                    Shape.d[m].params.unshift(prev.params.slice(-2)[0]);
+                }
+            } else if (Shape.d[m].command.match(/[Hh]/)) {
+                let prev = Shape.d[m-1];
+                if (prev) {
+                    Shape.d[m].command = "L";
+                    Shape.d[m].params.push(prev.params.slice(-2)[1]);
+                }
+            }
+        }
     }
 
     convertToPath(Shape) {
