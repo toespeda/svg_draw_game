@@ -28,80 +28,13 @@ class Draw {
             let offsetPos = [0,0];
             let lastPos = startPos;
 
-            //let basePos = null;
-
             if (this.action === "node") {
 
                 //quadratic curve on lines
                 if (e.target.nodeName.match(/(path|line)/)) {
 
                     Shape = this.getShapeByElement(e.target);
-                    let positions = this.getClosestShapePos(Shape, startPos);
-
-                    // console.log(positions);
-                    //console.log("nodeHandle", positions[0]);
-
-                    if (positions.length) {// && positions[0].distance < 10
-
-                        if (Shape.type === "path") {
-
-                            nodeHandle = positions[0];
-                            offsetPos = [nodeHandle.params[0] - startPos[0], nodeHandle.params[1] - startPos[1]];
-
-                            if (nodeHandle.distance > 10) {
-
-                                if (nodeHandle.command === "L") {
-
-                                    console.log("Shape.d[nodeHandle.index]", Shape.d[nodeHandle.index]);
-                                    //
-                                    // Shape.d[nodeHandle.index].command = "Q";
-                                    // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
-                                    //
-                                    // this.redrawShape(Shape);
-
-                                } else if (Shape.d[nodeHandle.index+1]?.command === "L") {
-
-                                    // nodeHandle = {
-                                    //     index : nodeHandle.index+1,
-                                    //     start : 0
-                                    // };
-                                    //
-                                    // Shape.d[nodeHandle.index].command = "Q";
-                                    // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
-                                    //
-                                    // this.redrawShape(Shape);
-
-                                }
-
-                            }
-
-                        } else if (Shape.type === "line") {
-
-                            if (positions[0].distance < 10) {
-
-                                nodeHandle = this.getShapeAttr(Shape, positions[0].position);
-
-                            } else {
-
-                                this.convertToPath(Shape);
-
-                                //Convert L to Q
-
-                                Shape.d[1].command = "Q";
-                                Shape.d[1].params = [...startPos, ...Shape.d[1].params];
-
-                                this.redrawShape(Shape);
-
-                                // Make the control point the handler
-                                nodeHandle = {
-                                    index : 1,
-                                    start : 0
-                                };
-                            }
-
-                        }
-
-                    }
+                    nodeHandle = this.getNodeHandle(Shape, startPos);
 
                 } else {
 
@@ -119,7 +52,11 @@ class Draw {
                         }
 
                     }
+                }
 
+                if (nodeHandle) {
+                    let params = nodeHandle.params || [Shape[nodeHandle[0]], Shape[nodeHandle[1]]];
+                    offsetPos = [params[0] - startPos[0], params[1] - startPos[1]];
                 }
 
             } else if (this.action === "draw") {
@@ -163,7 +100,6 @@ class Draw {
                     this.convertToPath(Shape);
                     this.redrawShape(Shape);
                 }
-
             }
 
             let guide = document.createElement("div");
@@ -189,24 +125,19 @@ class Draw {
                     pos = edge[0].params;
                 }
 
-                let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
-                let diffP = [(pos[0] - Shape.basePos.x) / (lastPos[0] - Shape.basePos.x), (pos[1] - Shape.basePos.y) / (lastPos[1] - Shape.basePos.y)];
-
                 let angle = this.getAngle(center, pos);
-
-                let diffAngle = angle - lastAngle;
 
                 if (this.action === "move") {
 
-                    this.moveShape(Shape, diff);
+                    this.moveShape(Shape, pos, lastPos);
 
                 } else if (this.action === "resize") {
 
-                    this.resizeShape(Shape, diffP, pos, diff);
+                    this.resizeShape(Shape, pos, lastPos);
 
                 } else if (this.action === "rotate") {
 
-                    this.rotateShape(Shape, center, diffAngle);
+                    this.rotateShape(Shape, center, angle, lastAngle);
 
                 } else {
 
@@ -266,17 +197,97 @@ class Draw {
 
     }
 
+    getNodeHandle(Shape, startPos){
+
+        let nodeHandle = null;
+
+        if (Shape) {
+
+            let positions = this.getClosestShapePos(Shape, startPos);
+
+            if (positions.length) {// && positions[0].distance < 10
+
+                if (Shape.type === "path") {
+
+                    nodeHandle = positions[0];
+
+                    if (nodeHandle.distance > 10) {//TODO: Convert straight lines L
+
+                        if (nodeHandle.command === "L") {
+
+                            console.log("Shape.d[nodeHandle.index]", Shape.d[nodeHandle.index]);
+                            //
+                            // Shape.d[nodeHandle.index].command = "Q";
+                            // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
+                            //
+                            // this.redrawShape(Shape);
+
+                        } else if (Shape.d[nodeHandle.index+1]?.command === "L") {
+
+                            // nodeHandle = {
+                            //     index : nodeHandle.index+1,
+                            //     start : 0
+                            // };
+                            //
+                            // Shape.d[nodeHandle.index].command = "Q";
+                            // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
+                            //
+                            // this.redrawShape(Shape);
+
+                        }
+
+                    }
+
+                } else if (Shape.type === "line") {
+
+                    if (positions[0].distance < 10) {
+
+                        nodeHandle = this.getShapeAttr(Shape, positions[0].position);
+
+                    } else {
+
+                        this.convertToPath(Shape);
+
+                        //Convert L to Q
+
+                        Shape.d[1].command = "Q";
+                        Shape.d[1].params = [...startPos, ...Shape.d[1].params];
+
+                        this.redrawShape(Shape);
+
+                        // Make the control point the handler
+                        nodeHandle = {
+                            index : 1,
+                            start : 0,
+                            params: Shape.d[1].params
+                        };
+                    }
+
+                }
+
+            }
+        }
+
+        return nodeHandle;
+
+    }
+
     getAngle(p1, p2){
         let dx = p1[0] - p2[0];
         let dy = p1[1] - p2[1];
         return Math.atan2(dy, dx);
     }
 
-    setActionByPos(Shape, startPos){
+    /**
+     * Sets the action based on click position
+     * @param Shape
+     * @param pos
+     */
+    setActionByPos(Shape, pos){
 
         if (Shape.type === "circle") {
 
-            if (Shape.r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
+            if (Shape.r - this.getDistance(pos, [Shape.cx, Shape.cy]) < 5) {
                 this.action = "resize";
                 this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
             } else {
@@ -286,7 +297,7 @@ class Draw {
 
         } else if (Shape.type === "ellipse") {
 
-            let theta = this.getAngle([Shape.cx, Shape.cy], startPos);
+            let theta = this.getAngle([Shape.cx, Shape.cy], pos);
 
             let a = Shape.rx;
             let b = Shape.ry;
@@ -296,7 +307,7 @@ class Draw {
 
             let r = (a * b) / Math.sqrt(x + y);
 
-            if (r - this.getDistance(startPos, [Shape.cx, Shape.cy]) < 5) {
+            if (r - this.getDistance(pos, [Shape.cx, Shape.cy]) < 5) {
                 this.action = "resize";
                 this.svg.dispatchEvent(new CustomEvent("action", { detail: this.action }));
             } else {
@@ -308,7 +319,10 @@ class Draw {
 
     }
 
-    moveShape(Shape, diff){
+    moveShape(Shape, pos, lastPos){
+
+        let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
+
         if (Shape.type === "path") {
 
             Shape.d.forEach(t => {
@@ -393,7 +407,9 @@ class Draw {
         return [nx, ny];
     }
 
-    rotateShape(Shape, center, radians){
+    rotateShape(Shape, center, angle, lastAngle){
+
+        let diffAngle = angle - lastAngle;
 
         if (Shape.type === "path") {
 
@@ -404,8 +420,8 @@ class Draw {
                 if (t.command.match(/[Aa]/)) {
 
                     for (let v=0;v<t.params.length;v+=7) {
-                        t.params[v+2] += radians*90;
-                        let rotated = this.rotate(center, [t.params[v+5], t.params[v+6]], radians);
+                        t.params[v+2] += angle;
+                        let rotated = this.rotate(center, [t.params[v+5], t.params[v+6]], diffAngle);
                         t.params[v+5] = rotated[0];
                         t.params[v+6] = rotated[1];
                     }
@@ -420,7 +436,7 @@ class Draw {
 
                 } else if (t.command.match(/[MmLCSQT]/)) {
                     for (let v=0;v<t.params.length;v+=2) {
-                        let rotated = this.rotate(center, [t.params[v], t.params[v+1]], radians);
+                        let rotated = this.rotate(center, [t.params[v], t.params[v+1]], diffAngle);
                         t.params[v] = rotated[0];
                         t.params[v+1] = rotated[1];
                     }
@@ -451,7 +467,11 @@ class Draw {
 
     }
 
-    resizeShape(Shape, diffP, pos, diff){
+    resizeShape(Shape, pos, lastPos){
+
+        let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
+
+        let diffP = [(pos[0] - Shape.basePos.x) / (lastPos[0] - Shape.basePos.x), (pos[1] - Shape.basePos.y) / (lastPos[1] - Shape.basePos.y)];
 
         if (Shape.type === "path") {
 
@@ -659,9 +679,9 @@ class Draw {
         return positions;
     }
 
-    getShapeAttr(Shape, params){
+    getShapeAttr(Shape, p){
         if (Shape.type==="line") {
-            return params === "start" ? ["x1", "y1"] : ["x2", "y2"];
+            return p === "start" ? ["x1", "y1"] : ["x2", "y2"];
         }
         return null;
     }
@@ -869,6 +889,10 @@ class Draw {
 
     }
 
+    addGroup(){
+        this.addShape("g");
+    }
+
     mergeAll(){
         for (let x=0;x<this.shapes.length;x++) {
             let Shape = this.shapes[x];
@@ -913,25 +937,6 @@ class Draw {
                 this.shapes.splice(index, 1);
             }
         }
-
-
-
-        // for (let x=1;x<count+1;x++) {
-        //     let merge = this.shapes[index+x];
-        //     if (merge) {
-        //         if (merge.type==="path") {
-        //             Shape.d = Shape.d.concat(merge.d);
-        //         } else {
-        //             Shape.d = Shape.d.concat(this[merge.type + "ToPath"](merge));
-        //         }
-        //         merge.el.remove();
-        //     }
-        // }
-        //
-        // this.shapes.splice(index+1, count);
-
-
-
 
         this.redrawShape(Shape);
 
