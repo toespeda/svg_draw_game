@@ -58,8 +58,17 @@ let Sortable = function(layers) {
                 let hoverElement = document.elementFromPoint(e.clientX, e.clientY);
                 target.style.display = targetDisplay;
 
+                if (!hoverElement.classList.contains("placeholder")) {
 
-                if (hoverElement.nodeName.toLowerCase() === "div" && !hoverElement.classList.contains("placeholder")) {
+                    if (hoverElement.nodeName.toLowerCase() === "span" && hoverElement.parentNode.classList.contains("g")) {//Dropzone
+                        endContainer = hoverElement.parentNode;
+                        hoverElement.parentNode.appendChild(placeholder);
+                        return;
+                    }
+
+                    if (hoverElement.nodeName.toLowerCase() !== "div") {
+                        return;
+                    }
 
                     if (hoverElement.parentNode !== endContainer) {
                         endContainer = hoverElement.parentNode;
