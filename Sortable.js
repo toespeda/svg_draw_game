@@ -18,10 +18,10 @@ let Sortable = function(layers) {
             const startContainer = target.parentNode;
             let endContainer = startContainer;
 
-            let elements = [...startContainer.querySelectorAll('div:not(.placeholder)')];//Sortable elements
+            let elements = [...startContainer.querySelectorAll(':scope > div:not(.placeholder)')];//Sortable elements
 
             let startIndex = elements.indexOf(target);
-            //let hoverIndex = null;
+
             let endIndex = startIndex;
 
             let targetDisplay = window.getComputedStyle(target).display;//Needed for when reinserting later
@@ -62,7 +62,9 @@ let Sortable = function(layers) {
 
                     if (hoverElement.nodeName.toLowerCase() === "span" && hoverElement.parentNode.classList.contains("g")) {//Dropzone
                         endContainer = hoverElement.parentNode;
+                        elements = [...endContainer.querySelectorAll(':scope > div:not(.placeholder)')];
                         hoverElement.parentNode.appendChild(placeholder);
+                        endIndex = 0;
                         return;
                     }
 
@@ -72,7 +74,7 @@ let Sortable = function(layers) {
 
                     if (hoverElement.parentNode !== endContainer) {
                         endContainer = hoverElement.parentNode;
-                        elements = [...endContainer.querySelectorAll('div:not(.placeholder)')];
+                        elements = [...endContainer.querySelectorAll(':scope > div:not(.placeholder)')];
                     }
 
                     endIndex = elements.indexOf(hoverElement);
