@@ -16,12 +16,12 @@
     min-height: 1em;
 }
 
-#layers div:not(.dragging):before {
+#layers > div:not(.dragging):before {
     content: counter(item) " ";
     counter-increment: item;
 }
 
-#layers div.dragging:before, #layers div.dragging div:before {
+#layers > div.dragging:before, #layers > div.dragging div:before {
     content: " ";
     counter-increment: none;
 }
