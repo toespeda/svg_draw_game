@@ -481,17 +481,26 @@ class Draw {
 
                     for (let v in t.params) {
                         let m = v % 7;
-                        if (m === 0) {
+                        if (m === 0) {//rx
+                            let pos = t.params[v] >= 0;
                             t.params[v] *= diffP[0];
-                        } else if (m === 1) {
+                            let neg = t.params[v] < 0;
+                            if (pos && neg || !pos && !neg) {
+                                t.params[+v+4] = +t.params[+v+4] ? 0 : 1;
+                            }
+                        } else if (m === 1) {//ry
+                            let pos = t.params[v] >= 0;
                             t.params[v] *= diffP[1];
+                            let neg = t.params[v] < 0;
+                            if (pos && neg || !pos && !neg) {
+                                t.params[+v+3] = +t.params[+v+3] ? 0 : 1;
+                            }
                         } else if (m === 5) {
                             t.params[v] = Shape.basePos.x + ((t.params[v] - Shape.basePos.x) * diffP[0]);
                         } else if (m === 6) {
                             t.params[v] = Shape.basePos.y + ((t.params[v] - Shape.basePos.y) * diffP[1]);
                         }
                     }
-
                 } else if (t.command.match(/[a]/)) {
 
                     for (let v in t.params) {
