@@ -60,12 +60,22 @@ let Sortable = function(layers) {
 
                 if (!hoverElement.classList.contains("placeholder")) {
 
-                    if (hoverElement.nodeName.toLowerCase() === "span" && hoverElement.parentNode.classList.contains("g")) {//Dropzone
-                        endContainer = hoverElement.parentNode;
-                        elements = [...endContainer.querySelectorAll(':scope > div:not(.placeholder)')];
-                        hoverElement.parentNode.appendChild(placeholder);
-                        endIndex = 0;
+                    if (!layers.contains(hoverElement)) {
                         return;
+                    }
+
+                    if (hoverElement.nodeName.toLowerCase() === "span") {//Dropzone
+
+                        hoverElement = hoverElement.parentNode;
+
+                        if (hoverElement.classList.contains("g")) {
+                            endContainer = hoverElement;
+                            elements = [...endContainer.querySelectorAll(':scope > div:not(.placeholder)')];
+                            hoverElement.appendChild(placeholder);
+                            endIndex = 0;
+                            return;
+                        }
+
                     }
 
                     if (hoverElement.nodeName.toLowerCase() !== "div") {
@@ -121,6 +131,8 @@ let Sortable = function(layers) {
                 document.body.removeAttribute("unselectable");
                 document.body.style.MozUserSelect = "";
                 document.body.removeEventListener("selectstart", selectStart);
+
+                return;
 
                 //Reset styles
                 target.style.position = "";
