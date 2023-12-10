@@ -90,6 +90,8 @@ class Draw {
 
             let center = [Shape.basePos.x + Shape.basePos.width/2, Shape.basePos.y + Shape.basePos.height/2];
 
+            let handle = [startPos[0] > center[0], startPos[1] > center[1]];
+
             let lastAngle = this.getAngle(center, startPos);
 
             //Fix rotating horizontal and vertical lines
@@ -133,7 +135,7 @@ class Draw {
 
                 } else if (this.action === "resize") {
 
-                    this.resizeShape(Shape, pos, lastPos);
+                    this.resizeShape(Shape, pos, lastPos, handle);
 
                 } else if (this.action === "rotate") {
 
@@ -467,11 +469,22 @@ class Draw {
 
     }
 
-    resizeShape(Shape, pos, lastPos){
+    resizeShape(Shape, pos, lastPos, handle){
 
-        let diff = [pos[0] - lastPos[0], pos[1] - lastPos[1]];
+        let diff = [
+            pos[0] - lastPos[0],
+            pos[1] - lastPos[1]
+        ];
 
-        let diffP = [(pos[0] - Shape.basePos.x) / (lastPos[0] - Shape.basePos.x), (pos[1] - Shape.basePos.y) / (lastPos[1] - Shape.basePos.y)];
+        let opposites = [
+            Shape.basePos[handle[0] ? "left" : "right"],
+            Shape.basePos[handle[1] ? "top" : "bottom"]
+        ];
+
+        let diffP = [
+            (pos[0] - opposites[0]) / (lastPos[0] - opposites[0]),
+            (pos[1] - opposites[1]) / (lastPos[1] - opposites[1])
+        ];
 
         if (Shape.type === "path") {
 
