@@ -47,7 +47,9 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    float: right;
+    display: inline-block;
+    /*float: right;*/
+    vertical-align: middle;
 }
 #layers .title {
     float: left;
@@ -59,7 +61,7 @@
     border: 2px solid red;
     width: 8px;
     height: 8px;
-    transform: translate(0, 50%);
+    /*transform: translate(0, 50%);*/
 }
 
 #layers .error:before, #layers .success:before, #layers .display:before {
@@ -70,6 +72,7 @@
     height: 2px;
     width: 2px;
     margin: 4px 0 0 4px;
+    border-radius: 50%;
 }
 
 #layers .success {

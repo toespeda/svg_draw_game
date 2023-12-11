@@ -5,12 +5,9 @@
 .popup {
     width:auto;
     position: absolute;
-}
-.popup {
+    z-index: 1;
     --offset-left:50%;
     --offset-top:25px;
-}
-.popup {
     -moz-border-radius:3px;
     -webkit-border-radius:3px;
     border-radius:3px;
@@ -87,4 +84,5 @@
     top: 0;
     cursor: pointer;
     line-height: 1;
+    z-index: 1;
 }
