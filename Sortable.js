@@ -132,8 +132,6 @@ let Sortable = function(layers) {
                 document.body.style.MozUserSelect = "";
                 document.body.removeEventListener("selectstart", selectStart);
 
-                return;
-
                 //Reset styles
                 target.style.position = "";
                 target.style.left = "";
