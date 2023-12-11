@@ -114,7 +114,7 @@ let Layers = (layers, draw) => {
                 };
                 e.target.addEventListener("blur", blur);
                 e.target.addEventListener("keydown", e => {
-                    var key = e.keyCode || e.charCode;
+                    let key = e.keyCode || e.charCode;
                     if(key === 13) {
                         e.target.blur();
                     }
@@ -122,10 +122,27 @@ let Layers = (layers, draw) => {
             } else if (tkl.contains("attributes")) {
                 let attributes = document.createElement('div');
                 let a = '';
+
+                let attr = {
+                    id : "",
+                    class : "",
+                    style : ""
+                };
+                if (shape.nodeName.match(/(path|circle|ellipse)/)) {
+                    attr["fill"] = "";
+                }
+                if (shape.nodeName.match(/(path|circle|ellipse|line)/)) {
+                    attr["stroke"] = "";
+                    attr["stroke-width"] = "";
+                }
                 [...shape.attributes].forEach(att => {
-                    a += '<span class="key">'+att.nodeName+'</span> <input name="'+att.nodeName+'" value="'+att.nodeValue+'" />';
+                    attr[att.nodeName] = att.nodeValue;
                 });
+                for (let nodeName in attr) {
+                    a += '<span class="key">'+nodeName+'</span> <input name="'+nodeName+'" value="'+attr[nodeName]+'" />';
+                }
                 attributes.innerHTML = '<form style="padding:10px 15px" action="" class="attributes">'+a+'<input type="submit" value="OK" /></form>';
+
                 attributes.addEventListener("submit", e => {
                     e.preventDefault();
                     const params = new FormData(e.target);
@@ -133,7 +150,45 @@ let Layers = (layers, draw) => {
                         shape.setAttribute(v[0], v[1]);
                     })
                 })
+
                 Popup(attributes, e.target);
+
+                attributes.querySelectorAll('[name="stroke"], [name="fill"]').forEach(inputcolor => {
+
+                    inputcolor.addEventListener("click", (e) => {
+
+                        let circle = document.createElement('div');
+                        circle.classList.add("color-circle");
+
+                        circle.addEventListener("click", (e) => {
+                            let color = e.target.style.backgroundColor;
+                            if (color) {
+                                let c = new Color(color);
+                                inputcolor.value = c.toHex();
+                                circle.dispatchEvent(new CustomEvent("close"));
+                            }
+                        });
+
+                        let color2 = new Color([255,0,0],0,255);
+                        let width = 220;
+                        let len = 104;
+                        let angle = 360 / len;
+                        let radius = width/2 - 10;
+
+                        for(let i=0; i<len; i++) {
+                            let c = document.createElement("div");
+                            c.style.backgroundColor = color2.hue(15).toHex();
+                            c.style.top = (radius + 10 + Math.sin(angle * i * Math.PI / 180) * radius) + "px";
+                            c.style.left = (radius + 10 + Math.cos(angle * i * Math.PI / 180) * radius) + "px";
+                            circle.appendChild(c)
+                        }
+
+                        Popup(circle, e.target);
+
+                    }, false)
+                });
+
+
             }
         }
     });
