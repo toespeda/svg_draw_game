@@ -25,11 +25,39 @@ let Popup = (content, target) => {
     popup.insertBefore(remove, popup.firstChild);
 
     remove.addEventListener("click", e => {
-        popup.remove();
+        content.dispatchEvent(new CustomEvent("close"));
+        //popup.remove();
     });
 
-    content.addEventListener("close", e => {
+    let closePopup = (e) => {
+
+        // if (!e.isTrusted) {//Custom event
+        //     console.log("Close always");
+        // }
+        //
+        // if (content.contains(e.target)) {
+        //     console.log("content contains target", content);
+        //     return;
+        // }
+
         popup.remove();
+        //content.removeEventListener("close", closePopup);//Not necessary
+        document.removeEventListener("click", closePopup);
+
+    };
+
+    setTimeout(function () {
+        document.addEventListener("click", closePopup);
+        let parentPopup = target.closest(".popup");
+        if (parentPopup) {
+            parentPopup.children[1].addEventListener("click", closePopup);
+        }
+    }, 100);
+
+    content.addEventListener("close", closePopup);
+
+    content.addEventListener("click", (e) => {
+        e.stopPropagation();
     });
 
     let dim = popup.getBoundingClientRect();
