@@ -4,18 +4,14 @@ let Layers = (layers, draw) => {
 
     let svgElements = {};
 
-    let uniqueKey = ($limit) => {
-
-        $limit = $limit || 10;
-
-        let $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let $randstring = '';
-
-        for (let $i = 0; $i < $limit; $i++) {
-            $randstring += $characters[Math.round(Math.random()*51)];
+    let uniqueKey = (limit) => {
+        limit = limit || 10;
+        let characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let randstring = '';
+        for (let $i = 0; $i < limit; $i++) {
+            randstring += characters[Math.round(Math.random()*51)];
         }
-
-        return $randstring;
+        return randstring;
     };
 
     let toggleVisibility = (tkl, scl, status) => {
@@ -120,7 +116,9 @@ let Layers = (layers, draw) => {
                     }
                 });
             } else if (tkl.contains("attributes")) {
+
                 let attributes = document.createElement('div');
+
                 let a = '';
 
                 let attr = {
@@ -128,19 +126,28 @@ let Layers = (layers, draw) => {
                     class : "",
                     style : ""
                 };
+
                 if (shape.nodeName.match(/(path|circle|ellipse)/)) {
                     attr["fill"] = "";
                 }
+
                 if (shape.nodeName.match(/(path|circle|ellipse|line)/)) {
                     attr["stroke"] = "";
                     attr["stroke-width"] = "";
                 }
+
                 [...shape.attributes].forEach(att => {
-                    attr[att.nodeName] = att.nodeValue;
+                    attr[att.nodeName] = att.nodeValue.replace(/\n\t*/g,'\n').replace(/^\s*|\s*$/g,'');
                 });
+
                 for (let nodeName in attr) {
-                    a += '<span class="key">'+nodeName+'</span> <input name="'+nodeName+'" value="'+attr[nodeName]+'" />';
+                    if (nodeName === "d") {
+                        a += '<span class="key '+nodeName+'">'+nodeName+'</span> <textarea name="'+nodeName+'">'+attr[nodeName]+'</textarea>';
+                    } else {
+                        a += '<span class="key '+nodeName+'">'+nodeName+'</span> <input name="'+nodeName+'" value="'+attr[nodeName]+'" />';
+                    }
                 }
+
                 attributes.innerHTML = '<form style="padding:10px 15px" action="" class="attributes">'+a+'<input type="submit" value="OK" /></form>';
 
                 attributes.addEventListener("submit", e => {
@@ -153,9 +160,11 @@ let Layers = (layers, draw) => {
 
                 Popup(attributes, e.target);
 
-                attributes.querySelectorAll('[name="stroke"], [name="fill"]').forEach(inputcolor => {
+                attributes.querySelectorAll('.stroke,.fill').forEach(inputcolor => {
 
                     inputcolor.addEventListener("click", (e) => {
+
+                        let target = e.target.nextElementSibling;
 
                         let circle = document.createElement('div');
                         circle.classList.add("color-circle");
@@ -164,7 +173,7 @@ let Layers = (layers, draw) => {
                             let color = e.target.style.backgroundColor;
                             if (color) {
                                 let c = new Color(color);
-                                inputcolor.value = c.toHex();
+                                target.value = c.toHex();
                                 circle.dispatchEvent(new CustomEvent("close"));
                             }
                         });
@@ -183,7 +192,7 @@ let Layers = (layers, draw) => {
                             circle.appendChild(c)
                         }
 
-                        Popup(circle, e.target);
+                        Popup(circle, target);
 
                     }, false)
                 });
