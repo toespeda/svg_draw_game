@@ -1,7 +1,7 @@
 class Draw {
 
     svg = null;
-    shapes = [];
+    children = [];
     type = "line";
     action = "move";
 
@@ -75,7 +75,10 @@ class Draw {
             }
 
             if (!Shape && this.action === "draw") {
-                Shape = this.addShape(this.type, startPos);
+                Shape = this.createShape(this.type, startPos);
+                this.children.push(Shape);
+                this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
+                //this.addShape(Shape);
             }
 
             if (!Shape) {
@@ -376,6 +379,8 @@ class Draw {
 
         }
 
+
+
     }
 
     redrawShape(Shape) {
@@ -486,6 +491,8 @@ class Draw {
             (pos[1] - opposites[1]) / (lastPos[1] - opposites[1])
         ];
 
+        //diffP[1] = (pos[1] - Shape.basePos.bottom) / (lastPos[1] - Shape.basePos.bottom);
+
         if (Shape.type === "path") {
 
             Shape.d.forEach(t => {
@@ -545,9 +552,13 @@ class Draw {
 
                     for (let v in t.params) {
                         if (v % 2) {
+
                             t.params[v] = Shape.basePos.y + ((t.params[v] - Shape.basePos.y) * diffP[1]);
+
                         } else {
+
                             t.params[v] = Shape.basePos.x + ((t.params[v] - Shape.basePos.x) * diffP[0]);
+
                         }
                     }
 
@@ -574,6 +585,27 @@ class Draw {
 
         }
 
+    }
+
+    getShapeDim(shape) {
+        let dim = {x:0,y:0,width:0,height:0,top:0,right:0,bottom:0,left:0};
+        let positions = this.getShapePos(shape);
+
+        if (positions.length) {
+            positions.sort(function (a, b) {
+                return a.params[0] - b.params[0];
+            });
+            dim.left = dim.x = positions[0].params[0];
+            dim.right = positions[positions.length - 1].params[0];
+            positions.sort(function (a, b) {
+                return a.params[1] - b.params[1];
+            });
+            dim.top = dim.y = positions[0].params[1];
+            dim.bottom = positions[positions.length - 1].params[1];
+            dim.width = dim.right - dim.left;
+            dim.height = dim.bottom - dim.top;
+        }
+        return dim;
     }
 
     getShapePos(shape) {
@@ -655,7 +687,7 @@ class Draw {
                         break;
                     case "A" :
                         // (rx ry angle large-arc-flag sweep-flag x y)+
-                        for (let i = 0; i < shape.d[m].params.length; i += 2) {
+                        for (let i = 5; i < shape.d[m].params.length; i += 7) {
                             positions.push({
                                 params : shape.d[m].params.slice(i, i + 2),
                                 command : "A",
@@ -677,6 +709,8 @@ class Draw {
                 params:[shape.x2, shape.y2],
                 position:"end"
             });
+        } else if (shape.type === "circle") {
+
         }
 
         return positions;
@@ -708,18 +742,27 @@ class Draw {
         return null;
     }
 
-    getClosestPos(pos, shape) {
+    getPos(shapes, pos, shape){
         let positions = [];
-        for (let i = 0; i < this.shapes.length; i++) {
-            if (!shape || this.shapes[i].el !== shape) {//!this.shapes[i].el.classList.contains("hidden") && ()
-                let shapePositions = this.getClosestShapePos(this.shapes[i], pos);
+        for (let i = 0; i < shapes.length; i++) {
+            if (!shape || shapes[i].el !== shape) {
+                let shapePositions = this.getClosestShapePos(shapes[i], pos);
                 if (shapePositions.length) {
                     let closest = shapePositions[0];
-                    closest.shape = this.shapes[i];
+                    closest.shape = shapes[i];
                     positions.push(closest);
                 }
             }
+            if (shapes[i].children) {
+                positions.push(...this.getPos(shapes[i].children, pos, shape));
+            }
         }
+        return positions;
+    }
+
+    getClosestPos(pos, shape) {
+        let positions = this.getPos(this.children, pos, shape);
+        //console.log("positions",positions);
         positions.sort(function(a, b){
             return a.distance - b.distance;
         });
@@ -730,7 +773,7 @@ class Draw {
         }
     }
 
-    set(data){
+    tools(data){
         for (var i in data) {
             this[i] = data[i];
         }
@@ -760,54 +803,49 @@ class Draw {
     duplicateShape(Shape){
         let duplicate = {...Shape};
         duplicate.el = Shape.el.cloneNode(true);
+        let index = [...Shape.el.parentNode.children].indexOf(Shape.el);
         Shape.el.parentNode.insertBefore(duplicate.el, Shape.el.nextSibling);
-        this.shapes.push(duplicate);
+        this.getShapeByElement(Shape.el.parentNode).children.splice(index, 0, duplicate);
         this.svg.dispatchEvent(new CustomEvent("added", { detail: duplicate }));
         return duplicate;
     }
 
-    addShape(Shape, position) {
-        if (Shape.constructor.name === "String") {
-            Shape = this.createShape(Shape, position);
-        } else {
-            Shape = this.parseShape(Shape);
-        }
-        this.shapes.push(Shape);
-        this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
-        return Shape;
-    }
-
     addShapes(el){
+        let Shapes = [];
         [...el.children].forEach(c => {
-            this.addShape(c);
+            let Shape = this.parseShape(c);
             if (c.children.length) {
-                this.addShapes(c);
+                Shape.children = this.addShapes(c);
             }
+            Shapes.push(Shape);
         });
+        return Shapes;
     }
 
     init(content){
         if (content !== undefined) {
             this.svg.innerHTML = content || "";
         }
-        this.shapes = [];
-        this.addShapes(this.svg);
-        this.svg.dispatchEvent(new CustomEvent("init"));
+        this.reset();
+        this.children.forEach(Shape => {
+            this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
+        })
+    }
+
+    reset(){
+        this.svg.dispatchEvent(new CustomEvent("reset"));
+        this.children = this.addShapes(this.svg);
     }
 
     shapeStack(startIndex, endIndex, startContainer, endContainer) {
-
         startContainer = startContainer || this.svg;
         endContainer = endContainer || this.svg;
-
         if (endIndex > startIndex) {
             endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex].nextSibling);
         } else {
             endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex]);
         }
-
-        // //Rearrange shapes
-        // this.shapes.splice(endIndex, 0, this.shapes.splice(startIndex, 1)[0]);
+        this.getShapeByElement(endContainer).children.splice(endIndex, 0, this.getShapeByElement(startContainer).children.splice(startIndex, 1)[0]);
     }
 
     ellipseToPath(merge) {
@@ -912,12 +950,14 @@ class Draw {
     }
 
     addGroup(){
-        this.addShape("g");
+        let Shape = this.createShape("g");
+        this.children.push(Shape);
+        this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
     }
 
     mergeAll(){
-        for (let x=0;x<this.shapes.length;x++) {
-            let Shape = this.shapes[x];
+        for (let x=0;x<this.children.length;x++) {
+            let Shape = this.children[x];
             let positions = this.getShapePos(Shape);
             for (let x=0; x<positions.length; x++) {
 
@@ -926,54 +966,42 @@ class Draw {
     }
 
     mergeShape(index, count) {
-
-        if (typeof index !== "number") {
-            index = this.getShapeIndexByElement(index);
-        }
-
-        let Shape = this.shapes[index];
-
+        let Shape = this.getShapeByElement(index);
         if (Shape.type !== "path") {
             this.convertToPath(Shape);
             this.redrawShape(Shape);
         }
-
         if (Shape.type !== "path") {
             return false;
         }
-
         if (!count) {
             return false;
         }
-
         for (let x=0;x<count;x++) {
-            index = this.getShapeIndexByElement(Shape.el.nextElementSibling);
-            let merge = this.shapes[index];
+            let merge = this.getShapeByElement(Shape.el.nextElementSibling);
             if (merge) {
                 if (merge.type==="path") {
                     Shape.d = Shape.d.concat(merge.d);
                 } else {
                     Shape.d = Shape.d.concat(this[merge.type + "ToPath"](merge));
                 }
-                merge.el.remove();
-                this.shapes.splice(index, 1);
+                this.removeShape(merge.el);
             }
         }
-
         this.redrawShape(Shape);
-
-        return true;
-
+        return Shape;
     }
 
-    removeShape(index) {
-        if (typeof index !== "number") {
-            index = this.getShapeIndexByElement(index);
-        }
-        if (index > -1) {
-            let Shape = this.shapes[index];
-            Shape.el.remove();
-            this.shapes.splice(index, 1);
+    removeShape(el) {
+        let path = this.getShapePathByElement(el);
+        if (path.length) {
+            let index = path.pop();
+            let element = this;
+            for (let x=0;x<path.length;x++) {
+                element = element.children[path[x]];
+            }
+            el.remove();
+            element.children.splice(index, 1);
         }
     }
 
@@ -1069,25 +1097,36 @@ class Draw {
         return Shape;
     }
 
-    getShapeIndexByElement(el){
-        for (let i = 0; i < this.shapes.length; i++) {
-            if (this.shapes[i].el === el) {
-                return i;
-            }
-        }
-        return -1;
+    getShapePathByElement(el){
+        let indexes = [];
+        do {
+            indexes.unshift([...el.parentNode.children].indexOf(el));
+            el = el.parentNode;
+        } while(el && el !== this.svg);
+        return indexes;
     }
 
-    getShapeByElement(el){
-        let index = this.getShapeIndexByElement(el);
-        if (index > -1) {
-            return this.shapes[index];
+    getShapeByElement(el, shapes){
+        if (el === this.svg) {
+            return this;
+        }
+        shapes = shapes || this.children;
+        for (let i = 0; i < shapes.length; i++) {
+            if (shapes[i].el === el) {
+                return shapes[i];
+            }
+            if (shapes[i].children) {
+                let match = this.getShapeByElement(el, shapes[i].children);
+                if (match) {
+                    return match;
+                }
+            }
         }
         return null;
     }
 
     getShapeByIndex(index){
-        return index > -1 ? this.shapes[index] : null;
+        return index > -1 ? this.children[index] : null;
     }
 
     getDistance(a, b){
@@ -1100,7 +1139,7 @@ class Draw {
         for (var i = 1; i < this.svg.childNodes.length; i++){
             this.svg.insertBefore(this.svg.childNodes[i], this.svg.firstChild);
         }
-        this.shapes.reverse();
+        this.children.reverse();
     }
 
 }

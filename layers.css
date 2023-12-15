@@ -51,6 +51,10 @@
     /*float: right;*/
     vertical-align: middle;
 }
+#layers svg {
+    width: 20px;
+    height: 20px;
+}
 #layers .title {
     float: left;
     min-width: 60px;

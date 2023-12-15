@@ -64,8 +64,14 @@ let Layers = (layers, draw) => {
 
             } else if (tkl.contains("merge")) {
 
-                if (draw.mergeShape(shape, 1)) {
+                let merged = draw.mergeShape(shape, 1);
+
+                if (merged) {
+
+                    svgElement(target.dataset.el, merged.el)
+
                     target.nextElementSibling.remove();
+
                 }
 
             } else if (tkl.contains("display")) {
@@ -88,6 +94,7 @@ let Layers = (layers, draw) => {
                 toggleVisibility(tkl, shape.classList, "success");
 
             } else if (tkl.contains("title")) {
+
                 e.target.setAttribute("contentEditable", "true");
                 if (document.body.createTextRange) {
                     const range = document.body.createTextRange();
@@ -115,6 +122,7 @@ let Layers = (layers, draw) => {
                         e.target.blur();
                     }
                 });
+
             } else if (tkl.contains("attributes")) {
 
                 let attributes = document.createElement('div');
@@ -204,6 +212,7 @@ let Layers = (layers, draw) => {
 
     layers.addEventListener("sorted", (e) => {
         //Rearrange shapes
+        console.log(e.detail);
         draw.shapeStack(e.detail.startIndex, e.detail.endIndex, svgElement(e.detail.startContainer.dataset.el), svgElement(e.detail.endContainer.dataset.el));
     }, false);
 
@@ -229,10 +238,10 @@ let Layers = (layers, draw) => {
 
     });
 
-    draw.svg.addEventListener("update", (e) => {
-        layers.innerHTML = "";
-        draw.init();
-    });
+    // draw.svg.addEventListener("update", (e) => {
+    //     layers.innerHTML = "";
+    //     draw.init();
+    // });
 
     let addContent = (b, shape) => {
         b.classList.add(shape.nodeName);
@@ -264,35 +273,102 @@ let Layers = (layers, draw) => {
         return el;
     };
 
-    let addLayer = (layer, shape) => {
+    let findKey = (el) => {
+        for (let key in svgElements) {
+            if (svgElements[key] === el) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    let findElement = (el) => {
+        let key = findKey(el);
+        return key ? document.querySelector('[data-el="'+key+'"]') : null;
+    }
+
+    let addLayer = (shape, parent) => {
+
         let b = document.createElement('div');
-        layer.appendChild(b);
+        (parent || findElement(shape.el.parentNode) || layers).appendChild(b);
+
         let key = uniqueKey();
         b.dataset.el = key;
-        svgElement(key, shape);
-        addContent(b, shape);
+        svgElement(key, shape.el);
+
+
+
+        addContent(b, shape.el);
+
+
+        let clone = {...shape};
+        clone.el = shape.el.cloneNode(true);
+
+        let preview = document.createElement('span');
+
+        // let svg = document.createElement('svg');
+        //
+        // svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        // svg.setAttribute("width", "358");
+        // svg.setAttribute("height", "358");
+        // svg.setAttribute("viewBox", "0 0 358 358");
+        //
+        // preview.append(svg);
+
+        preview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358"></svg>';
+
+        let svg = preview.querySelector('svg');
+
+        svg.append(clone.el);
+
+        b.append(preview);
+
+        setTimeout(() => {
+            let dim = draw.getShapeDim(clone);
+            //dim = clone.el.getBoundingClientRect();
+            console.log(dim);
+            svg.setAttribute("viewBox", dim.x + " " + dim.y + " " + dim.width + " " + dim.height);
+
+            // clone.basePos = clone.el.getBoundingClientRect();
+            // draw.moveShape(clone, [0, 0], [dim.x, dim.y]);
+            // clone.basePos = clone.el.getBoundingClientRect();
+            // draw.resizeShape(clone, [358, 358], [clone.basePos.width, clone.basePos.height], [1, 1]);
+            // draw.redrawShape(clone);
+        }, 100)
+
+
+
+
+
+        if (shape.children) {
+            shape.children.forEach(Shape=>{
+                addLayer(Shape, b)
+            })
+        }
+
         return b;
     };
 
-    let addLayers = function(parent, children){
-        [...children].forEach(c => {
-            let layer = addLayer(parent, c);
-            if (c.children.length) {
-                addLayers(layer, c.children);
-            }
-        });
-    }
+    // let addLayers = function(parent, children){
+    //     [...children].forEach(c => {
+    //         let layer = addLayer(parent, c);
+    //         if (c.children.length) {
+    //             addLayers(layer, c.children);
+    //         }
+    //     });
+    // }
 
-    draw.svg.addEventListener("init", (e) => {
+    draw.svg.addEventListener("reset", (e) => {
+        // console.log("reset");
         layers.innerHTML = "";
-        addLayers(layers, draw.svg.children);
+        //addLayers(layers, draw.svg.children);
     });
 
     draw.svg.addEventListener("added", (e) => {
 
-        layers.innerHTML = "";
-        addLayers(layers, draw.svg.children);
-
+        addLayer(e.detail);
+        // layers.innerHTML = "";
+        // addLayers(layers, draw.svg.children);
     });
 
     return layers;

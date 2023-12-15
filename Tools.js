@@ -108,7 +108,8 @@ let Tools = (tools, draw) => {
             draw.svg.innerHTML = source.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');//.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
             draw.svg.style.display = "block";
             source.style.display = "none";
-            draw.svg.dispatchEvent(new CustomEvent("update"));
+            //draw.svg.dispatchEvent(new CustomEvent("updated"));
+            draw.reset();
         }
 
     };
@@ -125,7 +126,7 @@ let Tools = (tools, draw) => {
         } else if (data.action === "source") {
             toggleSource(e.target.classList.toggle("active"));
         } else {
-            draw.set(data);
+            draw.tools(data);
             setTools(data);
         }
     });
