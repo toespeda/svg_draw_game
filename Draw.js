@@ -89,7 +89,9 @@ class Draw {
                 Shape = this.duplicateShape(Shape);
             }
 
-            Shape.basePos = Shape.el.getBoundingClientRect();
+            //Shape.basePos = Shape.el.getBoundingClientRect();
+
+            Shape.basePos = this.getShapeDim(Shape);
 
             let center = [Shape.basePos.x + Shape.basePos.width/2, Shape.basePos.y + Shape.basePos.height/2];
 
@@ -379,8 +381,6 @@ class Draw {
             Shape.y2 += diff[1];
 
         }
-
-
 
     }
 
