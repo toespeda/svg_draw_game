@@ -45,13 +45,14 @@ let Layers = (layers, draw) => {
     };
 
     layers.addEventListener("mouseup", (e) => {
+
         if (e.target.nodeName.toLowerCase() === "span") {
 
             e.stopImmediatePropagation();
 
             let target = e.target.parentNode;
 
-            let shape = svgElement(target.dataset.el);
+            let el = svgElement(target.dataset.el);
 
             let index = [...target.parentNode.children].indexOf(target);
 
@@ -59,12 +60,12 @@ let Layers = (layers, draw) => {
 
             if (tkl.contains("remove")) {
 
-                draw.removeShape(shape);
+                draw.removeShape(el);
                 target.remove();
 
             } else if (tkl.contains("merge")) {
 
-                let merged = draw.mergeShape(shape, 1);
+                let merged = draw.mergeShape(el, 1);
 
                 if (merged) {
 
@@ -78,7 +79,7 @@ let Layers = (layers, draw) => {
 
                 // [...draw.svg.children][index].classList.toggle("static", e.target.classList.toggle("static"));
 
-                toggleDisplay(tkl, shape.classList);
+                toggleDisplay(tkl, el.classList);
 
             } else if (tkl.contains("visibility")) {
 
@@ -87,11 +88,11 @@ let Layers = (layers, draw) => {
 
             } else if (tkl.contains("error")) {
 
-                toggleVisibility(tkl, shape.classList, "error");
+                toggleVisibility(tkl, el.classList, "error");
 
             } else if (tkl.contains("success")) {
 
-                toggleVisibility(tkl, shape.classList, "success");
+                toggleVisibility(tkl, el.classList, "success");
 
             } else if (tkl.contains("title")) {
 
@@ -110,7 +111,7 @@ let Layers = (layers, draw) => {
                 let originalTitle = e.target.innerText;
                 let blur = e => {
                     if (e.target.innerText !== originalTitle) {
-                        shape.setAttribute("title", e.target.innerText);
+                        el.setAttribute("title", e.target.innerText);
                     }
                     e.target.removeEventListener("blur", blur);
                     e.target.removeEventListener("keydown", blur);
@@ -135,16 +136,16 @@ let Layers = (layers, draw) => {
                     style : ""
                 };
 
-                if (shape.nodeName.match(/(path|circle|ellipse)/)) {
+                if (el.nodeName.match(/(path|circle|ellipse)/)) {
                     attr["fill"] = "";
                 }
 
-                if (shape.nodeName.match(/(path|circle|ellipse|line)/)) {
+                if (el.nodeName.match(/(path|circle|ellipse|line)/)) {
                     attr["stroke"] = "";
                     attr["stroke-width"] = "";
                 }
 
-                [...shape.attributes].forEach(att => {
+                [...el.attributes].forEach(att => {
                     attr[att.nodeName] = att.nodeValue.replace(/\n\t*/g,'\n').replace(/^\s*|\s*$/g,'');
                 });
 
@@ -162,8 +163,9 @@ let Layers = (layers, draw) => {
                     e.preventDefault();
                     const params = new FormData(e.target);
                     [...params.entries()].forEach(v => {
-                        shape.setAttribute(v[0], v[1]);
-                    })
+                        el.setAttribute(v[0], v[1]);
+                    });
+                    updateLayer(draw.getShapeByElement(el));
                 })
 
                 Popup(attributes, e.target);
@@ -244,8 +246,10 @@ let Layers = (layers, draw) => {
     // });
 
     let addContent = (b, shape) => {
+
         b.classList.add(shape.nodeName);
-        b.innerHTML = '<span class="title">' + (shape.getAttribute("title") || shape.nodeName) + '</span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
+        let title = shape.getAttribute("id") || shape.getAttribute("title") || shape.nodeName;
+        b.innerHTML = '<span class="title" title="' + title + '">' + title + '</span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
 
         //console.log(shape.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
         let s = shape.className.baseVal.match(/\b(static)\b/);
@@ -287,88 +291,53 @@ let Layers = (layers, draw) => {
         return key ? document.querySelector('[data-el="'+key+'"]') : null;
     }
 
+    let updateLayer = (shape) => {
+        let svg = findElement(shape.el).querySelector('svg');
+        svg.children[0].replaceWith(shape.el.cloneNode(true));
+        svg.setAttribute("viewBox", getViewBoxDim(shape));
+    }
+
+    let getViewBoxDim = (shape) => {
+        let dim = draw.getShapeDim(shape);
+        return dim.x + " " + dim.y + " " + (dim.width || 20) + " " + (dim.height || 20);
+    }
+
     let addLayer = (shape, parent) => {
-
         let b = document.createElement('div');
-        (parent || findElement(shape.el.parentNode) || layers).appendChild(b);
-
+        parent = (parent || findElement(shape.el.parentNode) || layers);
+        if (shape.el.nextElementSibling) {
+            parent.insertBefore(b, findElement(shape.el.nextElementSibling));
+        } else {
+            parent.appendChild(b);
+        }
         let key = uniqueKey();
         b.dataset.el = key;
         svgElement(key, shape.el);
-
-
-
         addContent(b, shape.el);
-
-
-        let clone = {...shape};
-        clone.el = shape.el.cloneNode(true);
-
         let preview = document.createElement('span');
-
-        // let svg = document.createElement('svg');
-        //
-        // svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-        // svg.setAttribute("width", "358");
-        // svg.setAttribute("height", "358");
-        // svg.setAttribute("viewBox", "0 0 358 358");
-        //
-        // preview.append(svg);
-
         preview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358"></svg>';
-
         let svg = preview.querySelector('svg');
-
-        svg.append(clone.el);
-
+        svg.append(shape.el.cloneNode(true));
         b.append(preview);
-
-        setTimeout(() => {
-            let dim = draw.getShapeDim(clone);
-            //dim = clone.el.getBoundingClientRect();
-            console.log(dim);
-            svg.setAttribute("viewBox", dim.x + " " + dim.y + " " + dim.width + " " + dim.height);
-
-            // clone.basePos = clone.el.getBoundingClientRect();
-            // draw.moveShape(clone, [0, 0], [dim.x, dim.y]);
-            // clone.basePos = clone.el.getBoundingClientRect();
-            // draw.resizeShape(clone, [358, 358], [clone.basePos.width, clone.basePos.height], [1, 1]);
-            // draw.redrawShape(clone);
-        }, 100)
-
-
-
-
-
-        if (shape.children) {
-            shape.children.forEach(Shape=>{
-                addLayer(Shape, b)
-            })
-        }
-
+        svg.setAttribute("viewBox", getViewBoxDim(shape));
+        // if (shape.children) {
+        //     shape.children.forEach(Shape=>{
+        //         addLayer(Shape, b)
+        //     })
+        // }
         return b;
     };
 
-    // let addLayers = function(parent, children){
-    //     [...children].forEach(c => {
-    //         let layer = addLayer(parent, c);
-    //         if (c.children.length) {
-    //             addLayers(layer, c.children);
-    //         }
-    //     });
-    // }
-
     draw.svg.addEventListener("reset", (e) => {
-        // console.log("reset");
         layers.innerHTML = "";
-        //addLayers(layers, draw.svg.children);
+    });
+
+    draw.svg.addEventListener("updated", (e) => {
+        updateLayer(e.detail);
     });
 
     draw.svg.addEventListener("added", (e) => {
-
         addLayer(e.detail);
-        // layers.innerHTML = "";
-        // addLayers(layers, draw.svg.children);
     });
 
     return layers;

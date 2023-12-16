@@ -192,6 +192,7 @@ class Draw {
                 svg.removeEventListener("mousemove", move);
                 svg.removeEventListener("mouseup", stop);
                 guide.remove();
+                svg.dispatchEvent(new CustomEvent("updated", { detail: Shape }));
                 //Update shape preview
             };
 
@@ -590,8 +591,17 @@ class Draw {
     getShapeDim(shape) {
         let dim = {x:0,y:0,width:0,height:0,top:0,right:0,bottom:0,left:0};
         let positions = this.getShapePos(shape);
-
-        if (positions.length) {
+        if (shape.type === "circle") {
+            dim.left = dim.x = shape.cx - shape.r;
+            dim.right = shape.cx + shape.r;
+            dim.top = dim.y = shape.cy - shape.r;
+            dim.bottom = shape.cy + shape.r;
+        } else if (shape.type === "ellipse") {
+            dim.left = dim.x = shape.cx - shape.rx;
+            dim.right = shape.cx + shape.rx;
+            dim.top = dim.y = shape.cy - shape.ry;
+            dim.bottom = shape.cy + shape.ry;
+        } else if (positions.length) {
             positions.sort(function (a, b) {
                 return a.params[0] - b.params[0];
             });
@@ -602,9 +612,9 @@ class Draw {
             });
             dim.top = dim.y = positions[0].params[1];
             dim.bottom = positions[positions.length - 1].params[1];
-            dim.width = dim.right - dim.left;
-            dim.height = dim.bottom - dim.top;
         }
+        dim.width = dim.right - dim.left;
+        dim.height = dim.bottom - dim.top;
         return dim;
     }
 
@@ -710,7 +720,15 @@ class Draw {
                 position:"end"
             });
         } else if (shape.type === "circle") {
-
+            // positions.push({
+            //     params:[shape.cx, shape.cy],
+            //     position:"center"
+            // });
+        } else if (shape.type === "ellipse") {
+            // positions.push({
+            //     params:[shape.cx, shape.cy],
+            //     position:"center"
+            // });
         }
 
         return positions;
@@ -801,25 +819,34 @@ class Draw {
     }
 
     duplicateShape(Shape){
+        let index = [...Shape.el.parentNode.children].indexOf(Shape.el);
         let duplicate = {...Shape};
         duplicate.el = Shape.el.cloneNode(true);
-        let index = [...Shape.el.parentNode.children].indexOf(Shape.el);
-        Shape.el.parentNode.insertBefore(duplicate.el, Shape.el.nextSibling);
-        this.getShapeByElement(Shape.el.parentNode).children.splice(index, 0, duplicate);
+        Shape.el.parentNode.insertBefore(duplicate.el, Shape.el.nextElementSibling);//Insert element after
+        this.getShapeByElement(Shape.el.parentNode).children.splice(index+1, 0, duplicate);//Insert object after
+
         this.svg.dispatchEvent(new CustomEvent("added", { detail: duplicate }));
         return duplicate;
     }
 
+    addElement(el) {
+        this.svg.appendChild(el);
+        let shape = this.parseShape(el);
+        this.children.push(shape);
+        this.svg.dispatchEvent(new CustomEvent("added", { detail: shape }));
+    }
+
     addShapes(el){
-        let Shapes = [];
+        let children = [];
         [...el.children].forEach(c => {
-            let Shape = this.parseShape(c);
+            let shape = this.parseShape(c);
+            this.svg.dispatchEvent(new CustomEvent("added", { detail: shape }));
             if (c.children.length) {
-                Shape.children = this.addShapes(c);
+                shape.children = this.addShapes(c);
             }
-            Shapes.push(Shape);
+            children.push(shape);
         });
-        return Shapes;
+        return children;
     }
 
     init(content){
@@ -827,9 +854,9 @@ class Draw {
             this.svg.innerHTML = content || "";
         }
         this.reset();
-        this.children.forEach(Shape => {
-            this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
-        })
+        // this.children.forEach(shape => {
+        //     this.svg.dispatchEvent(new CustomEvent("added", { detail: shape }));
+        // })
     }
 
     reset(){
@@ -841,7 +868,7 @@ class Draw {
         startContainer = startContainer || this.svg;
         endContainer = endContainer || this.svg;
         if (endIndex > startIndex) {
-            endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex].nextSibling);
+            endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex].nextElementSibling);
         } else {
             endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex]);
         }

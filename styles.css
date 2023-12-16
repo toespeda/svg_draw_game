@@ -34,7 +34,7 @@ svg {
     opacity: 1;
 }
 
-.editing svg *:hover {
+.editing svg#game *:hover {
     stroke: #0000ff;
 }
 
@@ -72,7 +72,7 @@ svg {
     float: right;
     padding: 10px;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 }
 
 #examples svg {

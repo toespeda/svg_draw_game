@@ -5,8 +5,8 @@
 
 #layers > div, #layers div > div {
     margin: 0;
-    padding: 0 0 0 20px;
-    clear: left;
+    padding: 5px 0 0 20px;
+    clear: both;
 }
 
 #layers > div:before, #layers div > div:before {
@@ -35,7 +35,7 @@
 #layers > div {
     cursor: default;
     line-height: 1.2em;
-    padding: 0;
+
 }
 
 #layers li:last-child .merge {
@@ -48,7 +48,7 @@
     overflow: hidden;
     white-space: nowrap;
     display: inline-block;
-    /*float: right;*/
+    float: right;
     vertical-align: middle;
 }
 #layers svg {
@@ -57,8 +57,8 @@
 }
 #layers .title {
     float: left;
-    min-width: 60px;
-    max-width: 60px;
+    min-width: 100px;
+    max-width: 100px;
 }
 #layers .error, #layers .success, #layers .display {
     border-radius: 50%;

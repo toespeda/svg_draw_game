@@ -120,7 +120,7 @@ let Tools = (tools, draw) => {
             let id = e.target.querySelector("use").getAttribute("href");
             let symbol = symbols.querySelector(id);
             [...symbol.children].forEach(el => {
-                draw.addShape(draw.svg.appendChild(el.cloneNode()));
+                draw.addElement(el.cloneNode());
             });
             setTools(data);
         } else if (data.action === "source") {
