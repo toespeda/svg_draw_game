@@ -4,6 +4,7 @@ class Draw {
     children = [];
     type = "line";
     action = "move";
+    symbol = null;
 
     constructor(svg) {
 
@@ -13,7 +14,8 @@ class Draw {
 
             console.log({
                 "type" : this.type,
-                "action" : this.action
+                "action" : this.action,
+                "symbol" : this.symbol
             });
 
             let Shape = null;
@@ -78,7 +80,16 @@ class Draw {
                 Shape = this.createShape(this.type, startPos);
                 this.children.push(Shape);
                 this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
-                //this.addShape(Shape);
+
+            }
+
+            if (!Shape && this.action === "insert") {
+
+                Shape = this.addElement(this.symbol.cloneNode());
+                Shape.basePos = this.getShapeDim(Shape);
+                this.moveShape(Shape, startPos, [Shape.basePos.right, Shape.basePos.bottom]);
+                this.redrawShape(Shape);
+
             }
 
             if (!Shape) {
@@ -89,7 +100,6 @@ class Draw {
                 Shape = this.duplicateShape(Shape);
             }
 
-            //Shape.basePos = Shape.el.getBoundingClientRect();
 
             Shape.basePos = this.getShapeDim(Shape);
 
@@ -109,15 +119,15 @@ class Draw {
                 }
             }
 
-            let guide = document.createElement("div");
-            guide.style.top = Shape.basePos.y + "px";
-            guide.style.left = Shape.basePos.x + "px";
-            guide.style.width = Shape.basePos.width + "px";
-            guide.style.height = Shape.basePos.height + "px";
-            guide.style.pointerEvents = "none";
-            guide.style.outline = "1px solid orange";
-            guide.classList.add("guide");
-            svg.parentNode.insertBefore(guide, svg);
+            // let guide = document.createElement("div");
+            // guide.style.top = Shape.basePos.y + "px";
+            // guide.style.left = Shape.basePos.x + "px";
+            // guide.style.width = Shape.basePos.width + "px";
+            // guide.style.height = Shape.basePos.height + "px";
+            // guide.style.pointerEvents = "none";
+            // guide.style.outline = "1px solid orange";
+            // guide.classList.add("guide");
+            // svg.parentNode.insertBefore(guide, svg);
 
             let move = (e) => {
 
@@ -138,7 +148,7 @@ class Draw {
 
                     this.moveShape(Shape, pos, lastPos);
 
-                } else if (this.action === "resize") {
+                } else if (this.action === "resize" || this.action === "insert") {
 
                     this.resizeShape(Shape, pos, lastPos, handle);
 
@@ -146,7 +156,7 @@ class Draw {
 
                     this.rotateShape(Shape, center, angle, lastAngle);
 
-                } else {
+                } else if (this.action === "draw") {
 
                     if (Shape.type === "path") {
 
@@ -154,8 +164,8 @@ class Draw {
 
                     } else if (Shape.type === "circle") {
 
-                        Shape.cx = startPos[0];
-                        Shape.cy = startPos[1];
+                        // Shape.cx = startPos[0];
+                        // Shape.cy = startPos[1];
                         Shape.r = this.getDistance(startPos, pos);
 
                     } else if (Shape.type === "ellipse") {
@@ -178,6 +188,18 @@ class Draw {
                             Shape.y2 = pos[1];
                         }
 
+                    } else if (Shape.type === "rect") {
+
+                        if (nodeHandle) {
+
+                            // Shape[nodeHandle[0]] = pos[0];
+                            // Shape[nodeHandle[1]] = pos[1];
+
+                        } else {
+                            Shape.width = pos[0] - startPos[0];
+                            Shape.height = pos[1] - startPos[1];
+                        }
+
                     }
 
                 }
@@ -193,7 +215,7 @@ class Draw {
             let stop = function(){
                 svg.removeEventListener("mousemove", move);
                 svg.removeEventListener("mouseup", stop);
-                guide.remove();
+                //guide.remove();
                 svg.dispatchEvent(new CustomEvent("updated", { detail: Shape }));
                 //Update shape preview
             };
@@ -403,6 +425,13 @@ class Draw {
             Shape.el.setAttribute("y1", Shape.y1);
             Shape.el.setAttribute("x2", Shape.x2);
             Shape.el.setAttribute("y2", Shape.y2);
+        } else if (Shape.type === "rect") {
+            Shape.el.setAttribute("width", Shape.width);
+            Shape.el.setAttribute("height", Shape.height);
+            Shape.el.setAttribute("x", Shape.x);
+            Shape.el.setAttribute("y", Shape.y);
+            Shape.el.setAttribute("rx", Shape.rx);
+            Shape.el.setAttribute("ry", Shape.ry);
         }
     }
 
@@ -834,6 +863,7 @@ class Draw {
         let shape = this.parseShape(el);
         this.children.push(shape);
         this.svg.dispatchEvent(new CustomEvent("added", { detail: shape }));
+        return shape;
     }
 
     addShapes(el){
@@ -1056,6 +1086,14 @@ class Draw {
             el.setAttribute("x2",0);
             el.setAttribute("y1",0);
             el.setAttribute("y2",0);
+        } else if (type === "rect") {
+            el.setAttribute("fill","transparent");
+            el.setAttribute("x",0);
+            el.setAttribute("y",0);
+            el.setAttribute("rx",0);
+            el.setAttribute("ry",0);
+            el.setAttribute("width",0);
+            el.setAttribute("height",0);
         }
         return el;
     }
@@ -1093,6 +1131,15 @@ class Draw {
             }
             Shape.x2 = null;
             Shape.y2 = null;
+        } else if (type === "rect") {
+            if (startPos) {
+                Shape.x = startPos[0];
+                Shape.y = startPos[1];
+            }
+            Shape.rx = null;
+            Shape.ry = null;
+            Shape.width = null;
+            Shape.height = null;
         }
         this.svg.appendChild(Shape.el);
         return Shape;

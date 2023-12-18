@@ -2,19 +2,25 @@ let Tools = (tools, draw) => {
 
     tools = typeof tools === "string" ? document.querySelector(tools) : tools;
 
-    let setTools = function(data){
+    let setTools = function(data, target){
+
+        let buttons = tools.querySelectorAll(":scope > li > *");
+        buttons.forEach(el => {
+            el.classList.remove("active");
+        });
         for (var i in data) {
-            let buttons = document.querySelectorAll("#tools > li > *");
-            buttons.forEach(el => {
-                el.classList.remove("active");
-            });
+
             buttons.forEach(el => {
                 if (el.dataset[i] === data[i]) {
                     el.classList.add("active");
                 }
-                //el.classList[el.dataset[i] === data[i] ? "add" : "remove"]("active");
             });
         }
+
+        if (target) {
+            tools.querySelector(':scope > li > [data-action="'+data.action+'"] use').setAttribute("href", target.querySelector("use").getAttribute("href"));
+        }
+
     };
 
     draw.svg.addEventListener("action", (e) => {
@@ -115,19 +121,31 @@ let Tools = (tools, draw) => {
     };
 
     tools.addEventListener("click", (e) => {
-        let data = e.target.dataset;
-        if (data.type === "symbol") {
+        let data = {...e.target.dataset};
+
+        if (data.action === "insert") {
+
             let id = e.target.querySelector("use").getAttribute("href");
             let symbol = symbols.querySelector(id);
-            [...symbol.children].forEach(el => {
-                draw.addElement(el.cloneNode());
-            });
-            setTools(data);
+            data.symbol = symbol.firstElementChild;
+            draw.tools(data);
+            setTools(data, e.target);
+
         } else if (data.action === "source") {
+
             toggleSource(e.target.classList.toggle("active"));
+
+        } else if (data.action === "draw") {
+
+
+            draw.tools(data);
+            setTools(data, e.target);
+
         } else {
+
             draw.tools(data);
             setTools(data);
+
         }
     });
 

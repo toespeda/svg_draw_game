@@ -15,7 +15,8 @@ ul li {
 ul li ul {
     display: none;
     position: absolute;
-    left: -5px;
+    top: -5px;
+    left: 100%;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 }
@@ -23,13 +24,13 @@ ul li:hover ul {
     display: block;
 }
 ul li > *:first-child {
-    padding: 5px;
+    padding: 4px;
     border: 1px solid transparent;
     border-radius: 5px;
 }
 ul li > *:first-child:hover {
     background-color: #eee;
-    border-color: #ccc;
+    /*border-color: #ccc;*/
 }
 ul li > *:first-child.active {
     box-shadow: 2px 2px 1px #000;
