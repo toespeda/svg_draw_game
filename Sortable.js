@@ -2,8 +2,6 @@ let Sortable = function(layers) {
 
     layers.addEventListener("mousedown", (e) => {
 
-        // console.log("mousedown on sortable", e.target);
-
         let getPos = function(e){
             return {
                 left : e.clientX,
@@ -14,11 +12,10 @@ let Sortable = function(layers) {
         if (e.target.nodeName.toLowerCase() === "div") {
 
             const target = e.target;
-            //console.log("target", target);
             const startContainer = target.parentNode;
             let endContainer = startContainer;
 
-            let elements = [...startContainer.querySelectorAll(':scope > div:not(.placeholder)')];//Sortable elements
+            let elements = [...startContainer.querySelectorAll(':scope > div')];//Sortable elements
 
             let startIndex = elements.indexOf(target);
 
@@ -33,8 +30,10 @@ let Sortable = function(layers) {
             let lastPos = startPos;//To find direction
 
             let offset = {
-                top : bounds.top - startPos.top,
-                bottom : bounds.bottom - startPos.top
+                top : startPos.top - bounds.top,
+                right : bounds.right - startPos.left,
+                bottom : bounds.bottom - startPos.top,
+                left : startPos.left - bounds.left
             };
 
             target.style.position = "absolute";
@@ -58,58 +57,49 @@ let Sortable = function(layers) {
                 let hoverElement = document.elementFromPoint(e.clientX, e.clientY);
                 target.style.display = targetDisplay;
 
-                if (!hoverElement.classList.contains("placeholder")) {
+                if (layers.contains(hoverElement) && !hoverElement.classList.contains("placeholder")) {
 
-                    if (!layers.contains(hoverElement)) {
-                        return;
+                    if (hoverElement.nodeName.toLowerCase() !== "div") {
+                        hoverElement = hoverElement.closest('div');
                     }
 
-                    if (hoverElement.nodeName.toLowerCase() === "span") {//Dropzone
+                    let bcr = hoverElement.getBoundingClientRect();
 
-                        hoverElement = hoverElement.parentNode;
+                    if (hoverElement.classList.contains("g") && pos.left - offset.left - bcr.left > 20) {//Add under group
 
-                        if (hoverElement.classList.contains("g")) {
+                        if (endContainer !== hoverElement) {
                             endContainer = hoverElement;
-                            elements = [...endContainer.querySelectorAll(':scope > div:not(.placeholder)')];
-                            hoverElement.appendChild(placeholder);
-                            endIndex = 0;
-                            return;
+                            endContainer.appendChild(placeholder);
+                        }
+
+                    } else {
+
+                        if (hoverElement.parentNode !== endContainer) {
+                            endContainer = hoverElement.parentNode;
+                        }
+
+                        let hoverCenter = bcr.top + (bcr.height/2); //middle of hovered element
+
+                        if (
+                            (pos.top < lastPos.top)//moving up
+                            &&
+                            (pos.top - offset.top)//drag top
+                            <
+                            hoverCenter
+                        ) {
+                            endContainer.insertBefore(placeholder, hoverElement);
+                        } else if (
+                            (pos.top > lastPos.top)//moving down
+                            &&
+                            (pos.top + offset.bottom)//drag bottom
+                            >
+                            hoverCenter
+                        ) {
+                            endContainer.insertBefore(placeholder, hoverElement.nextSibling);
                         }
 
                     }
 
-                    if (hoverElement.nodeName.toLowerCase() !== "div") {
-                        return;
-                    }
-
-                    if (hoverElement.parentNode !== endContainer) {
-                        endContainer = hoverElement.parentNode;
-                        elements = [...endContainer.querySelectorAll(':scope > div:not(.placeholder)')];
-                    }
-
-                    endIndex = elements.indexOf(hoverElement);
-
-                    let bcr = hoverElement.getBoundingClientRect();
-
-                    let hoverCenter = bcr.top + (bcr.height/2); //middle of hovered element
-
-                    if (
-                        (pos.top < lastPos.top)//moving up
-                        &&
-                        (pos.top + offset.top)//drag top
-                        <
-                        hoverCenter
-                    ) {
-                        endContainer.insertBefore(placeholder, hoverElement);
-                    } else if (
-                        (pos.top > lastPos.top)//moving down
-                        &&
-                        (pos.top + offset.bottom)//drag bottom
-                        >
-                        hoverCenter
-                    ) {
-                        endContainer.insertBefore(placeholder, hoverElement.nextSibling);
-                    }
                 }
 
                 target.style.left = (bounds.left + (pos.left - startPos.left)) + "px";
@@ -139,6 +129,8 @@ let Sortable = function(layers) {
                 target.classList.remove("dragging");
 
                 placeholder.replaceWith(target);
+
+                endIndex = [...endContainer.querySelectorAll(':scope > div')].indexOf(target);
 
                 if ((startIndex !== endIndex) || (startContainer !== endContainer)) {
 

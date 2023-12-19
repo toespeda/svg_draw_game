@@ -897,11 +897,7 @@ class Draw {
     shapeStack(startIndex, endIndex, startContainer, endContainer) {
         startContainer = startContainer || this.svg;
         endContainer = endContainer || this.svg;
-        if (endIndex > startIndex) {
-            endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex].nextElementSibling);
-        } else {
-            endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex]);
-        }
+        endContainer.insertBefore(startContainer.children[startIndex], endContainer.children[endIndex]);
         this.getShapeByElement(endContainer).children.splice(endIndex, 0, this.getShapeByElement(startContainer).children.splice(startIndex, 1)[0]);
     }
 
@@ -1100,7 +1096,8 @@ class Draw {
 
     createShape(type, startPos) {
         let Shape = {
-            type : type
+            type : type,
+            children : []
         };
         Shape.el = this.createElement(type);
         if (type === "path") {
