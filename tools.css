@@ -53,4 +53,20 @@ pre {
     outline : none;
     tab-size : 3;
     margin: 0;
+    background-color: #282c34;
+    color: #abb2bf;
+    padding: 10px 15px;
+    box-sizing: border-box;
+}
+
+pre .hi-node {
+    color: #e06c75;
+}
+
+pre .hi-attribute {
+    color: #d19a66;
+}
+
+pre .hi-string {
+    color: #98c379;
 }

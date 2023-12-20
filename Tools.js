@@ -61,15 +61,15 @@ let Tools = (tools, draw) => {
                         if (n==="d") {
                             v = v.replace(/\n/g,'').replace(/([MmLlSsQqLlHhVvCcSsQqTtAaZz])/g, "\n" + tabs + '\t\t' + "$1") + "\n" + tabs + '\t';
                         }
-                        collection.push('\n' + tabs + '\t' + n + '="' + v + '"');
+                        collection.push('\n' + tabs + '\t<span class="hi-attribute">' + n + '</span>=<span class="hi-string">"' + v + '"</span>');
                     }
                     attributes = " " + collection.join(" ") + '\n';
                 }
 
                 if (block) {
-                    node = tabs + '&lt' + nodeName + attributes + tabs + '&gt\n' + tidy(o, level + 1, block[0]) + tabs + '&lt/' + nodeName + '&gt\n';
+                    node = tabs + '&lt<span class="hi-node">' + nodeName + '</span>' + attributes + tabs + '&gt\n' + tidy(o, level + 1, block[0]) + tabs + '&lt/<span class="hi-node">' + nodeName + '</span>&gt\n';
                 } else {
-                    node = '&lt' + nodeName + attributes + '&gt'+ tidy(o, level + 1) + '&lt/' + nodeName + '&gt';
+                    node = '&lt<span class="hi-node">' + nodeName + '</span>' + attributes + '&gt'+ tidy(o, level + 1) + '&lt/<span class="hi-node">' + nodeName + '</span>&gt';
                 }
 
             } else if (o.nodeType === 3) {
@@ -111,7 +111,7 @@ let Tools = (tools, draw) => {
             source.style.display = "block";
             source.innerHTML = tidy(draw.svg);//.replace(/&/g, '&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/"/g, '&quot;');
         } else {
-            draw.svg.innerHTML = source.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');//.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+            draw.svg.innerHTML = source.innerHTML.replace(/\<[^>]*>/g,'').replace(/&lt;/g, '<').replace(/&gt;/g, '>');//.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
             draw.svg.style.display = "block";
             source.style.display = "none";
             //draw.svg.dispatchEvent(new CustomEvent("updated"));
