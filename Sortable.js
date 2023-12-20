@@ -1,8 +1,8 @@
-let Sortable = function(layers) {
+let Sortable = (layers) => {
 
     layers.addEventListener("mousedown", (e) => {
 
-        let getPos = function(e){
+        let getPos = (e) => {
             return {
                 left : e.clientX,
                 top : e.clientY
@@ -48,7 +48,7 @@ let Sortable = function(layers) {
 
             startContainer.insertBefore(placeholder, target.nextSibling);
 
-            let move = function(e){
+            let move = (e) => {
 
                 let pos = getPos(e);
 
@@ -65,7 +65,7 @@ let Sortable = function(layers) {
 
                     let bcr = hoverElement.getBoundingClientRect();
 
-                    if (hoverElement.classList.contains("g") && pos.left - offset.left - bcr.left > 20) {//Add under group
+                    if (hoverElement.classList.contains("g") && pos.left - offset.left - bcr.left > 25) {//Add under group
 
                         if (endContainer !== hoverElement) {
                             endContainer = hoverElement;
@@ -109,9 +109,9 @@ let Sortable = function(layers) {
 
             };
 
-            let selectStart = function(){return false;};
+            let selectStart = () => {return false;};
 
-            let stop = function(){
+            let stop = () => {
 
                 //Clear events
                 document.removeEventListener("mousemove", move);

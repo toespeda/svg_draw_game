@@ -113,6 +113,7 @@ let Layers = (layers, draw) => {
                     if (e.target.innerText !== originalTitle) {
                         el.setAttribute("title", e.target.innerText);
                     }
+                    e.target.setAttribute("contentEditable", "false");
                     e.target.removeEventListener("blur", blur);
                     e.target.removeEventListener("keydown", blur);
                 };
