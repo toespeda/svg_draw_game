@@ -1178,7 +1178,7 @@ class Draw {
     setShapeAttributes(Shape){
         if (Shape.type === "path") {
             Shape.d = this.parsePath(Shape.el.getAttribute("d"));
-        } else {
+        } else if (this.attributes[Shape.type]) {
             this.attributes[Shape.type].forEach(att => {
                 Shape[att] = +Shape.el.getAttribute(att);
             })

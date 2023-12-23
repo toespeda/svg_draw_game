@@ -65,7 +65,9 @@ let Sortable = (layers) => {
 
                     let bcr = hoverElement.getBoundingClientRect();
 
-                    if (hoverElement.classList.contains("g") && pos.left - offset.left - bcr.left > 25) {//Add under group
+                    console.log(hoverElement.className);
+
+                    if (hoverElement.className.match(/\b(g|defs|clipPath)\b/) && pos.left - offset.left - bcr.left > 25) {//Add under group
 
                         if (endContainer !== hoverElement) {
                             endContainer = hoverElement;

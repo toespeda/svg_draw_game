@@ -147,9 +147,9 @@ let Layers = (layers, draw) => {
                 let a = '';
 
                 let attr = {
-                    id : "",
-                    class : "",
-                    style : ""
+                    // id : "",
+                    // class : "",
+                    // style : ""
                 };
 
                 if (el.nodeName.match(/(path|circle|ellipse|rect)/)) {
