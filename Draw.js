@@ -6,6 +6,7 @@ class Draw {
     action = "move";
     symbol = null;
 
+
     constructor(svg) {
 
         this.svg = svg;
@@ -36,6 +37,7 @@ class Draw {
                 if (e.target.nodeName.match(/(path|line)/)) {
 
                     Shape = this.getShapeByElement(e.target);
+                    // console.log("Shape", Shape);
                     nodeHandle = this.getNodeHandle(Shape, startPos);
 
                 } else {
@@ -45,7 +47,7 @@ class Draw {
                     if (edge.length) {
 
                         Shape = edge[0].shape;
-
+                        console.log("Shape", Shape);
                         // Closest first
                         if (Shape.type === "path") {
                             nodeHandle = edge[0];
@@ -55,6 +57,8 @@ class Draw {
 
                     }
                 }
+
+                // console.log("nodeHandle", nodeHandle);
 
                 if (nodeHandle) {
                     let params = nodeHandle.params || [Shape[nodeHandle[0]], Shape[nodeHandle[1]]];
@@ -69,7 +73,7 @@ class Draw {
                     startPos = edge[0].params;
                 }
 
-            } else if (e.target.nodeName.match(/(path|circle|ellipse|line)/)) {
+            } else if (e.target.nodeName.match(/(path|circle|ellipse|line|rect)/)) {
 
                 Shape = this.getShapeByElement(e.target);
                 //this.setActionByPos(Shape, startPos);
@@ -100,7 +104,6 @@ class Draw {
                 Shape = this.duplicateShape(Shape);
             }
 
-
             Shape.basePos = this.getShapeDim(Shape);
 
             let center = [Shape.basePos.x + Shape.basePos.width/2, Shape.basePos.y + Shape.basePos.height/2];
@@ -114,6 +117,9 @@ class Draw {
                 if (Shape.type === "path") {
                     this.convertCommand(Shape);
                 } else if (Shape.type === "ellipse") {
+                    this.convertToPath(Shape);
+                    this.redrawShape(Shape);
+                } else if (Shape.type === "rect") {
                     this.convertToPath(Shape);
                     this.redrawShape(Shape);
                 }
@@ -156,7 +162,7 @@ class Draw {
 
                     this.rotateShape(Shape, center, angle, lastAngle);
 
-                } else if (this.action === "draw") {
+                } else {//if (this.action === "draw")
 
                     if (Shape.type === "path") {
 
@@ -402,6 +408,11 @@ class Draw {
             Shape.x2 += diff[0];
             Shape.y2 += diff[1];
 
+        } else if (Shape.type === "rect") {
+
+            Shape.x += diff[0];
+            Shape.y += diff[1];
+
         }
 
     }
@@ -411,27 +422,10 @@ class Draw {
             Shape.el.setAttribute("d", Shape.d.map(function(command) {
                 return command.command + ' ' + command.params.join(',');
             }).join(' '));
-        } else if (Shape.type === "circle") {
-            Shape.el.setAttribute("r", Shape.r);
-            Shape.el.setAttribute("cx", Shape.cx);
-            Shape.el.setAttribute("cy", Shape.cy);
-        } else if (Shape.type === "ellipse") {
-            Shape.el.setAttribute("rx", Shape.rx);
-            Shape.el.setAttribute("ry", Shape.ry);
-            Shape.el.setAttribute("cx", Shape.cx);
-            Shape.el.setAttribute("cy", Shape.cy);
-        } else if (Shape.type === "line") {
-            Shape.el.setAttribute("x1", Shape.x1);
-            Shape.el.setAttribute("y1", Shape.y1);
-            Shape.el.setAttribute("x2", Shape.x2);
-            Shape.el.setAttribute("y2", Shape.y2);
-        } else if (Shape.type === "rect") {
-            Shape.el.setAttribute("width", Shape.width);
-            Shape.el.setAttribute("height", Shape.height);
-            Shape.el.setAttribute("x", Shape.x);
-            Shape.el.setAttribute("y", Shape.y);
-            Shape.el.setAttribute("rx", Shape.rx);
-            Shape.el.setAttribute("ry", Shape.ry);
+        } else if (this.attributes[Shape.type])  {
+            this.attributes[Shape.type].forEach(att => {
+                Shape.el.setAttribute(att,Shape[att]);
+            });
         }
     }
 
@@ -613,13 +607,26 @@ class Draw {
 
         } else if (Shape.type === "line") {
 
+        } else if (Shape.type === "rect") {
+            if (handle[0]) {
+                Shape.width += diff[0];
+            } else {
+                Shape.x += diff[0];
+                Shape.width -= diff[0];
+            }
+            if (handle[1]) {
+                Shape.height += diff[1];
+            } else {
+                Shape.y += diff[1];
+                Shape.height -= diff[1];
+            }
         }
 
     }
 
     getShapeDim(shape) {
         let dim = {x:0,y:0,width:0,height:0,top:0,right:0,bottom:0,left:0};
-        let positions = this.getShapePos(shape);
+
         if (shape.type === "circle") {
             dim.left = dim.x = shape.cx - shape.r;
             dim.right = shape.cx + shape.r;
@@ -630,17 +637,25 @@ class Draw {
             dim.right = shape.cx + shape.rx;
             dim.top = dim.y = shape.cy - shape.ry;
             dim.bottom = shape.cy + shape.ry;
-        } else if (positions.length) {
-            positions.sort(function (a, b) {
-                return a.params[0] - b.params[0];
-            });
-            dim.left = dim.x = positions[0].params[0];
-            dim.right = positions[positions.length - 1].params[0];
-            positions.sort(function (a, b) {
-                return a.params[1] - b.params[1];
-            });
-            dim.top = dim.y = positions[0].params[1];
-            dim.bottom = positions[positions.length - 1].params[1];
+        } else if (shape.type === "rect") {
+            dim.left = dim.x = shape.x;
+            dim.right = shape.x + shape.width;
+            dim.top = dim.y = shape.y;
+            dim.bottom = shape.y + shape.height;
+        } else {
+            let positions = this.getShapePos(shape);
+            if (positions.length) {
+                positions.sort(function (a, b) {
+                    return a.params[0] - b.params[0];
+                });
+                dim.left = dim.x = positions[0].params[0];
+                dim.right = positions[positions.length - 1].params[0];
+                positions.sort(function (a, b) {
+                    return a.params[1] - b.params[1];
+                });
+                dim.top = dim.y = positions[0].params[1];
+                dim.bottom = positions[positions.length - 1].params[1];
+            }
         }
         dim.width = dim.right - dim.left;
         dim.height = dim.bottom - dim.top;
@@ -758,6 +773,8 @@ class Draw {
             //     params:[shape.cx, shape.cy],
             //     position:"center"
             // });
+        } else if (shape.type === "rect") {
+
         }
 
         return positions;
@@ -853,7 +870,6 @@ class Draw {
         duplicate.el = Shape.el.cloneNode(true);
         Shape.el.parentNode.insertBefore(duplicate.el, Shape.el.nextElementSibling);//Insert element after
         this.getShapeByElement(Shape.el.parentNode).children.splice(index+1, 0, duplicate);//Insert object after
-
         this.svg.dispatchEvent(new CustomEvent("added", { detail: duplicate }));
         return duplicate;
     }
@@ -975,6 +991,35 @@ class Draw {
         return d;
     }
 
+    rectToPath(merge) {
+        let d = [];
+        d.push({
+            command:"M",
+            params: [merge.x, merge.y]
+        });
+        d.push({
+            command:"L",
+            params: [merge.x+merge.width, merge.y]
+        });
+        d.push({
+            command:"L",
+            params: [merge.x+merge.width, merge.y+merge.height]
+        });
+        d.push({
+            command:"L",
+            params: [merge.x, merge.y+merge.height]
+        });
+        d.push({
+            command:"L",
+            params: [merge.x, merge.y]
+        });
+        d.push({
+            command:"Z",
+            params: []
+        });
+        return d;
+    }
+
     convertCommand(Shape){
         for (let m=0; m<Shape.d.length; m++) {
             if (Shape.d[m].command.match(/[Vv]/)) {
@@ -997,13 +1042,14 @@ class Draw {
         Shape.d = this[Shape.type + "ToPath"](Shape);
         Shape.type = "path";
         let path = this.createElement("path");
+        this.svg.dispatchEvent(new CustomEvent("replaced", { detail: {el:Shape.el,with:path} }));
         Shape.el.replaceWith(path);
         Shape.el = path;
 
     }
 
-    addGroup(){
-        let Shape = this.createShape("g");
+    addShape(type){
+        let Shape = this.createShape(type);
         this.children.push(Shape);
         this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
     }
@@ -1058,39 +1104,35 @@ class Draw {
         }
     }
 
+    attributes = {
+        "path" : ["d"],
+        "circle" : ["cx","cy","r"],
+        "line" : ["x1","y1","x2","y2"],
+        "ellipse" : ["cx","cy","rx","ry"],
+        "rect" : ["x","y","rx","ry","width","height"]
+    };
+
+    addElementAttributes(el, type){
+        if (this.attributes[type]) {
+            this.attributes[type].forEach(att => {
+                el.setAttribute(att,"");
+            });
+        }
+    }
+
     createElement(type){
         let el = document.createElementNS("http://www.w3.org/2000/svg", type);
-        el.setAttribute("stroke","#000000");
-        el.setAttribute("stroke-width",3);
-        if (type === "path") {
-            el.setAttribute("fill","transparent");
-            el.setAttribute("stroke-linejoin","round");
-            el.setAttribute("d","");
-        } else if (type === "circle") {
-            el.setAttribute("fill","transparent");
-            el.setAttribute("cx",0);
-            el.setAttribute("cy",0);
-            el.setAttribute("r",0);
-        } else if (type === "ellipse") {
-            el.setAttribute("fill","transparent");
-            el.setAttribute("cx",0);
-            el.setAttribute("cy",0);
-            el.setAttribute("rx",0);
-            el.setAttribute("ry",0);
-        } else if (type === "line") {
-            el.setAttribute("x1",0);
-            el.setAttribute("x2",0);
-            el.setAttribute("y1",0);
-            el.setAttribute("y2",0);
-        } else if (type === "rect") {
-            el.setAttribute("fill","transparent");
-            el.setAttribute("x",0);
-            el.setAttribute("y",0);
-            el.setAttribute("rx",0);
-            el.setAttribute("ry",0);
-            el.setAttribute("width",0);
-            el.setAttribute("height",0);
+        if (type.match(/(path|circle|ellipse|line|rect)/)) {
+            el.setAttribute("stroke","#000000");
+            el.setAttribute("stroke-width",3);
         }
+        if (type.match(/(path|circle|ellipse|rect)/)) {
+            el.setAttribute("fill","transparent");
+        }
+        if (type.match(/(path)/)) {
+            el.setAttribute("stroke-linejoin","round");
+        }
+        this.addElementAttributes(el, type);
         return el;
     }
 
@@ -1113,33 +1155,34 @@ class Draw {
                 Shape.cx = startPos[0];
                 Shape.cy = startPos[1];
             }
-            Shape.r = null;
         } else if (type === "ellipse") {
             if (startPos) {
                 Shape.cx = startPos[0];
                 Shape.cy = startPos[1];
             }
-            Shape.rx = null;
-            Shape.ry = null;
         } else if (type === "line") {
             if (startPos) {
                 Shape.x1 = startPos[0];
                 Shape.y1 = startPos[1];
             }
-            Shape.x2 = null;
-            Shape.y2 = null;
         } else if (type === "rect") {
             if (startPos) {
                 Shape.x = startPos[0];
                 Shape.y = startPos[1];
             }
-            Shape.rx = null;
-            Shape.ry = null;
-            Shape.width = null;
-            Shape.height = null;
         }
         this.svg.appendChild(Shape.el);
         return Shape;
+    }
+
+    setShapeAttributes(Shape){
+        if (Shape.type === "path") {
+            Shape.d = this.parsePath(Shape.el.getAttribute("d"));
+        } else {
+            this.attributes[Shape.type].forEach(att => {
+                Shape[att] = +Shape.el.getAttribute(att);
+            })
+        }
     }
 
     parseShape(el){
@@ -1147,24 +1190,7 @@ class Draw {
             type : el.nodeName.toLowerCase(),
             el : el
         };
-        if (Shape.type === "path") {
-            Shape.d = this.parsePath(el.getAttribute("d"));
-        } else if (Shape.type === "circle") {
-            Shape.r = +el.getAttribute("r");
-            Shape.cx = +el.getAttribute("cx");
-            Shape.cy = +el.getAttribute("cy");
-
-        } else if (Shape.type === "ellipse") {
-            Shape.rx = +el.getAttribute("rx");
-            Shape.ry = +el.getAttribute("ry");
-            Shape.cx = +el.getAttribute("cx");
-            Shape.cy = +el.getAttribute("cy");
-        } else if (Shape.type === "line") {
-            Shape.x1 = +el.getAttribute("x1");
-            Shape.y1 = +el.getAttribute("y1");
-            Shape.x2 = +el.getAttribute("x2");
-            Shape.y2 = +el.getAttribute("y2");
-        }
+        this.setShapeAttributes(Shape);
         return Shape;
     }
 

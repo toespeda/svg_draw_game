@@ -51,11 +51,8 @@ let Layers = (layers, draw) => {
             e.stopImmediatePropagation();
 
             let target = e.target.parentNode;
-
             let el = svgElement(target.dataset.el);
-
             let index = [...target.parentNode.children].indexOf(target);
-
             let tkl = e.target.classList;
 
             if (tkl.contains("remove")) {
@@ -70,7 +67,6 @@ let Layers = (layers, draw) => {
                 if (merged) {
 
                     svgElement(target.dataset.el, merged.el)
-
                     target.nextElementSibling.remove();
 
                 }
@@ -127,7 +123,26 @@ let Layers = (layers, draw) => {
 
             } else if (tkl.contains("attributes")) {
 
-                let attributes = document.createElement('div');
+                let adjustHeight = (textarea) => {
+                    let minHeight = textarea.scrollHeight;
+                    let adjust = function () {
+                        let outerHeight = parseInt(window.getComputedStyle(textarea).height, 10);
+                        if (outerHeight) {
+                            let diff = outerHeight - textarea.clientHeight;
+                            textarea.style.height = 0;
+                            textarea.style.height = Math.max(minHeight, textarea.scrollHeight + diff) + 'px';
+                        }
+                    };
+                    textarea.style.boxSizing = textarea.style.mozBoxSizing = 'border-box';
+                    textarea.style.overflowY = 'hidden';
+                    adjust();
+                    return adjust;
+                };
+
+                let attributeForm = document.createElement('form');
+                attributeForm.setAttribute("action", "");
+                attributeForm.style.padding="10px 15px";
+                attributeForm.style.width="360px";
 
                 let a = '';
 
@@ -137,41 +152,84 @@ let Layers = (layers, draw) => {
                     style : ""
                 };
 
-                if (el.nodeName.match(/(path|circle|ellipse)/)) {
+                if (el.nodeName.match(/(path|circle|ellipse|rect)/)) {
                     attr["fill"] = "";
                 }
 
-                if (el.nodeName.match(/(path|circle|ellipse|line)/)) {
+                if (el.nodeName.match(/(path|circle|ellipse|rect|line)/)) {
                     attr["stroke"] = "";
                     attr["stroke-width"] = "";
+                }
+
+                if (el.nodeName.match(/(animate)/)) {
+                    attr["attributeName"] = "";
+                    attr["values"] = "";
+                    attr["dur"] = "";
+                    attr["repeatCount"] = "";
                 }
 
                 [...el.attributes].forEach(att => {
                     attr[att.nodeName] = att.nodeValue.replace(/\n\t*/g,'\n').replace(/^\s*|\s*$/g,'');
                 });
 
-                for (let nodeName in attr) {
-                    if (nodeName === "d") {
-                        a += '<span class="key '+nodeName+'">'+nodeName+'</span> <textarea name="'+nodeName+'">'+attr[nodeName]+'</textarea>';
+                let getInput = (name, value) => {
+                    if (name === "d") {
+                        return '<span class="key '+name+'">'+name+'</span> <textarea name="'+name+'">'+value+'</textarea>';
                     } else {
-                        a += '<span class="key '+nodeName+'">'+nodeName+'</span> <input name="'+nodeName+'" value="'+attr[nodeName]+'" />';
+                        return '<span class="key '+name+'">'+name+'</span> <input name="'+name+'" value="'+value+'" />';
                     }
+                };
+
+                for (let name in attr) {
+                    a += getInput(name, attr[name]);
                 }
 
-                attributes.innerHTML = '<form style="padding:10px 15px" action="" class="attributes">'+a+'<input type="submit" value="OK" /></form>';
+                attributeForm.innerHTML = '<h3 style="margin: 0 0 10px 5px;">Attributes</h3><div style="text-align: right;"><input style="margin: 0 8px;" type="submit" value="OK" /></div>';
 
-                attributes.addEventListener("submit", e => {
+                let attributes = document.createElement("div");
+                attributes.className = "attributes";
+                attributes.innerHTML = '<span style="font-weight: bold;">Name</span><span style="font-weight: bold;">Value</span>' + a + '<input class="newAttribute" name="" value="" /><input class="newAttribute" name="" value="" />';
+
+                attributeForm.insertBefore(attributes, attributeForm.children[1]);
+
+                const newAttribute = [...attributes.querySelectorAll(".newAttribute")];
+
+                let addNewAttribute = () => {
+                    if (newAttribute[0].value && newAttribute[1].value) {
+                        newAttribute[0].insertAdjacentHTML("beforebegin", getInput(newAttribute[0].value, newAttribute[1].value));
+                        newAttribute[0].value = "";
+                        newAttribute[1].value = "";
+                    }
+                };
+
+                newAttribute.forEach(el => {
+                    el.addEventListener("blur", e => {
+                        if (newAttribute.indexOf(e.relatedTarget) === -1) {
+                            addNewAttribute();
+                        }
+                    });
+                });
+
+                attributeForm.addEventListener("submit", e => {
                     e.preventDefault();
+                    addNewAttribute();
                     const params = new FormData(e.target);
                     [...params.entries()].forEach(v => {
                         el.setAttribute(v[0], v[1]);
                     });
-                    updateLayer(draw.getShapeByElement(el));
-                })
+                    let shape = draw.getShapeByElement(el);
+                    draw.setShapeAttributes(shape);
+                    updateLayer(shape);
+                });
 
-                Popup(attributes, e.target);
+                Popup(attributeForm, e.target);
 
-                attributes.querySelectorAll('.stroke,.fill').forEach(inputcolor => {
+                attributeForm.querySelectorAll('textarea').forEach(textarea => {
+                    textarea.addEventListener('input', adjustHeight(textarea));
+                    textarea.dispatchEvent(new Event('input'));
+                });
+
+                attributeForm.querySelectorAll('.stroke,.fill').forEach(inputcolor => {
 
                     inputcolor.addEventListener("click", (e) => {
 
@@ -331,6 +389,10 @@ let Layers = (layers, draw) => {
 
     draw.svg.addEventListener("reset", (e) => {
         layers.innerHTML = "";
+    });
+
+    draw.svg.addEventListener("replaced", (e) => {
+        svgElement(findKey(e.detail.el), e.detail.with);
     });
 
     draw.svg.addEventListener("updated", (e) => {

@@ -53,13 +53,29 @@
             <div class="col editor">
                 <div id="layers"></div>
                 <button id="reverse">Reverse</button>
-                <button id="merge">Merge</button>
+<!--                <button id="merge">Merge</button>-->
                 <button id="group">Add group</button>
+                <button id="animate">Add animation</button>
             </div>
 
         </div>
 
         <div id="examples" class="col">
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <rect
+                        stroke="#000000"
+                        stroke-width="3"
+                        fill="transparent"
+                        x="65"
+                        y="83"
+                        rx=""
+                        ry=""
+                        width="155"
+                        height="109"
+                >
+                </rect>
+            </svg>
 
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
 
@@ -899,12 +915,16 @@
                 }
             });
 
-            document.querySelector("#merge").addEventListener("click", e => {
-                draw.mergeAll();
-            });
+            // document.querySelector("#merge").addEventListener("click", e => {
+            //     draw.mergeAll();
+            // });
 
             document.querySelector("#group").addEventListener("click", e => {
-                draw.addGroup();
+                draw.addShape("g");
+            });
+
+            document.querySelector("#animate").addEventListener("click", e => {
+                draw.addShape("animate");
             });
 
             document.querySelector("#examples").addEventListener("click", e => {
