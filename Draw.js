@@ -31,6 +31,11 @@ class Draw {
             let offsetPos = [0,0];
             let lastPos = startPos;
 
+            // svg.classList.add("gettarget");
+            // let targetElement = document.elementFromPoint(e.clientX, e.clientY);
+            // svg.classList.remove("gettarget");
+            // console.log(targetElement);
+
             if (this.action === "node") {
 
                 //quadratic curve on lines
@@ -73,7 +78,7 @@ class Draw {
                     startPos = edge[0].params;
                 }
 
-            } else if (e.target.nodeName.match(/(path|circle|ellipse|line|rect)/)) {
+            } else if (e.target.nodeName.match(/(path|circle|ellipse|line|rect|image)/)) {
 
                 Shape = this.getShapeByElement(e.target);
                 //this.setActionByPos(Shape, startPos);
@@ -84,16 +89,13 @@ class Draw {
                 Shape = this.createShape(this.type, startPos);
                 this.children.push(Shape);
                 this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
-
             }
 
             if (!Shape && this.action === "insert") {
-
                 Shape = this.addElement(this.symbol.cloneNode());
                 Shape.basePos = this.getShapeDim(Shape);
                 this.moveShape(Shape, startPos, [Shape.basePos.right, Shape.basePos.bottom]);
                 this.redrawShape(Shape);
-
             }
 
             if (!Shape) {
@@ -413,6 +415,11 @@ class Draw {
             Shape.x += diff[0];
             Shape.y += diff[1];
 
+        } else if (Shape.type === "image") {
+
+            Shape.x += diff[0];
+            Shape.y += diff[1];
+
         }
 
     }
@@ -607,7 +614,7 @@ class Draw {
 
         } else if (Shape.type === "line") {
 
-        } else if (Shape.type === "rect") {
+        } else if (Shape.type.match(/(rect|image)/)) {
             if (handle[0]) {
                 Shape.width += diff[0];
             } else {
@@ -1109,7 +1116,8 @@ class Draw {
         "circle" : ["cx","cy","r"],
         "line" : ["x1","y1","x2","y2"],
         "ellipse" : ["cx","cy","rx","ry"],
-        "rect" : ["x","y","rx","ry","width","height"]
+        "rect" : ["x","y","rx","ry","width","height"],
+        "image" : ["x","y","width","height"]
     };
 
     addElementAttributes(el, type){

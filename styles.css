@@ -41,6 +41,10 @@ svg {
     stroke: #0000ff;
 }
 
+/*.editing svg.gettarget .locked {
+    display: none;
+}*/
+
 .editing svg .visible-on-error, .editing svg .visible-on-error * {
     /*opacity: 1;*/
     stroke: red;
