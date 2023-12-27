@@ -37,10 +37,10 @@ class Draw {
 
     start(e){
 
-        this.buffer = [];
-
         let startPos = this.mousePos(e, this.action === "draw");
         let lastPos = startPos;
+
+        this.buffer = [startPos];
 
         console.log({
             "type" : this.type,
@@ -147,59 +147,47 @@ class Draw {
             }
         }
 
-        let action = (()=>{
-            if (this.action === "rotate") {
-                return (pos, angle, center) => {
-                    this.rotateShape(this.shape, center, angle, lastAngle);
-                };
-            } else if (this.action === "move") {
-                return (pos) => {
-                    this.moveShape(this.shape, pos, lastPos);
-                }
-            } else if (this.action === "resize" || this.action === "insert") {
-                let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
-                return (pos, angle, center) => {
-                    this.resizeShape(this.shape, pos, quadrant, lastPos);
-                }
-            } else if (this.shape.type === "path") {
-                return (pos) => {
-                    this.shape.d[this.nodeHandle.index].params.splice(this.nodeHandle.start, 2, pos[0], pos[1]);
-                }
-            } else if (this.shape.type === "circle") {
-                return (pos) => {
-                    this.shape.r = this.getDistance(startPos, pos);
-                }
-            } else if (this.shape.type === "ellipse") {
-                return (pos) => {
-                    this.shape.rx = Math.abs(pos[0] - startPos[0]);
-                    this.shape.ry = Math.abs(pos[1] - startPos[1]);
-                }
-            } else if (this.shape.type === "line") {
-                if (this.nodeHandle) {
-                    return (pos) => {
-                        this.shape[this.nodeHandle[0]] = pos[0];
-                        this.shape[this.nodeHandle[1]] = pos[1];
-                    }
-                } else {
-                    return (pos) => {
-                        this.shape.x2 = pos[0];
-                        this.shape.y2 = pos[1];
-                    }
-                }
-            } else if (this.shape.type === "rect") {
-                return (pos) => {
-                    this.shape.width = pos[0] - startPos[0];
-                    this.shape.height = pos[1] - startPos[1];
-                }
-            }
-        })();
-
         let move = (e) => {
             let pos = this.mousePos(e, true);
             let angle = this.getAngle(center, pos);
-            action(pos, angle, center);
+            if (this.action === "rotate") {
+                this.rotateShape(this.shape, center, angle, lastAngle);
+            } else if (this.action === "move") {
+                this.moveShape(this.shape, pos, lastPos);
+            } else if (this.action === "resize" || this.action === "insert") {
+                let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
+                this.resizeShape(this.shape, pos, quadrant, lastPos);
+            } else if (this.shape.type === "path") {
+                if (e.buttons) {
+                    let command = this.shape.d[this.nodeHandle.index];
+                    if (command.command === "L") {
+                        command.command = "Q";
+                    }
+                    command.params = [...this.buffer[Math.floor(this.buffer.length/3)], ...pos];
+                } else {
+                    this.shape.d[this.nodeHandle.index].params.splice(this.nodeHandle.start, 2, pos[0], pos[1]);
+                }
+            } else if (this.shape.type === "circle") {
+                this.shape.r = this.getDistance(startPos, pos);
+            } else if (this.shape.type === "ellipse") {
+                this.shape.rx = Math.abs(pos[0] - startPos[0]);
+                this.shape.ry = Math.abs(pos[1] - startPos[1]);
+            } else if (this.shape.type === "line") {
+                if (this.nodeHandle) {
+                    this.shape[this.nodeHandle[0]] = pos[0];
+                    this.shape[this.nodeHandle[1]] = pos[1];
+                } else {
+                    this.shape.x2 = pos[0];
+                    this.shape.y2 = pos[1];
+                }
+            } else if (this.shape.type === "rect") {
+                this.shape.width = pos[0] - startPos[0];
+                this.shape.height = pos[1] - startPos[1];
+            }
             this.redrawShape(this.shape);
-            this.buffer.push(pos);
+            if (e.buttons) {
+                this.buffer.push(pos);
+            }
             lastPos = pos;
             lastAngle = angle;
         };
@@ -211,20 +199,20 @@ class Draw {
             this.svg.dispatchEvent(new CustomEvent("updated", { detail: this.shape }));
             this.shape = null;
             this.nodeHandle = null;
-            let l = this.buffer.length;
+            // let l = this.buffer.length;
             //console.log(this.buffer[0], this.buffer[Math.floor(l/3)], this.buffer[l-1]);
-            let test = this.createShape("path");
-            test.d = [
-                {
-                    command:"M",
-                    params:this.buffer[0]
-                },
-                {
-                    command:"Q",
-                    params:[...this.buffer[Math.floor(l/3)], ...this.buffer[l-1]]
-                }
-            ];
-            this.redrawShape(test);
+            // let test = this.createShape("path");
+            // test.d = [
+            //     {
+            //         command:"M",
+            //         params:this.buffer[0]
+            //     },
+            //     {
+            //         command:"Q",
+            //         params:[...this.buffer[Math.floor(l/3)], ...this.buffer[l-1]]
+            //     }
+            // ];
+            // this.redrawShape(test);
         };
 
         this.svg.addEventListener("mousemove", move, false);
@@ -241,80 +229,42 @@ class Draw {
         let start = null;
 
         this.svg.addEventListener("mousedown", (e) => {
-
             if (this.action === "draw" && this.type === "path") {
-
                 if (this.shape) {
-
                     let startPos = this.mousePos(e);
-
-                    // if (e.buttons === 1) {
-                    //     this.shape.d.push({
-                    //         command:"Q",
-                    //         params:[...startPos, ...startPos]
-                    //     });
-                    //     this.nodeHandle.start = 2;
-                    // } else {
                     this.shape.d.push({
                         command:"L",
                         params:[...startPos]
                     });
                     this.nodeHandle.start = 0;
-                    // }
-
                     this.nodeHandle.index++;
-
                 } else {
-
                     this.start(e);
-
                 }
-
             } else {
-
                 console.log("init mousedown");
                 start = setTimeout(() => {
                     this.start(e);
                 }, 100);
-
-
             }
-
         });
 
         //Debounce
         this.svg.addEventListener("mouseup", (e) => {
-
             console.log("mouseup");
-
             clearTimeout(start);
-
             if (this.action === "draw" && this.type === "path") {
-
                 if (this.shape) {
-
                     let startPos = this.mousePos(e);
-
-                    // if (e.buttons === 1) {
-                    //     this.shape.d.push({
-                    //         command:"Q",
-                    //         params:[...startPos, ...startPos]
-                    //     });
-                    //     this.nodeHandle.start = 2;
-                    // } else {
+                    this.buffer = [startPos];
                     this.shape.d.push({
                         command: "L",
                         params: [...startPos]
                     });
                     this.nodeHandle.start = 0;
-                    // }
-
                     this.nodeHandle.index++;
-
                 }
-
             }
-
         });
 
     }
