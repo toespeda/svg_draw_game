@@ -192,61 +192,9 @@ class Draw {
         })();
 
         let move = (e) => {
-
             let pos = this.mousePos(e, true);
-
             let angle = this.getAngle(center, pos);
-
             action(pos, angle, center);
-
-            // if (this.action === "move") {
-            //
-            //     this.moveShape(this.shape, pos, lastPos);
-            //
-            // } else if (this.action === "resize" || this.action === "insert") {
-            //
-            //     this.resizeShape(this.shape, pos, quadrant, lastPos);
-            //
-            // } else if (this.action === "rotate") {
-            //
-            //     this.rotateShape(this.shape, center, angle, lastAngle);
-            //
-            // } else {
-            //
-            //     if (this.shape.type === "path") {
-            //
-            //         this.shape.d[this.nodeHandle.index].params.splice(this.nodeHandle.start, 2, pos[0], pos[1]);
-            //
-            //     } else if (this.shape.type === "circle") {
-            //
-            //         this.shape.r = this.getDistance(startPos, pos);
-            //
-            //     } else if (this.shape.type === "ellipse") {
-            //
-            //         this.shape.rx = Math.abs(pos[0] - startPos[0]);
-            //         this.shape.ry = Math.abs(pos[1] - startPos[1]);
-            //
-            //     } else if (this.shape.type === "line") {
-            //
-            //         if (this.nodeHandle) {
-            //
-            //             this.shape[this.nodeHandle[0]] = pos[0];
-            //             this.shape[this.nodeHandle[1]] = pos[1];
-            //
-            //         } else {
-            //             this.shape.x2 = pos[0];
-            //             this.shape.y2 = pos[1];
-            //         }
-            //
-            //     } else if (this.shape.type === "rect") {
-            //
-            //         this.shape.width = pos[0] - startPos[0];
-            //         this.shape.height = pos[1] - startPos[1];
-            //
-            //     }
-            //
-            // }
-
             this.redrawShape(this.shape);
             lastPos = pos;
             lastAngle = angle;
