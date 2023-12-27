@@ -24,6 +24,7 @@
                     <li>
                         <svg width="24" height="24" version="2.0" data-action="draw" data-type="line"><use href="#line" /></svg>
                         <ul>
+                            <li><svg width="24" height="24" version="2.0" data-action="draw" data-type="path"><use href="#pen" /></svg></li>
                             <li><svg width="24" height="24" version="2.0" data-action="draw" data-type="line"><use href="#line" /></svg></li>
                             <li><svg width="24" height="24" version="2.0" data-action="draw" data-type="ellipse"><use href="#ellipse" /></svg></li>
                             <li><svg width="24" height="24" version="2.0" data-action="draw" data-type="circle"><use href="#circle" /></svg></li>
@@ -62,6 +63,30 @@
         </div>
 
         <div id="examples" class="col">
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+                <path
+                        stroke="#000000"
+                        stroke-width="3"
+                        fill="transparent"
+                        stroke-linejoin="round"
+                        d="
+		M 116,299
+		L 115,299
+		L 59,242
+		L 59,242
+		L 45,132
+		L 45,132
+		L 119,60
+		L 120,60
+		L 211,56
+		L 211,56
+		L 247,80
+	"
+                >
+                </path>
+
+            </svg>
 
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
                 <defs
@@ -798,11 +823,23 @@
                     id="path1" />
             </symbol>
 
+
+
+            <symbol id="pen" viewbox="0 0 24 24">
+                <path
+                        d="M 6.837,14.41 5,19 9.411,17.6 18.64,7.83
+                        C 19.33,7.019 19.15,6.1 18.67,5.592 18.04,4.907 16.94,4.672 16.12,5.42
+                        Z"
+
+                        fill="#000000"
+                         />
+            </symbol>
+
             <symbol id="pointer" viewbox="0 0 24 24">
                 <path
                     d="M 17.82,12.44 C 17.89,12.14 17.76,11.81 17.51,11.63 L 6.575,3.839 C 6.024,3.444 5.266,3.892 5.347,4.566 L 6.907,17.83 C 6.985,18.51 7.848,18.76 8.286,18.23 L 11.1,14.78 13.75,19.04 15.07,18.22 12.45,13.98 17.21,13.04 C 17.51,12.98 17.76,12.75 17.82,12.44 Z"
                     stroke="#000000"
-                    style="stroke-width:0.780283" />
+                    style="stroke-width:1" />
             </symbol>
 
             <symbol id="rect" viewbox="0 0 24 24">

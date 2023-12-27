@@ -63,6 +63,7 @@ svg {
 .popup .attributes {
     display: grid;
     grid-template-columns: 1fr 2fr;
+    /*align-items: center;*/
 }
 
 .popup .attributes input {
@@ -86,6 +87,11 @@ svg {
     /*font-weight: bold;*/
     text-align: right;
 }
+
+.popup .attributes span {
+    padding-top: 2px;
+}
+
 
 #examples {
     float: right;

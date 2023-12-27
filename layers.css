@@ -4,18 +4,29 @@
 
 }
 
+#layers .tools {
+    display: flex;
+    justify-content: end;
+}
+
 #layers > div, #layers div > div {
     margin: 0;
-    padding: 5px 5px 5px 20px;
+    padding: 5px 0 5px 20px;
     clear: both;
     box-sizing: border-box;
 }
 
 #layers > div:before, #layers div > div:before {
-    content: " ";
+    content: " ";/*↳*/
     float: left;
     min-width: 15px;
     min-height: 1em;
+
+}
+
+#layers div > div:before {
+    background-image: url( 'arrow-down-right-solid.svg' );
+    background-repeat: no-repeat;
 }
 
 #layers > div:not(.dragging):before {
@@ -43,7 +54,7 @@
 #layers li:last-child .merge {
     /*display: none;*/
 }
-#layers span {
+#layers .tools span {
     cursor: pointer;
     margin:0 5px;
     text-overflow: ellipsis;
@@ -57,8 +68,9 @@
     width: 20px;
     height: 20px;
 }
-#layers .title {
-    float: left;
+#layers span.title {
+    /*float: left;*/
+    margin-right: auto;
     min-width: 100px;
     max-width: 100px;
 }
@@ -117,5 +129,64 @@
 
 #layers .display.static:before, #layers .display.hidden:before {
     background-color: black;
+}
+
+#layers span.icontip {
+    /*position: absolute;*/
+    z-index: 1000;
+    display: none;
+    /*margin: 0 0 0 -100px;*/
+    width: 0;
+    height: 0;
+    --margin:0;
+}
+
+#layers span.icontip::after {
+    content: attr(title);
+    background: rgba(0,0,0,.7);
+    color: #fff;
+    position: absolute;
+    /*top: -28px;*/
+    line-height: 20px;
+    transform: translate(-50%, 0);
+    padding: 0 9px;
+    border-radius: 3px;
+    font-size: 11px;
+    letter-spacing: .05em;
+    margin-top: -28px;
+    margin-left: var(--margin);
+    /*background: rgb(0,0,0);
+    background: transparent\9;
+    background: rgba(0,0,0,0.9);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+
+    font-weight: normal;
+    box-sizing: border-box;
+    text-shadow: none;
+    text-align: left !important;
+    white-space: nowrap;
+    display: inline-block;
+    left: 0;*/
+}
+
+#layers span.icontip::before {
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(0, 0, 0, 0);
+    border-width: 8px;
+    border-top-color: rgba(0,0,0,.7);
+    /*top: 0;*/
+    transform: translate(-50%,-50%);
+    margin-left: var(--margin);
+    /*left: 0;*/
+}
+
+#layers .title:hover + span.icontip:not([title=""]) {
+    display: inline;
+    overflow: visible;
 }
 

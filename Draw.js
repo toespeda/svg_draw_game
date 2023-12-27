@@ -5,231 +5,359 @@ class Draw {
     type = "line";
     action = "move";
     symbol = null;
+    shape = null;
+    nodeHandle = false;
+    svgOffset = [10,10];
+    posOffset = [0,0];
 
+    mousePos(e, snap){
+        //let svgOffset = this.svg.getBoundingClientRect();
+        let pos = [e.clientX - this.svgOffset[0] + this.posOffset[0], e.clientY - this.svgOffset[1] + this.posOffset[1]];
+        if (snap) {
+            let edge = this.getClosestPos(pos, this.shape?.el);
+            if (edge.length) {
+                pos = edge[0].params;
+            }
+        }
+        return pos;
+    }
+
+    createGuide(){
+        let guide = document.createElement("div");
+        guide.style.top = this.shape.basePos.y + "px";
+        guide.style.left = this.shape.basePos.x + "px";
+        guide.style.width = this.shape.basePos.width + "px";
+        guide.style.height = this.shape.basePos.height + "px";
+        guide.style.pointerEvents = "none";
+        guide.style.outline = "1px solid orange";
+        guide.classList.add("guide");
+        this.svg.parentNode.insertBefore(guide, this.svg);
+    }
+
+    start(e){
+
+        let startPos = this.mousePos(e, this.action === "draw");
+        let lastPos = startPos;
+
+        console.log({
+            "type" : this.type,
+            "action" : this.action,
+            "symbol" : this.symbol
+        });
+
+        // this.svg.classList.add("gettarget");
+        // let targetElement = document.elementFromPoint(e.clientX, e.clientY);
+        // this.svg.classList.remove("gettarget");
+        if (this.action === "node") {
+
+            //quadratic curve on lines
+            if (e.target.nodeName.match(/(path|line)/)) {
+
+                this.shape = this.getShapeByElement(e.target);
+                this.nodeHandle = this.getNodeHandle(this.shape, startPos);
+
+            } else {
+
+                let edge = this.getClosestPos(startPos);
+
+                if (edge.length) {
+
+                    this.shape = edge[0].shape;
+                    // Closest first
+                    if (this.shape.type === "path") {
+                        this.nodeHandle = edge[0];
+                    } else if (this.shape.type === "line") {
+                        this.nodeHandle = this.getShapeAttr(this.shape, edge[0].position);
+                    }
+
+                }
+            }
+
+            if (this.nodeHandle) {
+                let params = this.nodeHandle.params || [this.shape[this.nodeHandle[0]], this.shape[this.nodeHandle[1]]];
+                this.posOffset = [params[0] - startPos[0], params[1] - startPos[1]];
+            }
+
+        // } else if (this.action === "draw") {
+        //
+        //     let edge = this.getClosestPos(startPos);
+        //
+        //     if (edge.length) {
+        //         startPos = edge[0].params;
+        //     }
+
+        } else if (this.action !== "draw" && this.action !== "insert" && e.target.nodeName.match(/(path|circle|ellipse|line|rect|image)/)) {
+
+            this.shape = this.getShapeByElement(e.target);
+            //this.setActionByPos(this.shape, startPos);
+
+        }
+
+        if (!this.shape && this.action === "draw") {
+
+            this.shape = this.createShape(this.type, startPos);
+            this.children.push(this.shape);
+            this.svg.dispatchEvent(new CustomEvent("added", { detail: this.shape }));
+            if (this.type === "path") {
+                this.shape.d.push({
+                    command:"L",
+                    params:[...startPos]
+                });
+                this.nodeHandle = {
+                    index : 1,
+                    start : 0
+                };
+            }
+        }
+
+        if (!this.shape && this.action === "insert") {
+            this.shape = this.addElement(this.symbol.cloneNode());
+            this.shape.basePos = this.getShapeDim(this.shape);
+            this.moveShape(this.shape, startPos, [this.shape.basePos.right, this.shape.basePos.bottom]);
+            this.redrawShape(this.shape);
+        }
+
+        if (!this.shape) {
+            return;
+        }
+
+        if (e.ctrlKey) {
+            this.shape = this.duplicateShape(this.shape);
+        }
+
+        this.shape.basePos = this.getShapeDim(this.shape);
+
+        let center = [this.shape.basePos.x + this.shape.basePos.width/2, this.shape.basePos.y + this.shape.basePos.height/2];
+
+        let lastAngle = this.getAngle(center, startPos);
+
+        //Fix rotating horizontal and vertical lines
+        if (this.action === "rotate") {
+            if (this.shape.type === "path") {
+                this.convertCommand(this.shape);
+            } else if (this.shape.type === "ellipse") {
+                this.convertToPath(this.shape);
+                this.redrawShape(this.shape);
+            } else if (this.shape.type === "rect") {
+                this.convertToPath(this.shape);
+                this.redrawShape(this.shape);
+            }
+        }
+
+        let action = (()=>{
+            if (this.action === "rotate") {
+                return (pos, angle, center) => {
+                    this.rotateShape(this.shape, center, angle, lastAngle);
+                };
+            } else if (this.action === "move") {
+                return (pos) => {
+                    this.moveShape(this.shape, pos, lastPos);
+                }
+            } else if (this.action === "resize" || this.action === "insert") {
+                let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
+                return (pos, angle, center) => {
+                    this.resizeShape(this.shape, pos, quadrant, lastPos);
+                }
+            } else if (this.shape.type === "path") {
+                return (pos) => {
+                    this.shape.d[this.nodeHandle.index].params.splice(this.nodeHandle.start, 2, pos[0], pos[1]);
+                }
+            } else if (this.shape.type === "circle") {
+                return (pos) => {
+                    this.shape.r = this.getDistance(startPos, pos);
+                }
+            } else if (this.shape.type === "ellipse") {
+                return (pos) => {
+                    this.shape.rx = Math.abs(pos[0] - startPos[0]);
+                    this.shape.ry = Math.abs(pos[1] - startPos[1]);
+                }
+            } else if (this.shape.type === "line") {
+                if (this.nodeHandle) {
+                    return (pos) => {
+                        this.shape[this.nodeHandle[0]] = pos[0];
+                        this.shape[this.nodeHandle[1]] = pos[1];
+                    }
+                } else {
+                    return (pos) => {
+                        this.shape.x2 = pos[0];
+                        this.shape.y2 = pos[1];
+                    }
+                }
+            } else if (this.shape.type === "rect") {
+                return (pos) => {
+                    this.shape.width = pos[0] - startPos[0];
+                    this.shape.height = pos[1] - startPos[1];
+                }
+            }
+        })();
+
+        let move = (e) => {
+
+            let pos = this.mousePos(e, true);
+
+            let angle = this.getAngle(center, pos);
+
+            action(pos, angle, center);
+
+            // if (this.action === "move") {
+            //
+            //     this.moveShape(this.shape, pos, lastPos);
+            //
+            // } else if (this.action === "resize" || this.action === "insert") {
+            //
+            //     this.resizeShape(this.shape, pos, quadrant, lastPos);
+            //
+            // } else if (this.action === "rotate") {
+            //
+            //     this.rotateShape(this.shape, center, angle, lastAngle);
+            //
+            // } else {
+            //
+            //     if (this.shape.type === "path") {
+            //
+            //         this.shape.d[this.nodeHandle.index].params.splice(this.nodeHandle.start, 2, pos[0], pos[1]);
+            //
+            //     } else if (this.shape.type === "circle") {
+            //
+            //         this.shape.r = this.getDistance(startPos, pos);
+            //
+            //     } else if (this.shape.type === "ellipse") {
+            //
+            //         this.shape.rx = Math.abs(pos[0] - startPos[0]);
+            //         this.shape.ry = Math.abs(pos[1] - startPos[1]);
+            //
+            //     } else if (this.shape.type === "line") {
+            //
+            //         if (this.nodeHandle) {
+            //
+            //             this.shape[this.nodeHandle[0]] = pos[0];
+            //             this.shape[this.nodeHandle[1]] = pos[1];
+            //
+            //         } else {
+            //             this.shape.x2 = pos[0];
+            //             this.shape.y2 = pos[1];
+            //         }
+            //
+            //     } else if (this.shape.type === "rect") {
+            //
+            //         this.shape.width = pos[0] - startPos[0];
+            //         this.shape.height = pos[1] - startPos[1];
+            //
+            //     }
+            //
+            // }
+
+            this.redrawShape(this.shape);
+            lastPos = pos;
+            lastAngle = angle;
+        };
+
+        let stop = () => {
+            this.svg.removeEventListener("mousemove", move);
+            this.svg.removeEventListener("dblclick", stop);
+            this.svg.removeEventListener("mouseup", stop);
+            //guide.remove();
+            this.svg.dispatchEvent(new CustomEvent("updated", { detail: this.shape }));
+            this.shape = null;
+            this.nodeHandle = null;
+        };
+
+        this.svg.addEventListener("mousemove", move, false);
+
+        if (this.type === "path") {
+            this.svg.addEventListener("dblclick", stop);
+        } else {
+            this.svg.addEventListener("mouseup", stop);
+        }
+    }
 
     constructor(svg) {
 
         this.svg = svg;
 
-        svg.addEventListener("mousedown", (e) => {
+        let test = true;
 
-            console.log({
-                "type" : this.type,
-                "action" : this.action,
-                "symbol" : this.symbol
-            });
+        let start = null;
 
-            let Shape = null;
-            let offset = this.svg.getBoundingClientRect();
+        this.svg.addEventListener("dblclick", (e) => {
+            console.log("init dblclick");
+            //console.log("doubleclick", e);
+        });
 
-            let mousePos = function(e){
-                return [e.clientX - offset.left, e.clientY - offset.top];
-            };
+        this.svg.addEventListener("mousedown", (e) => {
 
-            let nodeHandle = false;
-            let startPos = mousePos(e);
-            let offsetPos = [0,0];
-            let lastPos = startPos;
+            if (this.action === "draw" && this.type === "path") {
 
-            // svg.classList.add("gettarget");
-            // let targetElement = document.elementFromPoint(e.clientX, e.clientY);
-            // svg.classList.remove("gettarget");
-            // console.log(targetElement);
+                if (this.shape) {
 
-            if (this.action === "node") {
+                    let startPos = this.mousePos(e);
 
-                //quadratic curve on lines
-                if (e.target.nodeName.match(/(path|line)/)) {
+                    // if (e.buttons === 1) {
+                    //     this.shape.d.push({
+                    //         command:"Q",
+                    //         params:[...startPos, ...startPos]
+                    //     });
+                    //     this.nodeHandle.start = 2;
+                    // } else {
+                    this.shape.d.push({
+                        command:"L",
+                        params:[...startPos]
+                    });
+                    this.nodeHandle.start = 0;
+                    // }
 
-                    Shape = this.getShapeByElement(e.target);
-                    // console.log("Shape", Shape);
-                    nodeHandle = this.getNodeHandle(Shape, startPos);
+                    this.nodeHandle.index++;
 
                 } else {
 
-                    let edge = this.getClosestPos(startPos);
-
-                    if (edge.length) {
-
-                        Shape = edge[0].shape;
-                        console.log("Shape", Shape);
-                        // Closest first
-                        if (Shape.type === "path") {
-                            nodeHandle = edge[0];
-                        } else if (Shape.type === "line") {
-                            nodeHandle = this.getShapeAttr(Shape, edge[0].position);
-                        }
-
-                    }
-                }
-
-                // console.log("nodeHandle", nodeHandle);
-
-                if (nodeHandle) {
-                    let params = nodeHandle.params || [Shape[nodeHandle[0]], Shape[nodeHandle[1]]];
-                    offsetPos = [params[0] - startPos[0], params[1] - startPos[1]];
-                }
-
-            } else if (this.action === "draw") {
-
-                let edge = this.getClosestPos(startPos);
-
-                if (edge.length) {
-                    startPos = edge[0].params;
-                }
-
-            } else if (e.target.nodeName.match(/(path|circle|ellipse|line|rect|image)/)) {
-
-                Shape = this.getShapeByElement(e.target);
-                //this.setActionByPos(Shape, startPos);
-
-            }
-
-            if (!Shape && this.action === "draw") {
-                Shape = this.createShape(this.type, startPos);
-                this.children.push(Shape);
-                this.svg.dispatchEvent(new CustomEvent("added", { detail: Shape }));
-            }
-
-            if (!Shape && this.action === "insert") {
-                Shape = this.addElement(this.symbol.cloneNode());
-                Shape.basePos = this.getShapeDim(Shape);
-                this.moveShape(Shape, startPos, [Shape.basePos.right, Shape.basePos.bottom]);
-                this.redrawShape(Shape);
-            }
-
-            if (!Shape) {
-                return;
-            }
-
-            if (e.ctrlKey) {
-                Shape = this.duplicateShape(Shape);
-            }
-
-            Shape.basePos = this.getShapeDim(Shape);
-
-            let center = [Shape.basePos.x + Shape.basePos.width/2, Shape.basePos.y + Shape.basePos.height/2];
-
-            let handle = [startPos[0] > center[0], startPos[1] > center[1]];
-
-            let lastAngle = this.getAngle(center, startPos);
-
-            //Fix rotating horizontal and vertical lines
-            if (this.action === "rotate") {
-                if (Shape.type === "path") {
-                    this.convertCommand(Shape);
-                } else if (Shape.type === "ellipse") {
-                    this.convertToPath(Shape);
-                    this.redrawShape(Shape);
-                } else if (Shape.type === "rect") {
-                    this.convertToPath(Shape);
-                    this.redrawShape(Shape);
-                }
-            }
-
-            // let guide = document.createElement("div");
-            // guide.style.top = Shape.basePos.y + "px";
-            // guide.style.left = Shape.basePos.x + "px";
-            // guide.style.width = Shape.basePos.width + "px";
-            // guide.style.height = Shape.basePos.height + "px";
-            // guide.style.pointerEvents = "none";
-            // guide.style.outline = "1px solid orange";
-            // guide.classList.add("guide");
-            // svg.parentNode.insertBefore(guide, svg);
-
-            let move = (e) => {
-
-                let pos = mousePos(e);
-
-                pos[0] += offsetPos[0];
-                pos[1] += offsetPos[1];
-
-                let edge = this.getClosestPos(pos, Shape.el);
-
-                if (edge.length) {
-                    pos = edge[0].params;
-                }
-
-                let angle = this.getAngle(center, pos);
-
-                if (this.action === "move") {
-
-                    this.moveShape(Shape, pos, lastPos);
-
-                } else if (this.action === "resize" || this.action === "insert") {
-
-                    this.resizeShape(Shape, pos, lastPos, handle);
-
-                } else if (this.action === "rotate") {
-
-                    this.rotateShape(Shape, center, angle, lastAngle);
-
-                } else {//if (this.action === "draw")
-
-                    if (Shape.type === "path") {
-
-                        Shape.d[nodeHandle.index].params.splice(nodeHandle.start, 2, pos[0], pos[1]);
-
-                    } else if (Shape.type === "circle") {
-
-                        // Shape.cx = startPos[0];
-                        // Shape.cy = startPos[1];
-                        Shape.r = this.getDistance(startPos, pos);
-
-                    } else if (Shape.type === "ellipse") {
-
-                        Shape.rx = Math.abs(pos[0] - startPos[0]);
-                        Shape.ry = Math.abs(pos[1] - startPos[1]);
-
-                        // Shape.cx += diff[0]/2;
-                        // Shape.cy += diff[1]/2;
-
-                    } else if (Shape.type === "line") {
-
-                        if (nodeHandle) {
-
-                            Shape[nodeHandle[0]] = pos[0];
-                            Shape[nodeHandle[1]] = pos[1];
-
-                        } else {
-                            Shape.x2 = pos[0];
-                            Shape.y2 = pos[1];
-                        }
-
-                    } else if (Shape.type === "rect") {
-
-                        if (nodeHandle) {
-
-                            // Shape[nodeHandle[0]] = pos[0];
-                            // Shape[nodeHandle[1]] = pos[1];
-
-                        } else {
-                            Shape.width = pos[0] - startPos[0];
-                            Shape.height = pos[1] - startPos[1];
-                        }
-
-                    }
+                    this.start(e);
 
                 }
 
-                this.redrawShape(Shape);
+            } else {
 
-                lastPos = pos;
+                console.log("init mousedown");
+                start = setTimeout(() => {
+                    this.start(e);
+                }, 100);
 
-                lastAngle = angle;
 
-            };
+            }
 
-            let stop = function(){
-                svg.removeEventListener("mousemove", move);
-                svg.removeEventListener("mouseup", stop);
-                //guide.remove();
-                svg.dispatchEvent(new CustomEvent("updated", { detail: Shape }));
-                //Update shape preview
-            };
+        });
 
-            svg.addEventListener("mousemove", move, false);
-            svg.addEventListener("mouseup", stop);
+        //Debounce
+        this.svg.addEventListener("mouseup", (e) => {
+
+            console.log("mouseup");
+
+            clearTimeout(start);
+
+            if (this.action === "draw" && this.type === "path") {
+
+                if (this.shape) {
+
+                    let startPos = this.mousePos(e);
+
+                    // if (e.buttons === 1) {
+                    //     this.shape.d.push({
+                    //         command:"Q",
+                    //         params:[...startPos, ...startPos]
+                    //     });
+                    //     this.nodeHandle.start = 2;
+                    // } else {
+                    this.shape.d.push({
+                        command: "L",
+                        params: [...startPos]
+                    });
+                    this.nodeHandle.start = 0;
+                    // }
+
+                    this.nodeHandle.index++;
+
+                }
+
+            }
 
         });
 
@@ -505,7 +633,7 @@ class Draw {
 
     }
 
-    resizeShape(Shape, pos, lastPos, handle){
+    resizeShape(Shape, pos, handle, lastPos){
 
         let diff = [
             pos[0] - lastPos[0],
@@ -1155,7 +1283,7 @@ class Draw {
             if (startPos) {
                 Shape.d.push({
                     command:"M",
-                    params:startPos
+                    params:[...startPos]
                 });
             }
         } else if (type === "circle") {

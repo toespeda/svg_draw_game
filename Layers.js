@@ -50,9 +50,9 @@ let Layers = (layers, draw) => {
 
             e.stopImmediatePropagation();
 
-            let target = e.target.parentNode;
+            let target = e.target.parentNode.parentNode;
             let el = svgElement(target.dataset.el);
-            let index = [...target.parentNode.children].indexOf(target);
+            //let index = [...target.parentNode.children].indexOf(target);
             let tkl = e.target.classList;
 
             if (tkl.contains("remove")) {
@@ -184,7 +184,7 @@ let Layers = (layers, draw) => {
                     a += getInput(name, attr[name]);
                 }
 
-                attributeForm.innerHTML = '<h3 style="margin: 0 0 10px 5px;">Attributes</h3><div style="text-align: right;"><input style="margin: 0 8px;" type="submit" value="OK" /></div>';
+                attributeForm.innerHTML = '<h3 style="margin: 0 0 10px 5px;">Attributes for <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/'+el.nodeName+'" target="_blank" referrerpolicy="no-referrer">'+el.nodeName+'</a></h3><div style="text-align: right;"><input style="margin: 0 8px;" type="submit" value="OK" /></div>';
 
                 let attributes = document.createElement("div");
                 attributes.className = "attributes";
@@ -199,6 +199,7 @@ let Layers = (layers, draw) => {
                         newAttribute[0].insertAdjacentHTML("beforebegin", getInput(newAttribute[0].value, newAttribute[1].value));
                         newAttribute[0].value = "";
                         newAttribute[1].value = "";
+                        newAttribute[0].focus();
                     }
                 };
 
@@ -278,25 +279,41 @@ let Layers = (layers, draw) => {
     }, false);
 
     layers.addEventListener("mouseover", (e) => {
-        //let shape = draw.getShapeByIndex(getPath(layers, e.target));
-        if (e.target.nodeName.toLowerCase() === "div") {
-            //let shape = draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
-            let shape = svgElement(e.target.dataset.el);
-            if (shape) {
-                shape.style.stroke = "#0000ff";
-            }
+        if (e.target.classList.contains("title")) {//Adjust popover
+            let t = document.createElement("span");
+            t.appendChild(e.target.childNodes[0].cloneNode());
+            //let t = e.target.cloneNode(true);
+            document.body.appendChild(t);
+
+
+            let icontip = e.target.nextElementSibling;
+
+            let margin = e.target.offsetLeft - icontip.offsetLeft + t.offsetWidth/2;
+
+            //let margin = (-100 + t.offsetWidth/2 - 5);
+
+            //e.target.nextElementSibling.style.margin = "0 " + margin + "px 0 -" + margin + "px";//Min-width, middle and margin
+
+            icontip.style.setProperty("--margin", margin + "px");
+
+
+            t.remove();
         }
+        // if (e.target.nodeName.toLowerCase() === "div") {
+        //     let shape = svgElement(e.target.dataset.el);
+        //     if (shape) {
+        //         shape.style.stroke = "#0000ff";
+        //     }
+        // }
     });
 
     layers.addEventListener("mouseout", (e) => {
-        //let shape = draw.getShapeByIndex([...layers.childNodes].indexOf(e.target));
-        if (e.target.nodeName.toLowerCase() === "div") {
-            let shape = svgElement(e.target.dataset.el);
-            if (shape) {
-                shape.style.stroke = "";
-            }
-        }
-
+        // if (e.target.nodeName.toLowerCase() === "div") {
+        //     let shape = svgElement(e.target.dataset.el);
+        //     if (shape) {
+        //         shape.style.stroke = "";
+        //     }
+        // }
     });
 
     // draw.svg.addEventListener("update", (e) => {
@@ -304,25 +321,32 @@ let Layers = (layers, draw) => {
     //     draw.init();
     // });
 
-    let addContent = (b, shape) => {
+    let addTools = (b, shape) => {
 
-        b.classList.add(shape.nodeName);
-        let title = shape.getAttribute("id") || shape.getAttribute("title") || shape.nodeName;
-        b.innerHTML = '<span class="title" title="' + title + '">' + title + '</span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
 
-        //console.log(shape.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
-        let s = shape.className.baseVal.match(/\b(static)\b/);
+        let title = shape.el.getAttribute("title") || shape.el.nodeName;
+        b.innerHTML = '<span class="title" title="">' + title + '</span> <span class="icontip" title="' + (shape.el.getAttribute("id") || "") + '"></span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
+
+        //console.log(shape.el.className.baseVal.match(/\b(visible|hidden)(-on-(\w+))?\b/));
+        let s = shape.el.className.baseVal.match(/\b(static)\b/);
         if (s) {
             b.querySelector(".display").classList.add(s[1]);
         }
-        s = shape.className.baseVal.match(/\b(hidden-on-pending)\b/);
+        s = shape.el.className.baseVal.match(/\b(hidden-on-pending)\b/);
         if (s) {
             b.querySelector(".display").classList.add("hidden");
         }
-        s = shape.className.baseVal.match(/\b(visible|hidden)-on-(\w+)\b/);
+        s = shape.el.className.baseVal.match(/\b(visible|hidden)-on-(\w+)\b/);
         if (s) {
             b.querySelector("."+s[2]).classList.add(s[1]);
         }
+
+        let preview = document.createElement('span');
+        preview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358"></svg>';
+        let svg = preview.querySelector('svg');
+        svg.append(shape.el.cloneNode(true));
+        b.append(preview);
+        svg.setAttribute("viewBox", getViewBoxDim(shape));
     };
 
     let svgElement = (key, el) => {
@@ -372,18 +396,13 @@ let Layers = (layers, draw) => {
         let key = uniqueKey();
         b.dataset.el = key;
         svgElement(key, shape.el);
-        addContent(b, shape.el);
-        let preview = document.createElement('span');
-        preview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358"></svg>';
-        let svg = preview.querySelector('svg');
-        svg.append(shape.el.cloneNode(true));
-        b.append(preview);
-        svg.setAttribute("viewBox", getViewBoxDim(shape));
-        // if (shape.children) {
-        //     shape.children.forEach(Shape=>{
-        //         addLayer(Shape, b)
-        //     })
-        // }
+        b.classList.add(shape.el.nodeName);
+
+        let tools = document.createElement('span');
+        tools.classList.add("tools");
+        b.append(tools);
+
+        addTools(tools, shape);
         return b;
     };
 
