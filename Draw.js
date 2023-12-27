@@ -9,6 +9,7 @@ class Draw {
     nodeHandle = false;
     svgOffset = [10,10];
     posOffset = [0,0];
+    buffer = [];
 
     mousePos(e, snap){
         //let svgOffset = this.svg.getBoundingClientRect();
@@ -35,6 +36,8 @@ class Draw {
     }
 
     start(e){
+
+        this.buffer = [];
 
         let startPos = this.mousePos(e, this.action === "draw");
         let lastPos = startPos;
@@ -196,27 +199,37 @@ class Draw {
             let angle = this.getAngle(center, pos);
             action(pos, angle, center);
             this.redrawShape(this.shape);
+            this.buffer.push(pos);
             lastPos = pos;
             lastAngle = angle;
         };
 
         let stop = () => {
             this.svg.removeEventListener("mousemove", move);
-            this.svg.removeEventListener("dblclick", stop);
-            this.svg.removeEventListener("mouseup", stop);
+            this.svg.removeEventListener(this.type === "path" ? "dblclick" : "mouseup", stop);
             //guide.remove();
             this.svg.dispatchEvent(new CustomEvent("updated", { detail: this.shape }));
             this.shape = null;
             this.nodeHandle = null;
+            let l = this.buffer.length;
+            //console.log(this.buffer[0], this.buffer[Math.floor(l/3)], this.buffer[l-1]);
+            let test = this.createShape("path");
+            test.d = [
+                {
+                    command:"M",
+                    params:this.buffer[0]
+                },
+                {
+                    command:"Q",
+                    params:[...this.buffer[Math.floor(l/3)], ...this.buffer[l-1]]
+                }
+            ];
+            this.redrawShape(test);
         };
 
         this.svg.addEventListener("mousemove", move, false);
+        this.svg.addEventListener(this.type === "path" ? "dblclick" : "mouseup", stop);
 
-        if (this.type === "path") {
-            this.svg.addEventListener("dblclick", stop);
-        } else {
-            this.svg.addEventListener("mouseup", stop);
-        }
     }
 
     constructor(svg) {
@@ -226,11 +239,6 @@ class Draw {
         let test = true;
 
         let start = null;
-
-        this.svg.addEventListener("dblclick", (e) => {
-            console.log("init dblclick");
-            //console.log("doubleclick", e);
-        });
 
         this.svg.addEventListener("mousedown", (e) => {
 
