@@ -8,18 +8,23 @@ let Tools = (tools, draw) => {
         buttons.forEach(el => {
             el.classList.remove("active");
         });
-        for (var i in data) {
 
+        for (var i in data) {
             buttons.forEach(el => {
                 if (el.dataset[i] === data[i]) {
+
+                    if (target) {
+                        el.replaceWith(target.cloneNode(true));
+                    }
+
                     el.classList.add("active");
                 }
             });
         }
 
-        if (target) {
-            tools.querySelector(':scope > li > [data-action="'+data.action+'"] use').setAttribute("href", target.querySelector("use").getAttribute("href"));
-        }
+        // if (target) {
+        //     tools.querySelector(':scope > li > [data-action="'+data.action+'"] use').setAttribute("href", target.querySelector("use").getAttribute("href"));
+        // }
 
     };
 
