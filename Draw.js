@@ -39,7 +39,6 @@ class Draw {
 
         let startPos = this.mousePos(e, this.action === "draw");
         let lastPos = startPos;
-
         this.buffer = [startPos];
 
         console.log({
@@ -97,7 +96,6 @@ class Draw {
         }
 
         if (!this.shape && this.action === "draw") {
-
             this.shape = this.createShape(this.type, startPos);
             this.children.push(this.shape);
             this.svg.dispatchEvent(new CustomEvent("added", { detail: this.shape }));
@@ -158,9 +156,9 @@ class Draw {
                 let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
                 this.resizeShape(this.shape, pos, quadrant, lastPos);
             } else if (this.shape.type === "path") {
-                if (e.buttons) {
+                if (this.action === "draw" && e.buttons && this.buffer.length > 3) {
                     let command = this.shape.d[this.nodeHandle.index];
-                    if (command.command === "L") {
+                    if (command.command !== "Q") {
                         command.command = "Q";
                     }
                     command.params = [...this.buffer[Math.floor(this.buffer.length/3)], ...pos];
@@ -242,7 +240,6 @@ class Draw {
                     this.start(e);
                 }
             } else {
-                console.log("init mousedown");
                 start = setTimeout(() => {
                     this.start(e);
                 }, 100);
@@ -251,10 +248,9 @@ class Draw {
 
         //Debounce
         this.svg.addEventListener("mouseup", (e) => {
-            console.log("mouseup");
             clearTimeout(start);
             if (this.action === "draw" && this.type === "path") {
-                if (this.shape) {
+                if (this.shape && this.buffer.length > 1) {//Has drawn with button pressed
                     let startPos = this.mousePos(e);
                     this.buffer = [startPos];
                     this.shape.d.push({
@@ -275,7 +271,12 @@ class Draw {
 
         if (Shape) {
 
-            let positions = this.getClosestShapePos(Shape, startPos);
+            //let positions = this.getClosestShapePos(Shape, startPos);
+
+            let positions = this.getShapePosDistance(this.getShapePos(Shape), startPos)
+            .sort(function(a, b){
+                return a.distance - b.distance;
+            });
 
             if (positions.length) {// && positions[0].distance < 10
 
@@ -287,7 +288,6 @@ class Draw {
 
                         if (nodeHandle.command === "L") {
 
-                            console.log("Shape.d[nodeHandle.index]", Shape.d[nodeHandle.index]);
                             //
                             // Shape.d[nodeHandle.index].command = "Q";
                             // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
@@ -829,16 +829,15 @@ class Draw {
             let starty = position.params[1] - pos[1];
             position.distance = Math.sqrt(startx*startx+starty*starty);
         }
-    }
-
-    getClosestShapePos(shape, pos){
-        let positions = this.getShapePos(shape);
-        this.getShapePosDistance(positions, pos);
-        positions.sort(function(a, b){
-            return a.distance - b.distance;
-        });
         return positions;
     }
+
+    // getClosestShapePos(shape, pos){
+    //     return this.getShapePosDistance(this.getShapePos(shape), pos)
+    //     .sort(function(a, b){
+    //         return a.distance - b.distance;
+    //     });
+    // }
 
     getShapeAttr(Shape, p){
         if (Shape.type==="line") {
@@ -847,27 +846,59 @@ class Draw {
         return null;
     }
 
-    getPos(shapes, pos, shape){
+    getPos(shapes, pos, el){
         let positions = [];
         for (let i = 0; i < shapes.length; i++) {
-            if (!shape || shapes[i].el !== shape) {
-                let shapePositions = this.getClosestShapePos(shapes[i], pos);
+
+            if (!el || el !== shapes[i].el || (el === shapes[i].el && shapes[i].type === "path" && this.nodeHandle && this.nodeHandle.index > 1)) {
+                let shapePositions = this.getShapePos(shapes[i]);
+                if (el === shapes[i].el) {
+                    shapePositions = shapePositions.slice(0, this.nodeHandle.index - 1);
+                }
                 if (shapePositions.length) {
-                    let closest = shapePositions[0];
+                    let closest = this.getShapePosDistance(shapePositions, pos)
+                        .sort(function(a, b){
+                            return a.distance - b.distance;
+                        })[0];
                     closest.shape = shapes[i];
                     positions.push(closest);
                 }
+
             }
+
+            // if (!el || shapes[i].el !== el) {
+            //     let shapePositions = this.getClosestShapePos(shapes[i], pos);
+            //     if (shapePositions.length) {
+            //         let closest = shapePositions[0];
+            //         closest.shape = shapes[i];
+            //         positions.push(closest);
+            //     }
+            // }
+            //
+            // if (el && shapes[i].el === el) {
+            //
+            //     if (shapes[i].type === "path") {
+            //
+            //         if (this.nodeHandle.index > 1) {//At least two commands in
+            //             let closest = this.getShapePosDistance(this.getShapePos(shapes[i]).slice(0, this.nodeHandle.index - 1), pos)
+            //             .sort(function(a, b){
+            //                 return a.distance - b.distance;
+            //             })[0];
+            //             closest.shape = shapes[i];
+            //             positions.push(closest);
+            //         }
+            //     }
+            // }
+
             if (shapes[i].children) {
-                positions.push(...this.getPos(shapes[i].children, pos, shape));
+                positions.push(...this.getPos(shapes[i].children, pos, el));
             }
         }
         return positions;
     }
 
-    getClosestPos(pos, shape) {
-        let positions = this.getPos(this.children, pos, shape);
-        //console.log("positions",positions);
+    getClosestPos(pos, el) {
+        let positions = this.getPos(this.children, pos, el);
         positions.sort(function(a, b){
             return a.distance - b.distance;
         });
