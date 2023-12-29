@@ -148,6 +148,8 @@ class Draw {
         let move = (e) => {
             let pos = this.mousePos(e, true);
             let angle = this.getAngle(center, pos);
+            //console.log("angle", (angle * 180) / Math.PI, center, pos);
+            //console.log("center", center);
             if (this.action === "rotate") {
                 this.rotateShape(this.shape, center, angle, lastAngle);
             } else if (this.action === "move") {
@@ -183,6 +185,7 @@ class Draw {
                 this.shape.height = pos[1] - startPos[1];
             }
             this.redrawShape(this.shape);
+
             if (e.buttons) {
                 this.buffer.push(pos);
             }
@@ -344,9 +347,9 @@ class Draw {
 
     }
 
-    getAngle(p1, p2){
-        let dx = p1[0] - p2[0];
-        let dy = p1[1] - p2[1];
+    getAngle(center, p2){
+        let dx = p2[0] - center[0];
+        let dy = p2[1] - center[1];
         return Math.atan2(dy, dx);
     }
 
@@ -474,13 +477,15 @@ class Draw {
         //let radians = (Math.PI / 180) * angle;
         let cos = Math.cos(radians);
         let sin = Math.sin(radians);
-        let nx = (cos * (pos[0] - center[0])) + (sin * (pos[1] - center[1])) + center[0];
-        let ny = (cos * (pos[1] - center[1])) - (sin * (pos[0] - center[0])) + center[1];
+        let dx = pos[0] - center[0];
+        let dy = pos[1] - center[1];
+        let nx = center[0] + (cos * dx) - (sin * dy);
+        let ny = center[1] + (cos * dy) + (sin * dx);
         return [nx, ny];
     }
 
     rotateShape(Shape, center, angle, lastAngle){
-
+        //console.log("angle", (angle * 180) / Math.PI);
         let diffAngle = angle - lastAngle;
 
         if (Shape.type === "path") {
@@ -492,7 +497,31 @@ class Draw {
                 if (t.command.match(/[Aa]/)) {
 
                     for (let v=0;v<t.params.length;v+=7) {
-                        t.params[v+2] += angle;
+
+                        // let cos = Math.cos(diffAngle);
+                        // let sin = Math.sin(diffAngle);
+                        // let nx = t.params[v] * cos - t.params[v+1] * sin;
+                        // let ny = t.params[v] * sin + t.params[v+1] * cos;
+                        // t.params[v] = nx;
+                        // t.params[v+1] = ny;
+
+                        let nx = t.params[v];
+                        let ny = t.params[v+1];
+
+                        let a = t.params[v+2] + diffAngle * (180 / Math.PI);
+
+                        if (a > 90 || a < 0) {
+                            t.params[v] = ny;
+                            t.params[v + 1] = nx;
+                            if (a < 0) {
+                                t.params[v + 2] = a + 90;
+                            } else {
+                                t.params[v + 2] = a - 90;
+                            }
+                        } else {
+                            t.params[v+2] = a;
+                        }
+
                         let rotated = this.rotate(center, [t.params[v+5], t.params[v+6]], diffAngle);
                         t.params[v+5] = rotated[0];
                         t.params[v+6] = rotated[1];
