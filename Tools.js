@@ -9,18 +9,16 @@ let Tools = (tools, draw) => {
             el.classList.remove("active");
         });
 
-        for (var i in data) {
-            buttons.forEach(el => {
-                if (el.dataset[i] === data[i]) {
-
-                    if (target) {
-                        el.replaceWith(target.cloneNode(true));
-                    }
-
-                    el.classList.add("active");
+        buttons.forEach(el => {
+            if (el.dataset["action"] === data["action"]) {
+                if (target) {
+                    let clone = target.cloneNode(true);
+                    el.replaceWith(clone);
+                    el = clone;
                 }
-            });
-        }
+                el.classList.add("active");
+            }
+        });
 
         // if (target) {
         //     tools.querySelector(':scope > li > [data-action="'+data.action+'"] use').setAttribute("href", target.querySelector("use").getAttribute("href"));
