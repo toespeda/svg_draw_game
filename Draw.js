@@ -37,7 +37,7 @@ class Draw {
 
     start(e){
 
-        let startPos = this.mousePos(e, this.action === "draw");
+        let startPos = this.mousePos(e, this.action === "draw" && !this.type.match(/(circle|ellipse)/));
         let lastPos = startPos;
         this.buffer = [startPos];
 
@@ -146,7 +146,7 @@ class Draw {
         }
 
         let move = (e) => {
-            let pos = this.mousePos(e, true);
+            let pos = this.mousePos(e, !this.type.match(/(circle|ellipse)/));
             let angle = this.getAngle(center, pos);
             //console.log("angle", (angle * 180) / Math.PI, center, pos);
             //console.log("center", center);
@@ -232,7 +232,7 @@ class Draw {
         this.svg.addEventListener("mousedown", (e) => {
             if (this.action === "draw" && this.type === "path") {
                 if (this.shape) {
-                    let startPos = this.mousePos(e);
+                    let startPos = this.mousePos(e, true);
                     this.shape.d.push({
                         command:"L",
                         params:[...startPos]
@@ -254,7 +254,7 @@ class Draw {
             clearTimeout(start);
             if (this.action === "draw" && this.type === "path") {
                 if (this.shape && this.buffer.length > 1) {//Has drawn with button pressed
-                    let startPos = this.mousePos(e);
+                    let startPos = this.mousePos(e, true);
                     this.buffer = [startPos];
                     this.shape.d.push({
                         command: "L",
