@@ -10,6 +10,7 @@ class Draw {
     svgOffset = [10,10];
     posOffset = [0,0];
     buffer = [];
+    group = null;
 
     mousePos(e, snap){
         //let svgOffset = this.svg.getBoundingClientRect();
@@ -23,12 +24,12 @@ class Draw {
         return pos;
     }
 
-    createGuide(){
+    createGuide(x, y, width, height){
         let guide = document.createElement("div");
-        guide.style.top = this.shape.basePos.y + "px";
-        guide.style.left = this.shape.basePos.x + "px";
-        guide.style.width = this.shape.basePos.width + "px";
-        guide.style.height = this.shape.basePos.height + "px";
+        guide.style.top = y + "px";
+        guide.style.left = x + "px";
+        guide.style.width = width + "px";
+        guide.style.height = height + "px";
         guide.style.pointerEvents = "none";
         guide.style.outline = "1px solid orange";
         guide.classList.add("guide");
@@ -46,6 +47,8 @@ class Draw {
             "action" : this.action,
             "symbol" : this.symbol
         });
+
+        let clipping = null;
 
         // this.svg.classList.add("gettarget");
         // let targetElement = document.elementFromPoint(e.clientX, e.clientY);
@@ -93,6 +96,25 @@ class Draw {
             this.shape = this.getShapeByElement(e.target);
             //this.setActionByPos(this.shape, startPos);
 
+            if (this.shape) {
+                let clipPath = this.shape.el.getAttribute("clip-path");
+                if (clipPath) {
+                    let clipPathId = clipPath.replace(/(^url\(["']?|["']?\)$)/gi, '');
+                    let clipPathElement = clipPathId ? this.svg.querySelector(clipPathId) : null;
+                    if (clipPathElement) {
+                        let group = [];
+                        [...clipPathElement.children].forEach(el => {
+                            clipping = this.getShapeByElement(el);
+                            if (clipping) {
+                                group.push(clipping);
+                            }
+                        });
+                        if (group.length) {
+                            this.group = group;
+                        }
+                    }
+                }
+            }
         }
 
         if (!this.shape && this.action === "draw") {
@@ -126,9 +148,15 @@ class Draw {
             this.shape = this.duplicateShape(this.shape);
         }
 
-        this.shape.basePos = this.getShapeDim(this.shape);
+        this.shape.basePos = this.getShapeDim(clipping || this.shape);
+
+        console.log("this.shape.basePos", this.shape.basePos);
+
+        // console.log("clipping", clipping);
 
         let center = [this.shape.basePos.x + this.shape.basePos.width/2, this.shape.basePos.y + this.shape.basePos.height/2];
+
+        let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
 
         let lastAngle = this.getAngle(center, startPos);
 
@@ -140,23 +168,41 @@ class Draw {
                 this.convertToPath(this.shape);
                 this.redrawShape(this.shape);
             } else if (this.shape.type === "rect") {
-                this.convertToPath(this.shape);
-                this.redrawShape(this.shape);
+                // this.convertToPath(this.shape);
+                // this.redrawShape(this.shape);
             }
         }
+
+        console.log("center", center);
+
+
+        // this.resizeShape(this.shape, quadrant, center, [startPos[0] * 1.2, startPos[1] * 1.2], lastPos);
+        // this.redrawShape(this.shape);
 
         let move = (e) => {
             let pos = this.mousePos(e, !this.type.match(/(circle|ellipse)/));
             let angle = this.getAngle(center, pos);
             //console.log("angle", (angle * 180) / Math.PI, center, pos);
-            //console.log("center", center);
+
             if (this.action === "rotate") {
                 this.rotateShape(this.shape, center, angle, lastAngle);
+                if (this.group) {
+                    this.group.forEach(s => {
+                        this.rotateShape(s, center, angle, lastAngle);
+                    });
+                }
             } else if (this.action === "move") {
                 this.moveShape(this.shape, pos, lastPos);
+                if (this.group) {
+                    this.group.forEach(s => {
+                        this.moveShape(s, pos, lastPos);
+                    });
+                }
+
             } else if (this.action === "resize" || this.action === "insert") {
-                let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
-                this.resizeShape(this.shape, pos, quadrant, lastPos);
+
+                this.resizeShape(this.shape, quadrant, center, pos, lastPos);
+
             } else if (this.shape.type === "path") {
                 if (this.action === "draw" && e.buttons && this.buffer.length > 3) {
                     let command = this.shape.d[this.nodeHandle.index];
@@ -185,6 +231,11 @@ class Draw {
                 this.shape.height = pos[1] - startPos[1];
             }
             this.redrawShape(this.shape);
+            if (this.group) {
+                this.group.forEach(s => {
+                    this.redrawShape(s);
+                });
+            }
 
             if (e.buttons) {
                 this.buffer.push(pos);
@@ -199,6 +250,7 @@ class Draw {
             //guide.remove();
             this.svg.dispatchEvent(new CustomEvent("updated", { detail: this.shape }));
             this.shape = null;
+            this.group = null;
             this.nodeHandle = null;
             // let l = this.buffer.length;
             //console.log(this.buffer[0], this.buffer[Math.floor(l/3)], this.buffer[l-1]);
@@ -347,6 +399,15 @@ class Draw {
 
     }
 
+    parseTransform(a){
+        var b={};
+        for (var i in a = a.match(/(\w+\((\-?\d+\.?\d*e?\-?\d*,?)+\))+/g)){
+            var c = a[i].match(/[\w\.\-]+/g);
+            b[c.shift()] = c;
+        }
+        return b;
+    }
+
     getAngle(center, p2){
         let dx = p2[0] - center[0];
         let dy = p2[1] - center[1];
@@ -471,6 +532,18 @@ class Draw {
                 Shape.el.setAttribute(att,Shape[att]);
             });
         }
+        if (Shape.transform) {
+            // console.log(Shape.transform.map(function(command) {
+            //     return command.command + ' ' + command.params.join(',');
+            // }));
+
+            let t = '';
+            for (let f in Shape.transform) {
+                t += f + '('+Shape.transform[f].join(", ")+')';
+            }
+            Shape.el.setAttribute("transform",t);
+
+        }
     }
 
     rotate(center, pos, radians) {
@@ -512,11 +585,11 @@ class Draw {
 
                         if (a > 90 || a < 0) {
                             t.params[v] = ny;
-                            t.params[v + 1] = nx;
+                            t.params[v+1] = nx;
                             if (a < 0) {
-                                t.params[v + 2] = a + 90;
+                                t.params[v+2] = a + 90;
                             } else {
-                                t.params[v + 2] = a - 90;
+                                t.params[v+2] = a - 90;
                             }
                         } else {
                             t.params[v+2] = a;
@@ -564,57 +637,272 @@ class Draw {
             // Shape.x2 += diff[0];
             // Shape.y2 += diff[1];
 
+        } else if (Shape.type.match(/(rect|image)/)) {
+
+            let rotated = this.rotate(center, [Shape.x, Shape.y], diffAngle);
+
+            // Shape.x = rotated[0];
+            // Shape.y = rotated[1];
+            // console.log("angle", angle * (180 / Math.PI));
+
+            if (!Shape.transform) {
+                let t = Shape.el.getAttribute("transform");
+                Shape.transform = t ? this.parseTransform(t) : {};
+            }
+
+            Shape.transform.rotate = Shape.transform.rotate || [0, center[0], center[1]];
+            Shape.transform.rotate[0] += (diffAngle * (180 / Math.PI));
+            //console.log(Shape.transform);
+
         }
 
     }
 
-    resizeShape(Shape, pos, handle, lastPos){
+    resizeShape(Shape, handle, center, pos, lastPos){
+
+        //console.log("handle", handle);
 
         let diff = [
             pos[0] - lastPos[0],
             pos[1] - lastPos[1]
         ];
 
+        //console.log("diff[1]", diff[1]);
+
         let opposites = [
             Shape.basePos[handle[0] ? "left" : "right"],
             Shape.basePos[handle[1] ? "top" : "bottom"]
         ];
 
+        // console.log("Shape.basePos", Shape.basePos);
+
+        // console.log("opposites", opposites);
+
         let diffP = [
-            (pos[0] - opposites[0]) / (lastPos[0] - opposites[0]),
-            (pos[1] - opposites[1]) / (lastPos[1] - opposites[1])
+            ((pos[0] - opposites[0]) / (lastPos[0] - opposites[0])),
+            ((pos[1] - opposites[1]) / (lastPos[1] - opposites[1]))
         ];
 
-        //diffP[1] = (pos[1] - Shape.basePos.bottom) / (lastPos[1] - Shape.basePos.bottom);
+        // console.log("(pos[1] - opposites[1]) / (lastPos[1] - opposites[1])", pos[1], opposites[1], lastPos[1], opposites[1]);
 
         if (Shape.type === "path") {
 
             Shape.d.forEach(t => {
 
-                if (t.command.match(/[A]/)) {
+                if (false && t.command.match(/[A]/)) {
 
-                    for (let v in t.params) {
-                        let m = v % 7;
-                        if (m === 0) {//rx
-                            let pos = t.params[v] >= 0;
-                            t.params[v] *= diffP[0];
-                            let neg = t.params[v] < 0;
-                            if (pos && neg || !pos && !neg) {
-                                t.params[+v+4] = +t.params[+v+4] ? 0 : 1;
-                            }
-                        } else if (m === 1) {//ry
-                            let pos = t.params[v] >= 0;
-                            t.params[v] *= diffP[1];
-                            let neg = t.params[v] < 0;
-                            if (pos && neg || !pos && !neg) {
-                                t.params[+v+3] = +t.params[+v+3] ? 0 : 1;
-                            }
-                        } else if (m === 5) {
-                            t.params[v] = Shape.basePos.x + ((t.params[v] - Shape.basePos.x) * diffP[0]);
-                        } else if (m === 6) {
-                            t.params[v] = Shape.basePos.y + ((t.params[v] - Shape.basePos.y) * diffP[1]);
+                    for (let v = 0; v < t.params.length; v += 7) {
+                        let angle = t.params[+v + 2];
+                        let radians = (Math.PI / 180) * angle;
+
+                        let cos = Math.cos(radians);
+                        let sin = Math.sin(radians);
+
+                        let radii = [
+                            t.params[v] * diffP[0],   // Adjust x-radius based on x scaling factor
+                            t.params[+v + 1] * diffP[1] // Adjust y-radius based on y scaling factor
+                        ];
+
+                        let nx, ny;
+
+                        if (angle === 90 || angle === -270) {
+                            // Handle rotation of 90 degrees separately
+                            nx = -sin * radii[1];
+                            ny = cos * radii[0];
+                        } else {
+                            // Apply standard rotation for other angles
+                            nx = cos * radii[0] - sin * radii[1];
+                            ny = sin * radii[0] + cos * radii[1];
                         }
+
+                        t.params[v] = nx;
+                        t.params[+v + 1] = ny;
+
+                        t.params[+v + 5] = Shape.basePos.x + ((t.params[+v + 5] - Shape.basePos.x) * diffP[0]);
+                        t.params[+v + 6] = Shape.basePos.y + ((t.params[+v + 6] - Shape.basePos.y) * diffP[1]);
                     }
+
+                } else if (false && t.command.match(/[A]/)) {
+
+                    for (let v = 0; v < t.params.length; v += 7) {
+                        let angle = t.params[+v + 2];
+                        let radians = (Math.PI / 180) * angle;
+
+                        let cos = Math.cos(radians);
+                        let sin = Math.sin(radians);
+
+                        // Adjust x-radius based on x scaling factor
+                        let scaleX = Math.abs(diffP[0]);
+                        let scaleY = Math.abs(diffP[1]);
+
+                        let nx = cos * t.params[v] * scaleX - sin * t.params[+v + 1] * scaleY;
+                        let ny = sin * t.params[v] * scaleX + cos * t.params[+v + 1] * scaleY;
+
+                        t.params[v] = nx;
+                        t.params[+v + 1] = ny;
+
+                        // Adjust x and y based on the scaling factors
+                        t.params[+v + 5] = Shape.basePos.x + ((t.params[+v + 5] - Shape.basePos.x) * diffP[0]);
+                        t.params[+v + 6] = Shape.basePos.y + ((t.params[+v + 6] - Shape.basePos.y) * diffP[1]);
+                    }
+
+
+                } else if (t.command.match(/[A]/)) {
+
+                    for (let v = 0; v < t.params.length; v += 7) {
+
+                        // let angle = t.params[+v+2];
+                        //
+                        // let radians = (Math.PI / 180) * angle;
+                        //
+                        // let cos = Math.cos(radians);
+                        // let sin = Math.sin(radians);
+                        //
+                        // console.log("diffP", diffP);
+                        //
+                        // let radii = [
+                        //     ((cos * diffP[0]) - (sin * diffP[1])),
+                        //     ((cos * diffP[1]) + (sin * diffP[0]))
+                        // ];
+                        //
+                        // console.log("radii", radii);
+
+                        let nx = (t.params[v] * diffP[0]);
+                        let ny = (t.params[+v+1] * diffP[1]);
+
+                        t.params[v] = nx;
+                        t.params[+v+1] = ny;
+
+                        t.params[+v+5] = (Shape.basePos.x + ((t.params[+v+5] - Shape.basePos.x) * diffP[0]));
+                        t.params[+v+6] = (Shape.basePos.y + ((t.params[+v+6] - Shape.basePos.y) * diffP[1]));
+
+                    }
+
+                } else if (false && t.command.match(/[A]/)) {
+
+                    for (let v = 0; v < t.params.length; v += 7) {
+                        let angle = t.params[+v + 2];
+                        let radians = (Math.PI / 180) * angle;
+
+                        let cos = Math.cos(radians);
+                        let sin = Math.sin(radians);
+
+                        let scaleRx = Math.abs(diffP[0]) * t.params[v];
+                        let scaleRy = Math.abs(diffP[1]) * t.params[+v + 1];
+
+                        let nx = cos * scaleRx - sin * scaleRy;
+                        let ny = sin * scaleRx + cos * scaleRy;
+
+                        t.params[v] = Math.abs(nx);
+                        t.params[+v + 1] = Math.abs(ny);
+
+                        // Adjust x and y based on the scaling factors
+                        t.params[+v + 5] = Shape.basePos.x + ((t.params[+v + 5] - Shape.basePos.x) * diffP[0]);
+                        t.params[+v + 6] = Shape.basePos.y + ((t.params[+v + 6] - Shape.basePos.y) * diffP[1]);
+
+                        // Adjust large-arc-flag and sweep-flag based on orientation
+                        if (diffP[0] < 0 && diffP[1] < 0) {
+                            t.params[+v + 4] = t.params[+v + 4] ? 0 : 1; // Toggle large-arc-flag
+                        }
+                        // Add more conditions as needed for other orientations
+                    }
+
+                } else if (false && t.command.match(/[A]/)) {
+
+                    // for (let v = 0; v < t.params.length; v += 7) {
+                    //
+                    //     let scaleRx = t.params[v] * diffP[0];
+                    //     let scaleRy = t.params[v + 1] * diffP[1];
+                    //
+                    //     // Calculate new x and y based on the scaling factor
+                    //     let newX = t.params[v + 5] + (t.params[v] - scaleRx) / 2;
+                    //     let newY = t.params[v + 6] + (t.params[v + 1] - scaleRy) / 2;
+                    //
+                    //     // Update parameters
+                    //     t.params[v] = scaleRx;
+                    //     t.params[v + 1] = scaleRy;
+                    //     t.params[v + 5] = newX;
+                    //     t.params[v + 6] = newY;
+                    // }
+
+                    for (let v = 0; v < t.params.length; v += 7) {
+
+                            let angle = t.params[+v+2];
+
+                            console.log("angle", angle);
+
+                            let radians = (Math.PI / 180) * angle;
+
+                            //console.log("radians", radians);
+
+                            let cos = Math.cos(radians);
+                            let sin = Math.sin(radians);
+
+                            // let radii = [
+                            //     (cos * diffP[0]) - (sin * diffP[1]),
+                            //     (cos * diffP[1]) + (sin * diffP[0])
+                            // ];
+
+                            // let radii = [
+                            //     Math.abs(t.params[v] * diffP[0]),   // Adjust x-radius based on x scaling factor
+                            //     Math.abs(t.params[+v + 1] * diffP[1]) // Adjust y-radius based on y scaling factor
+                            // ];
+
+                            console.log("diffP", diffP);
+
+                            //console.log("radii", radii);
+
+                            // let posx = t.params[v] >= 0;
+
+                            //let nx = (t.params[v] * radii[0]);
+
+                            // let negx = nx < 0;
+                            // if (posx && negx || !posx && !negx) {
+                            //     t.params[+v+4] = +t.params[+v+4] ? 0 : 1;
+                            // }
+
+                            // let posy = t.params[+v+1] >= 0;
+
+                            //let ny = (t.params[+v+1] * radii[1]);
+
+                            // let negy = ny < 0;
+                            //
+                            // if (posy && negy || !posy && !negy) {
+                            //     t.params[+v+4] = +t.params[+v+4] ? 0 : 1;
+                            // }
+
+                            //let nx, ny;
+
+                            // if (angle === 90 || angle === -270) {
+                            //     // Handle rotation of 90 degrees separately
+                            //     nx = -sin * radii[1];
+                            //     ny = cos * radii[0];
+                            // } else {
+                                // Apply standard rotation for other angles
+                                // nx = cos * radii[0] - sin * radii[1];
+                                // ny = sin * radii[0] + cos * radii[1];
+                            //}
+
+                            let scaleX = Math.abs(diffP[0]);
+                            let scaleY = Math.abs(diffP[1]);
+
+                            let nx = cos * t.params[v] * scaleX - sin * t.params[+v + 1] * scaleY;
+                            let ny = sin * t.params[v] * scaleX + cos * t.params[+v + 1] * scaleY;
+
+                            t.params[v] = nx;
+                            t.params[+v+1] = ny;
+
+                            // console.log("ny", ny);
+
+
+                            t.params[+v+5] = (Shape.basePos.x + ((t.params[+v+5] - Shape.basePos.x) * diffP[0]));
+                            t.params[+v+6] = (Shape.basePos.y + ((t.params[+v+6] - Shape.basePos.y) * diffP[1]));
+
+
+                    }
+
+                    console.log("A", t.params);
+
                 } else if (t.command.match(/[a]/)) {
 
                     for (let v in t.params) {
@@ -647,11 +935,13 @@ class Draw {
                     for (let v in t.params) {
                         if (v % 2) {
 
-                            t.params[v] = Shape.basePos.y + ((t.params[v] - Shape.basePos.y) * diffP[1]);
+                            t.params[v] = (Shape.basePos.y + ((t.params[v] - Shape.basePos.y) * diffP[1])).toFixed(1);
+                            //t.params[v] = parseInt(t.params[v] * diffP[1]);
 
                         } else {
 
-                            t.params[v] = Shape.basePos.x + ((t.params[v] - Shape.basePos.x) * diffP[0]);
+                            t.params[v] = (Shape.basePos.x + ((t.params[v] - Shape.basePos.x) * diffP[0])).toFixed(1);
+                            //t.params[v] = parseInt(t.params[v] * diffP[0]);
 
                         }
                     }
@@ -695,41 +985,51 @@ class Draw {
     }
 
     getShapeDim(shape) {
-        let dim = {x:0,y:0,width:0,height:0,top:0,right:0,bottom:0,left:0};
 
-        if (shape.type === "circle") {
-            dim.left = dim.x = shape.cx - shape.r;
-            dim.right = shape.cx + shape.r;
-            dim.top = dim.y = shape.cy - shape.r;
-            dim.bottom = shape.cy + shape.r;
-        } else if (shape.type === "ellipse") {
-            dim.left = dim.x = shape.cx - shape.rx;
-            dim.right = shape.cx + shape.rx;
-            dim.top = dim.y = shape.cy - shape.ry;
-            dim.bottom = shape.cy + shape.ry;
-        } else if (shape.type === "rect") {
-            dim.left = dim.x = shape.x;
-            dim.right = shape.x + shape.width;
-            dim.top = dim.y = shape.y;
-            dim.bottom = shape.y + shape.height;
-        } else {
-            let positions = this.getShapePos(shape);
-            if (positions.length) {
-                positions.sort(function (a, b) {
-                    return a.params[0] - b.params[0];
-                });
-                dim.left = dim.x = positions[0].params[0];
-                dim.right = positions[positions.length - 1].params[0];
-                positions.sort(function (a, b) {
-                    return a.params[1] - b.params[1];
-                });
-                dim.top = dim.y = positions[0].params[1];
-                dim.bottom = positions[positions.length - 1].params[1];
-            }
-        }
-        dim.width = dim.right - dim.left;
-        dim.height = dim.bottom - dim.top;
+
+        let dim = shape.el.getBBox();
+        dim.top = dim.y;
+        dim.right = dim.x + dim.width;
+        dim.bottom = dim.y + dim.height;
+        dim.left = dim.x;
         return dim;
+
+        // let dim = {x:0,y:0,width:0,height:0,top:0,right:0,bottom:0,left:0};
+        //
+        // if (shape.type === "circle") {
+        //     dim.left = dim.x = shape.cx - shape.r;
+        //     dim.right = shape.cx + shape.r;
+        //     dim.top = dim.y = shape.cy - shape.r;
+        //     dim.bottom = shape.cy + shape.r;
+        // } else if (shape.type === "ellipse") {
+        //     dim.left = dim.x = shape.cx - shape.rx;
+        //     dim.right = shape.cx + shape.rx;
+        //     dim.top = dim.y = shape.cy - shape.ry;
+        //     dim.bottom = shape.cy + shape.ry;
+        // } else if (shape.type.match(/(rect|image)/)) {
+        //     dim.left = dim.x = shape.x;
+        //     dim.right = shape.x + shape.width;
+        //     dim.top = dim.y = shape.y;
+        //     dim.bottom = shape.y + shape.height;
+        // } else {
+        //     let positions = this.getShapePos(shape);
+        //     if (positions.length) {
+        //         positions.sort(function (a, b) {
+        //             return a.params[0] - b.params[0];
+        //         });
+        //         dim.left = dim.x = positions[0].params[0];
+        //         dim.right = positions[positions.length - 1].params[0];
+        //         positions.sort(function (a, b) {
+        //             return a.params[1] - b.params[1];
+        //         });
+        //         dim.top = dim.y = positions[0].params[1];
+        //         dim.bottom = positions[positions.length - 1].params[1];
+        //     }
+        // }
+        // dim.width = dim.right - dim.left;
+        // dim.height = dim.bottom - dim.top;
+        //
+        // return dim;
     }
 
     getShapePos(shape) {

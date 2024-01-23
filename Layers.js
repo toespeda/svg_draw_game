@@ -169,7 +169,7 @@ let Layers = (layers, draw) => {
                 }
 
                 [...el.attributes].forEach(att => {
-                    attr[att.nodeName] = att.nodeValue.replace(/\n\t*/g,'\n').replace(/^\s*|\s*$/g,'');
+                    attr[att.nodeName] = att.nodeValue.replace(/\n\t*/g,'\n').replace(/^\s*|\s*$/g,'').replace(/\n\s*/g,'\n').replace(/(?<!\n)([MmLlSsQqLlHhVvCcSsQqTtAaZz])/g, '\n$1');
                 });
 
                 let getInput = (name, value) => {
@@ -215,8 +215,12 @@ let Layers = (layers, draw) => {
                     e.preventDefault();
                     addNewAttribute();
                     const params = new FormData(e.target);
+
                     [...params.entries()].forEach(v => {
                         el.setAttribute(v[0], v[1]);
+                        if (v[0] === "id" && v[1]) {
+                            findElement(el).querySelector(".tools .title").setAttribute("title", v[1]);
+                        }
                     });
                     let shape = draw.getShapeByElement(el);
                     draw.setShapeAttributes(shape);
@@ -282,21 +286,12 @@ let Layers = (layers, draw) => {
         if (e.target.classList.contains("title")) {//Adjust popover
             let t = document.createElement("span");
             t.appendChild(e.target.childNodes[0].cloneNode());
-            //let t = e.target.cloneNode(true);
             document.body.appendChild(t);
-
-
             let icontip = e.target.nextElementSibling;
-
             let margin = e.target.offsetLeft - icontip.offsetLeft + t.offsetWidth/2;
-
             //let margin = (-100 + t.offsetWidth/2 - 5);
-
             //e.target.nextElementSibling.style.margin = "0 " + margin + "px 0 -" + margin + "px";//Min-width, middle and margin
-
             icontip.style.setProperty("--margin", margin + "px");
-
-
             t.remove();
         }
         // if (e.target.nodeName.toLowerCase() === "div") {
@@ -316,13 +311,7 @@ let Layers = (layers, draw) => {
         // }
     });
 
-    // draw.svg.addEventListener("update", (e) => {
-    //     layers.innerHTML = "";
-    //     draw.init();
-    // });
-
     let addTools = (b, shape) => {
-
 
         let title = shape.el.getAttribute("title") || shape.el.nodeName;
         b.innerHTML = '<span class="title" title="">' + title + '</span> <span class="icontip" title="' + (shape.el.getAttribute("id") || "") + '"></span> <span class="remove">x</span> <span class="merge">v</span> <!--<span class="visibility">o</span>--> <span class="display"></span> <span class="error"></span> <span class="success"></span> <span class="attributes">attr</span>';
@@ -341,12 +330,14 @@ let Layers = (layers, draw) => {
             b.querySelector("."+s[2]).classList.add(s[1]);
         }
 
-        let preview = document.createElement('span');
-        preview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358"></svg>';
-        let svg = preview.querySelector('svg');
-        svg.append(shape.el.cloneNode(true));
-        b.append(preview);
-        svg.setAttribute("viewBox", getViewBoxDim(shape));
+        if (shape.el instanceof SVGGraphicsElement) {
+            let preview = document.createElement('span');
+            preview.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358"></svg>';
+            let svg = preview.querySelector('svg');
+            svg.append(shape.el.cloneNode(true));
+            b.append(preview);
+            svg.setAttribute("viewBox", getViewBoxDim(shape));
+        }
     };
 
     let svgElement = (key, el) => {
@@ -375,9 +366,11 @@ let Layers = (layers, draw) => {
     }
 
     let updateLayer = (shape) => {
-        let svg = findElement(shape.el).querySelector('svg');
-        svg.children[0].replaceWith(shape.el.cloneNode(true));
-        svg.setAttribute("viewBox", getViewBoxDim(shape));
+        if (shape.el instanceof SVGGraphicsElement) {
+            let svg = findElement(shape.el).querySelector('svg');
+            svg.children[0].replaceWith(shape.el.cloneNode(true));
+            svg.setAttribute("viewBox", getViewBoxDim(shape));
+        }
     }
 
     let getViewBoxDim = (shape) => {
