@@ -278,7 +278,6 @@ let Layers = (layers, draw) => {
 
     layers.addEventListener("sorted", (e) => {
         //Rearrange shapes
-        console.log(e.detail);
         draw.shapeStack(e.detail.startIndex, e.detail.endIndex, svgElement(e.detail.startContainer.dataset.el), svgElement(e.detail.endContainer.dataset.el));
     }, false);
 
@@ -294,21 +293,6 @@ let Layers = (layers, draw) => {
             icontip.style.setProperty("--margin", margin + "px");
             t.remove();
         }
-        // if (e.target.nodeName.toLowerCase() === "div") {
-        //     let shape = svgElement(e.target.dataset.el);
-        //     if (shape) {
-        //         shape.style.stroke = "#0000ff";
-        //     }
-        // }
-    });
-
-    layers.addEventListener("mouseout", (e) => {
-        // if (e.target.nodeName.toLowerCase() === "div") {
-        //     let shape = svgElement(e.target.dataset.el);
-        //     if (shape) {
-        //         shape.style.stroke = "";
-        //     }
-        // }
     });
 
     let addTools = (b, shape) => {

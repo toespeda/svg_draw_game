@@ -13,7 +13,6 @@ class Draw {
     group = null;
 
     mousePos(e, snap){
-        //let svgOffset = this.svg.getBoundingClientRect();
         let pos = [e.clientX - this.svgOffset[0] + this.posOffset[0], e.clientY - this.svgOffset[1] + this.posOffset[1]];
         if (snap) {
             let edge = this.getClosestPos(pos, this.shape?.el);
@@ -50,9 +49,6 @@ class Draw {
 
         let clipping = null;
 
-        // this.svg.classList.add("gettarget");
-        // let targetElement = document.elementFromPoint(e.clientX, e.clientY);
-        // this.svg.classList.remove("gettarget");
         if (this.action === "node") {
 
             //quadratic curve on lines
@@ -82,14 +78,6 @@ class Draw {
                 let params = this.nodeHandle.params || [this.shape[this.nodeHandle[0]], this.shape[this.nodeHandle[1]]];
                 this.posOffset = [params[0] - startPos[0], params[1] - startPos[1]];
             }
-
-        // } else if (this.action === "draw") {
-        //
-        //     let edge = this.getClosestPos(startPos);
-        //
-        //     if (edge.length) {
-        //         startPos = edge[0].params;
-        //     }
 
         } else if (this.action !== "draw" && this.action !== "insert" && e.target.nodeName.match(/(path|circle|ellipse|line|rect|image)/)) {
 
@@ -150,10 +138,6 @@ class Draw {
 
         this.shape.basePos = this.getShapeDim(clipping || this.shape);
 
-        console.log("this.shape.basePos", this.shape.basePos);
-
-        // console.log("clipping", clipping);
-
         let center = [this.shape.basePos.x + this.shape.basePos.width/2, this.shape.basePos.y + this.shape.basePos.height/2];
 
         let quadrant = [startPos[0] > center[0], startPos[1] > center[1]];
@@ -173,16 +157,9 @@ class Draw {
             }
         }
 
-        console.log("center", center);
-
-
-        // this.resizeShape(this.shape, quadrant, center, [startPos[0] * 1.2, startPos[1] * 1.2], lastPos);
-        // this.redrawShape(this.shape);
-
         let move = (e) => {
             let pos = this.mousePos(e, !this.type.match(/(circle|ellipse)/));
             let angle = this.getAngle(center, pos);
-            //console.log("angle", (angle * 180) / Math.PI, center, pos);
 
             if (this.action === "rotate") {
                 this.rotateShape(this.shape, center, angle, lastAngle);
@@ -252,20 +229,6 @@ class Draw {
             this.shape = null;
             this.group = null;
             this.nodeHandle = null;
-            // let l = this.buffer.length;
-            //console.log(this.buffer[0], this.buffer[Math.floor(l/3)], this.buffer[l-1]);
-            // let test = this.createShape("path");
-            // test.d = [
-            //     {
-            //         command:"M",
-            //         params:this.buffer[0]
-            //     },
-            //     {
-            //         command:"Q",
-            //         params:[...this.buffer[Math.floor(l/3)], ...this.buffer[l-1]]
-            //     }
-            // ];
-            // this.redrawShape(test);
         };
 
         this.svg.addEventListener("mousemove", move, false);
@@ -276,8 +239,6 @@ class Draw {
     constructor(svg) {
 
         this.svg = svg;
-
-        let test = true;
 
         let start = null;
 
@@ -326,8 +287,6 @@ class Draw {
 
         if (Shape) {
 
-            //let positions = this.getClosestShapePos(Shape, startPos);
-
             let positions = this.getShapePosDistance(this.getShapePos(Shape), startPos)
             .sort(function(a, b){
                 return a.distance - b.distance;
@@ -338,32 +297,6 @@ class Draw {
                 if (Shape.type === "path") {
 
                     nodeHandle = positions[0];
-
-                    if (nodeHandle.distance > 10) {//TODO: Convert straight lines L
-
-                        if (nodeHandle.command === "L") {
-
-                            //
-                            // Shape.d[nodeHandle.index].command = "Q";
-                            // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
-                            //
-                            // this.redrawShape(Shape);
-
-                        } else if (Shape.d[nodeHandle.index+1]?.command === "L") {
-
-                            // nodeHandle = {
-                            //     index : nodeHandle.index+1,
-                            //     start : 0
-                            // };
-                            //
-                            // Shape.d[nodeHandle.index].command = "Q";
-                            // Shape.d[nodeHandle.index].params = [...startPos, ...Shape.d[nodeHandle.index].params];
-                            //
-                            // this.redrawShape(Shape);
-
-                        }
-
-                    }
 
                 } else if (Shape.type === "line") {
 
@@ -533,16 +466,11 @@ class Draw {
             });
         }
         if (Shape.transform) {
-            // console.log(Shape.transform.map(function(command) {
-            //     return command.command + ' ' + command.params.join(',');
-            // }));
-
             let t = '';
             for (let f in Shape.transform) {
                 t += f + '('+Shape.transform[f].join(", ")+')';
             }
             Shape.el.setAttribute("transform",t);
-
         }
     }
 
@@ -558,7 +486,7 @@ class Draw {
     }
 
     rotateShape(Shape, center, angle, lastAngle){
-        //console.log("angle", (angle * 180) / Math.PI);
+
         let diffAngle = angle - lastAngle;
 
         if (Shape.type === "path") {
@@ -667,87 +595,21 @@ class Draw {
             pos[1] - lastPos[1]
         ];
 
-        //console.log("diff[1]", diff[1]);
-
         let opposites = [
             Shape.basePos[handle[0] ? "left" : "right"],
             Shape.basePos[handle[1] ? "top" : "bottom"]
         ];
-
-        // console.log("Shape.basePos", Shape.basePos);
-
-        // console.log("opposites", opposites);
 
         let diffP = [
             ((pos[0] - opposites[0]) / (lastPos[0] - opposites[0])),
             ((pos[1] - opposites[1]) / (lastPos[1] - opposites[1]))
         ];
 
-        // console.log("(pos[1] - opposites[1]) / (lastPos[1] - opposites[1])", pos[1], opposites[1], lastPos[1], opposites[1]);
-
         if (Shape.type === "path") {
 
             Shape.d.forEach(t => {
 
-                if (false && t.command.match(/[A]/)) {
-
-                    for (let v = 0; v < t.params.length; v += 7) {
-                        let angle = t.params[+v + 2];
-                        let radians = (Math.PI / 180) * angle;
-
-                        let cos = Math.cos(radians);
-                        let sin = Math.sin(radians);
-
-                        let radii = [
-                            t.params[v] * diffP[0],   // Adjust x-radius based on x scaling factor
-                            t.params[+v + 1] * diffP[1] // Adjust y-radius based on y scaling factor
-                        ];
-
-                        let nx, ny;
-
-                        if (angle === 90 || angle === -270) {
-                            // Handle rotation of 90 degrees separately
-                            nx = -sin * radii[1];
-                            ny = cos * radii[0];
-                        } else {
-                            // Apply standard rotation for other angles
-                            nx = cos * radii[0] - sin * radii[1];
-                            ny = sin * radii[0] + cos * radii[1];
-                        }
-
-                        t.params[v] = nx;
-                        t.params[+v + 1] = ny;
-
-                        t.params[+v + 5] = Shape.basePos.x + ((t.params[+v + 5] - Shape.basePos.x) * diffP[0]);
-                        t.params[+v + 6] = Shape.basePos.y + ((t.params[+v + 6] - Shape.basePos.y) * diffP[1]);
-                    }
-
-                } else if (false && t.command.match(/[A]/)) {
-
-                    for (let v = 0; v < t.params.length; v += 7) {
-                        let angle = t.params[+v + 2];
-                        let radians = (Math.PI / 180) * angle;
-
-                        let cos = Math.cos(radians);
-                        let sin = Math.sin(radians);
-
-                        // Adjust x-radius based on x scaling factor
-                        let scaleX = Math.abs(diffP[0]);
-                        let scaleY = Math.abs(diffP[1]);
-
-                        let nx = cos * t.params[v] * scaleX - sin * t.params[+v + 1] * scaleY;
-                        let ny = sin * t.params[v] * scaleX + cos * t.params[+v + 1] * scaleY;
-
-                        t.params[v] = nx;
-                        t.params[+v + 1] = ny;
-
-                        // Adjust x and y based on the scaling factors
-                        t.params[+v + 5] = Shape.basePos.x + ((t.params[+v + 5] - Shape.basePos.x) * diffP[0]);
-                        t.params[+v + 6] = Shape.basePos.y + ((t.params[+v + 6] - Shape.basePos.y) * diffP[1]);
-                    }
-
-
-                } else if (t.command.match(/[A]/)) {
+                if (t.command.match(/[A]/)) {
 
                     for (let v = 0; v < t.params.length; v += 7) {
 
@@ -777,131 +639,6 @@ class Draw {
                         t.params[+v+6] = (Shape.basePos.y + ((t.params[+v+6] - Shape.basePos.y) * diffP[1]));
 
                     }
-
-                } else if (false && t.command.match(/[A]/)) {
-
-                    for (let v = 0; v < t.params.length; v += 7) {
-                        let angle = t.params[+v + 2];
-                        let radians = (Math.PI / 180) * angle;
-
-                        let cos = Math.cos(radians);
-                        let sin = Math.sin(radians);
-
-                        let scaleRx = Math.abs(diffP[0]) * t.params[v];
-                        let scaleRy = Math.abs(diffP[1]) * t.params[+v + 1];
-
-                        let nx = cos * scaleRx - sin * scaleRy;
-                        let ny = sin * scaleRx + cos * scaleRy;
-
-                        t.params[v] = Math.abs(nx);
-                        t.params[+v + 1] = Math.abs(ny);
-
-                        // Adjust x and y based on the scaling factors
-                        t.params[+v + 5] = Shape.basePos.x + ((t.params[+v + 5] - Shape.basePos.x) * diffP[0]);
-                        t.params[+v + 6] = Shape.basePos.y + ((t.params[+v + 6] - Shape.basePos.y) * diffP[1]);
-
-                        // Adjust large-arc-flag and sweep-flag based on orientation
-                        if (diffP[0] < 0 && diffP[1] < 0) {
-                            t.params[+v + 4] = t.params[+v + 4] ? 0 : 1; // Toggle large-arc-flag
-                        }
-                        // Add more conditions as needed for other orientations
-                    }
-
-                } else if (false && t.command.match(/[A]/)) {
-
-                    // for (let v = 0; v < t.params.length; v += 7) {
-                    //
-                    //     let scaleRx = t.params[v] * diffP[0];
-                    //     let scaleRy = t.params[v + 1] * diffP[1];
-                    //
-                    //     // Calculate new x and y based on the scaling factor
-                    //     let newX = t.params[v + 5] + (t.params[v] - scaleRx) / 2;
-                    //     let newY = t.params[v + 6] + (t.params[v + 1] - scaleRy) / 2;
-                    //
-                    //     // Update parameters
-                    //     t.params[v] = scaleRx;
-                    //     t.params[v + 1] = scaleRy;
-                    //     t.params[v + 5] = newX;
-                    //     t.params[v + 6] = newY;
-                    // }
-
-                    for (let v = 0; v < t.params.length; v += 7) {
-
-                            let angle = t.params[+v+2];
-
-                            console.log("angle", angle);
-
-                            let radians = (Math.PI / 180) * angle;
-
-                            //console.log("radians", radians);
-
-                            let cos = Math.cos(radians);
-                            let sin = Math.sin(radians);
-
-                            // let radii = [
-                            //     (cos * diffP[0]) - (sin * diffP[1]),
-                            //     (cos * diffP[1]) + (sin * diffP[0])
-                            // ];
-
-                            // let radii = [
-                            //     Math.abs(t.params[v] * diffP[0]),   // Adjust x-radius based on x scaling factor
-                            //     Math.abs(t.params[+v + 1] * diffP[1]) // Adjust y-radius based on y scaling factor
-                            // ];
-
-                            console.log("diffP", diffP);
-
-                            //console.log("radii", radii);
-
-                            // let posx = t.params[v] >= 0;
-
-                            //let nx = (t.params[v] * radii[0]);
-
-                            // let negx = nx < 0;
-                            // if (posx && negx || !posx && !negx) {
-                            //     t.params[+v+4] = +t.params[+v+4] ? 0 : 1;
-                            // }
-
-                            // let posy = t.params[+v+1] >= 0;
-
-                            //let ny = (t.params[+v+1] * radii[1]);
-
-                            // let negy = ny < 0;
-                            //
-                            // if (posy && negy || !posy && !negy) {
-                            //     t.params[+v+4] = +t.params[+v+4] ? 0 : 1;
-                            // }
-
-                            //let nx, ny;
-
-                            // if (angle === 90 || angle === -270) {
-                            //     // Handle rotation of 90 degrees separately
-                            //     nx = -sin * radii[1];
-                            //     ny = cos * radii[0];
-                            // } else {
-                                // Apply standard rotation for other angles
-                                // nx = cos * radii[0] - sin * radii[1];
-                                // ny = sin * radii[0] + cos * radii[1];
-                            //}
-
-                            let scaleX = Math.abs(diffP[0]);
-                            let scaleY = Math.abs(diffP[1]);
-
-                            let nx = cos * t.params[v] * scaleX - sin * t.params[+v + 1] * scaleY;
-                            let ny = sin * t.params[v] * scaleX + cos * t.params[+v + 1] * scaleY;
-
-                            t.params[v] = nx;
-                            t.params[+v+1] = ny;
-
-                            // console.log("ny", ny);
-
-
-                            t.params[+v+5] = (Shape.basePos.x + ((t.params[+v+5] - Shape.basePos.x) * diffP[0]));
-                            t.params[+v+6] = (Shape.basePos.y + ((t.params[+v+6] - Shape.basePos.y) * diffP[1]));
-
-
-                    }
-
-                    console.log("A", t.params);
 
                 } else if (t.command.match(/[a]/)) {
 
@@ -936,12 +673,10 @@ class Draw {
                         if (v % 2) {
 
                             t.params[v] = (Shape.basePos.y + ((t.params[v] - Shape.basePos.y) * diffP[1])).toFixed(1);
-                            //t.params[v] = parseInt(t.params[v] * diffP[1]);
 
                         } else {
 
                             t.params[v] = (Shape.basePos.x + ((t.params[v] - Shape.basePos.x) * diffP[0])).toFixed(1);
-                            //t.params[v] = parseInt(t.params[v] * diffP[0]);
 
                         }
                     }
@@ -985,51 +720,12 @@ class Draw {
     }
 
     getShapeDim(shape) {
-
-
         let dim = shape.el.getBBox();
         dim.top = dim.y;
         dim.right = dim.x + dim.width;
         dim.bottom = dim.y + dim.height;
         dim.left = dim.x;
         return dim;
-
-        // let dim = {x:0,y:0,width:0,height:0,top:0,right:0,bottom:0,left:0};
-        //
-        // if (shape.type === "circle") {
-        //     dim.left = dim.x = shape.cx - shape.r;
-        //     dim.right = shape.cx + shape.r;
-        //     dim.top = dim.y = shape.cy - shape.r;
-        //     dim.bottom = shape.cy + shape.r;
-        // } else if (shape.type === "ellipse") {
-        //     dim.left = dim.x = shape.cx - shape.rx;
-        //     dim.right = shape.cx + shape.rx;
-        //     dim.top = dim.y = shape.cy - shape.ry;
-        //     dim.bottom = shape.cy + shape.ry;
-        // } else if (shape.type.match(/(rect|image)/)) {
-        //     dim.left = dim.x = shape.x;
-        //     dim.right = shape.x + shape.width;
-        //     dim.top = dim.y = shape.y;
-        //     dim.bottom = shape.y + shape.height;
-        // } else {
-        //     let positions = this.getShapePos(shape);
-        //     if (positions.length) {
-        //         positions.sort(function (a, b) {
-        //             return a.params[0] - b.params[0];
-        //         });
-        //         dim.left = dim.x = positions[0].params[0];
-        //         dim.right = positions[positions.length - 1].params[0];
-        //         positions.sort(function (a, b) {
-        //             return a.params[1] - b.params[1];
-        //         });
-        //         dim.top = dim.y = positions[0].params[1];
-        //         dim.bottom = positions[positions.length - 1].params[1];
-        //     }
-        // }
-        // dim.width = dim.right - dim.left;
-        // dim.height = dim.bottom - dim.top;
-        //
-        // return dim;
     }
 
     getShapePos(shape) {
@@ -1161,13 +857,6 @@ class Draw {
         return positions;
     }
 
-    // getClosestShapePos(shape, pos){
-    //     return this.getShapePosDistance(this.getShapePos(shape), pos)
-    //     .sort(function(a, b){
-    //         return a.distance - b.distance;
-    //     });
-    // }
-
     getShapeAttr(Shape, p){
         if (Shape.type==="line") {
             return p === "start" ? ["x1", "y1"] : ["x2", "y2"];
@@ -1194,30 +883,6 @@ class Draw {
                 }
 
             }
-
-            // if (!el || shapes[i].el !== el) {
-            //     let shapePositions = this.getClosestShapePos(shapes[i], pos);
-            //     if (shapePositions.length) {
-            //         let closest = shapePositions[0];
-            //         closest.shape = shapes[i];
-            //         positions.push(closest);
-            //     }
-            // }
-            //
-            // if (el && shapes[i].el === el) {
-            //
-            //     if (shapes[i].type === "path") {
-            //
-            //         if (this.nodeHandle.index > 1) {//At least two commands in
-            //             let closest = this.getShapePosDistance(this.getShapePos(shapes[i]).slice(0, this.nodeHandle.index - 1), pos)
-            //             .sort(function(a, b){
-            //                 return a.distance - b.distance;
-            //             })[0];
-            //             closest.shape = shapes[i];
-            //             positions.push(closest);
-            //         }
-            //     }
-            // }
 
             if (shapes[i].children) {
                 positions.push(...this.getPos(shapes[i].children, pos, el));
