@@ -62,8 +62,277 @@
         <div id="examples" class="col">
 
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
+
+                <image href="chalkboard.jpg" height="800" width="1192" class="static" />
+
+                <!--<defs>
+                    <pattern
+                            id="img1"
+                            patternunits="userSpaceOnUse"
+                            width="100"
+                            height="100"
+                    >
+                        <image
+                                href="wall.jpg"
+                                x="0"
+                                y="0"
+                                width="100"
+                                height="100"
+                        >
+                        </image>
+                    </pattern>
+                </defs>-->
+
+                <filter
+                        id="chalk"
+                        height="2"
+                        width="1.6"
+                        color-interpolation-filters="sRGB"
+                        y="-0.5"
+                        x="-0.3"
+                >
+                    <feturbulence
+                            basefrequency="0.32065"
+                            seed="115"
+                            result="result1"
+                            numoctaves="1"
+                            type="turbulence"
+                    >
+                    </feturbulence>
+
+                    <feoffset
+                            result="result2"
+                            dx="-5"
+                            dy="-5"
+                    >
+                    </feoffset>
+
+                    <fedisplacementmap
+                            scale="5"
+                            ychannelselector="G"
+                            in2="result1"
+                            xchannelselector="R"
+                            in="SourceGraphic"
+                    >
+                    </fedisplacementmap>
+
+                    <fegaussianblur
+                            stddeviation="0.5169"
+                    >
+                    </fegaussianblur>
+                </filter>
+
+                <!--<path
+                        d="
+		M5,50
+		l0,100
+		l100,0
+		l0,-100
+		l-100,0
+		M215,100
+		a50,50 0 1 1 -100,0 50,50 0 1 1 100,0
+		M265,50
+		l50,100
+		l-100,0
+		l50,-100
+		z
+	"
+                        fill="url(#img1)"
+                >
+                </path>-->
+
+                <!--<line
+                        stroke="#ffffff"
+                        stroke-width="3"
+                        x1="44"
+                        y1="248"
+                        x2="150"
+                        y2="180"
+                        filter="url(#chalk)"
+                >
+                </line>-->
+
+
+                <g stroke-width="3" stroke="#ffffff" filter="url(#chalk)" class="spread">
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="25"
+                            x2="28"
+                            y1="306"
+                            y2="32"
+                            style=""
+                            class="static"
+                    ></line>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="28"
+                            x2="168"
+                            y1="32"
+                            y2="33"
+                            style=""
+                            class="static"
+                    ></line>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="168"
+                            x2="168"
+                            y1="108"
+                            y2="33"
+                            style=""
+                            class=""
+                    ></line>
+
+                    <circle
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            fill="transparent"
+                            cx="168"
+                            cy="128"
+                            r="19"
+                            style=""
+                            class="hidden-on-success"
+                    ></circle>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="169"
+                            x2="169"
+                            y1="206"
+                            y2="147"
+                            style=""
+                            class="hidden-on-success"
+                    ></line>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="148"
+                            x2="170"
+                            y1="180"
+                            y2="158"
+                            style=""
+                            class="hidden-on-success"
+                    ></line>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="194"
+                            x2="169"
+                            y1="183"
+                            y2="159"
+                            style=""
+                            class="hidden-on-success"
+                    ></line>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="168"
+                            x2="153"
+                            y1="206"
+                            y2="240"
+                            class="hidden-on-success"
+                            style=""
+                    ></line>
+
+                    <line
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            x1="168"
+                            x2="184"
+                            y1="205"
+                            y2="241"
+                            style=""
+                            class="hidden-on-success"
+                    ></line>
+
+                    <path
+                            stroke="#ffffff"
+                            stroke-width="3"
+                            fill="transparent"
+                            stroke-linejoin="round"
+                            d="
+                                M 167,191
+                                M 186,191
+                                A 19,19,0,1,0,148,191
+                                A 19,19,0,1,0,186,191
+                                M 168,269
+                                L 168,210
+                                M 169,221
+                                L 133,206
+                                M 168,222
+                                L 201,203
+                                M 167,269
+                                L 152,303
+                                M 167,268
+                                L 183,304"
+                            style=""
+                            class="visible-on-success"
+                    ></path>
+
+                    <path
+                            d="
+                                M 177.63,136.28
+                                C 175.97,134.11,173.37,132.68,170.4,132.68,167.442,132.68,164.826,134.11,163.179,136.28
+                                M 174.49,126.916
+                                V 124.236
+                                M 166.148,126.95600000000002
+                                V 124.26599999999999
+                                M 164.886,125.656
+                                H 167.559
+                                M 173.17000000000002,125.586
+                                H 175.86"
+                            fill="transparent"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                            style=""
+                            class="visible-on-error"
+                    ></path>
+
+                    <path
+                            d="
+                                M 177.63,188.67000000000002
+                                C 175.97,190.84,173.37,192.26999999999998,170.4,192.26999999999998,167.442,192.26999999999998,164.826,190.84,163.179,188.67000000000002
+                                M 174.49,180.265
+                                V 182.951
+                                M 166.148,180.23000000000002
+                                V 182.916
+                                M 164.886,181.526
+                                H 167.559
+                                M 173.17000000000002,181.599
+                                H 175.86"
+                            fill="transparent"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                            style=""
+                            class="visible-on-success"
+                    ></path>
+
+
+
+                </g>
+
+
+
+
+            </svg>
+
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
                 <path d="M21.561 3.28c-2.684 1.293-4.477 4.116-5.663 7.535-1.186-3.418-2.979-6.242-5.663-7.535-8.595-4.14-11.887 7.734-5.522 12.778h5.281c0 0-1.565-2.74-1.748-3.128-0.281-0.593-1.933-4.882 0.404-3.372 3.163 2.043 3.885 9.337 4.23 12.546 0.347 3.23 0.549 7.495 0.549 7.495h4.936c0 0 0.202-4.265 0.549-7.495 0.345-3.209 1.067-10.503 4.23-12.546 2.338-1.51 0.685 2.78 0.405 3.372-0.183 0.388-1.748 3.128-1.748 3.128h5.281c6.365-5.044 3.073-16.918-5.522-12.778z"></path>
             </svg>
+
+
+
+
             <svg xmlns="http://www.w3.org/2000/svg" width="358" height="358" viewBox="0 0 358 358">
 
                 <path

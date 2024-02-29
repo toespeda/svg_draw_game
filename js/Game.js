@@ -98,7 +98,22 @@ class Game {
         if (!this.str) {
             this.word(prompt("Write word"));
         }
-        this.shapes = [...this.svg.querySelectorAll(":scope > *:not(defs,.static,.visible-on-error,.visible-on-success)")];
+
+        let exclude = "defs,filter,.static,.spread,.visible-on-error,.visible-on-success";
+
+        this.shapes = [...this.svg.querySelectorAll(":scope > *:not("+exclude+")")];
+
+        this.svg.querySelectorAll(":scope > .spread").forEach(el=>{
+            this.shapes = [...this.shapes, ...el.querySelectorAll(":scope > *:not("+exclude+")")];
+        });
+
+        this.shapes.forEach(el=>{
+            el.classList.add("pending");
+        });
+
+        console.log("this.svg.children", this.svg.children);
+        console.log("this.shapes", this.shapes);
+
         this.index = 0;
         this.svg.classList.remove("success", "error");
         this.result.classList.remove("success", "error");
@@ -110,8 +125,6 @@ class Game {
         this.letters.querySelectorAll(".picked").forEach(el => {
             el.classList.remove("picked");
         });
-        this.shapes.forEach(el=>{
-            el.classList.add("pending");
-        });
+
     }
 }
